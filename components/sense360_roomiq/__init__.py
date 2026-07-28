@@ -24,7 +24,7 @@ restated (provisional engineering values, unchanged by PR 09).
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import number, sensor
+from esphome.components import number, sensor, text_sensor
 from esphome.const import CONF_ID
 
 CODEOWNERS = ["@sense360store"]
@@ -44,6 +44,7 @@ CONF_ILLUMINANCE_SOURCE = "illuminance_source"
 CONF_TEMPERATURE_OFFSET_NUMBER = "temperature_offset_number"
 CONF_HUMIDITY_OFFSET_NUMBER = "humidity_offset_number"
 CONF_ILLUMINANCE_SCALE_NUMBER = "illuminance_scale_number"
+CONF_MODULE_STATUS_ID = "module_status_id"
 CONF_CALIBRATION_SCHEMA_VERSION = "calibration_schema_version"
 CONF_CLIMATE_WARMUP = "climate_warmup"
 CONF_CLIMATE_STALE = "climate_stale"
@@ -76,6 +77,11 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_TEMPERATURE_OFFSET_NUMBER): cv.use_id(number.Number),
         cv.Optional(CONF_HUMIDITY_OFFSET_NUMBER): cv.use_id(number.Number),
         cv.Optional(CONF_ILLUMINANCE_SCALE_NUMBER): cv.use_id(number.Number),
+        # The "RoomIQ Module Status" entity is owned by the Core Framework
+        # (CORE-FRAMEWORK-001, packages/base/device_framework.yaml); this
+        # component only feeds it, so it binds by id instead of declaring a
+        # platform type for it.
+        cv.Optional(CONF_MODULE_STATUS_ID): cv.use_id(text_sensor.TextSensor),
         # The persisted schema marker and its one-time migration stay in
         # YAML for this slice (same global id, same stored preference, so
         # the one-time calibration reset can never re-fire on upgrade);
@@ -134,6 +140,7 @@ async def to_code(config):
         (CONF_TEMPERATURE_OFFSET_NUMBER, var.set_temperature_offset_number),
         (CONF_HUMIDITY_OFFSET_NUMBER, var.set_humidity_offset_number),
         (CONF_ILLUMINANCE_SCALE_NUMBER, var.set_illuminance_scale_number),
+        (CONF_MODULE_STATUS_ID, var.set_module_status_text_sensor),
     ):
         if key in config:
             bound = await cg.get_variable(config[key])

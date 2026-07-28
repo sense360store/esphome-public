@@ -441,6 +441,11 @@ class Sht45DriverContractTests(unittest.TestCase):
 # --- Customer contract -------------------------------------------------------
 
 
+COMPONENT_CPP = (
+    REPO_ROOT / "components" / "sense360_roomiq" / "sense360_roomiq.cpp"
+)
+
+
 class CustomerContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -459,15 +464,20 @@ class CustomerContractTests(unittest.TestCase):
 
     def test_canonical_values_are_compensated_not_raw(self) -> None:
         # The canonical sensors are published from the engine (which applies
-        # the profile), never copied from the raw board sensors.
+        # the profile), never copied from the raw board sensors. Since
+        # SENSE360-CANONICALISATION-001 PR 09 they are component-owned
+        # entities and the publish switchboard lives in the glue .cpp.
         for entity_id in ("s360_temperature", "s360_humidity"):
             entity = self.entities[entity_id]
-            self.assertEqual(entity.get("platform"), "template", entity_id)
+            self.assertEqual(entity.get("platform"), "sense360_roomiq", entity_id)
             self.assertNotIn("source_id", entity, entity_id)
+        cpp = COMPONENT_CPP.read_text()
         self.assertIn(
-            "publish_changed(id(s360_temperature), engine.temperature())", self.raw
+            "publish_changed_(this->temperature_sensor_, engine.temperature())", cpp
         )
-        self.assertIn("publish_changed(id(s360_humidity), engine.humidity())", self.raw)
+        self.assertIn(
+            "publish_changed_(this->humidity_sensor_, engine.humidity())", cpp
+        )
 
     def test_presentation_precision(self) -> None:
         self.assertEqual(int(self.entities["s360_temperature"]["accuracy_decimals"]), 1)
@@ -502,9 +512,11 @@ class CustomerContractTests(unittest.TestCase):
 
     def test_stale_data_publishes_unknown_never_a_frozen_value(self) -> None:
         # One publisher, publishing NaN (unknown) whenever the engine reports
-        # the channel is no longer fresh.
-        self.assertIn("publish_changed", self.raw)
-        self.assertIn("std::isnan(current) && std::isnan(value)", self.raw)
+        # the channel is no longer fresh (the switchboard moved to the
+        # component glue in PR 09).
+        cpp = COMPONENT_CPP.read_text()
+        self.assertIn("publish_changed_", cpp)
+        self.assertIn("std::isnan(current) && std::isnan(value)", cpp)
 
 
 # --- Diagnostics -------------------------------------------------------------
@@ -535,8 +547,9 @@ class DiagnosticsTests(unittest.TestCase):
             entity = self.entities[entity_id]
             self.assertEqual(entity.get("entity_category"), "diagnostic", entity_id)
             self.assertTrue(entity.get("disabled_by_default"), entity_id)
-        self.assertIn("engine.factory_temperature()", self.raw)
-        self.assertIn("engine.factory_humidity()", self.raw)
+        cpp = COMPONENT_CPP.read_text()
+        self.assertIn("engine.factory_temperature()", cpp)
+        self.assertIn("engine.factory_humidity()", cpp)
 
     def test_profile_and_evidence_diagnostic_exists(self) -> None:
         entity = self.entities["s360_roomiq_climate_profile"]
@@ -544,24 +557,28 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertEqual(entity.get("entity_category"), "diagnostic")
         self.assertTrue(entity.get("disabled_by_default"))
         # It reports the profile identity, its constants AND its evidence
-        # posture — the constants may never be published without the posture.
-        self.assertIn("profile.id", self.raw)
-        self.assertIn("climate_evidence_to_string", self.raw)
-        self.assertIn("multi-unit", self.raw)
+        # posture — the constants may never be published without the posture
+        # (published from the component glue since PR 09).
+        cpp = COMPONENT_CPP.read_text()
+        self.assertIn("profile.id", cpp)
+        self.assertIn("climate_evidence_to_string", cpp)
+        self.assertIn("multi-unit", cpp)
 
     def test_calibration_diagnostic_separates_every_contribution(self) -> None:
         entity = self.entities["s360_roomiq_calibration_state"]
         self.assertEqual(entity.get("entity_category"), "diagnostic")
         self.assertTrue(entity.get("disabled_by_default"))
         # factory profile · customer temperature · customer humidity ·
-        # illuminance, all distinguishable in one line.
+        # illuminance, all distinguishable in one line (formatted in the
+        # component glue since PR 09).
+        cpp = COMPONENT_CPP.read_text()
         for token in (
             '"factory %s',
             "customer temperature",
             "customer humidity",
             "illuminance x",
         ):
-            self.assertIn(token, self.raw, token)
+            self.assertIn(token, cpp, token)
 
     def test_no_new_default_enabled_customer_entities(self) -> None:
         # Diagnostics must not become customer noise, and no internal formula

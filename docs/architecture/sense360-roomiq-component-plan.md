@@ -88,12 +88,28 @@ simulated paths).
 
 1. Component skeleton: hub `__init__.py` + C++ component wrapping
    `global_engine()`, manifest row, guard updates. Compile-lane proof.
+   **Executed 2026-07-28.**
 2. Platform modules + entity registration; framework YAML rewritten onto
    the component; superseded glue deleted in the same commit; equivalence
    proof (entity surface identical; `test_roomiq_framework.py` updated;
    entity tables regenerated with zero entity-surface diff).
-3. Docs (`sense360-roomiq-framework.md` update, this plan marked executed),
-   final suite / validator pass, PR.
+   **Executed 2026-07-28.** Execution notes: the calibration numbers and
+   the persisted schema-migration block stayed in YAML exactly as this
+   plan's contract section requires (entity ids and NVS restore identity
+   preserved); the illuminance median filter survives on the internal
+   sample the component binds; component delivery for repository builds
+   is a LOCAL `../components` source appended to
+   `packages/base/external_components.yaml` (every build lane compiles
+   with `products/` as the config directory, so a PR branch compiles its
+   own component code, never main's), while the remote wrapper's git
+   source gained `sense360_roomiq`; the deleted internal
+   temperature/humidity sample copies were internal-only (no visible
+   entity change). Equivalence result: the regenerated entity tables and
+   the composition contract both came out byte-identical.
+3. Docs (`sense360-roomiq-framework.md` needed no change — it describes
+   outputs, not mechanics; this plan marked executed), final suite /
+   validator pass, PR. The hosted compile lane is the remaining proof
+   gate for the codegen + C++ glue.
 
 ## Honesty limits
 

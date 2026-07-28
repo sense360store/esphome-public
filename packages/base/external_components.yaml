@@ -26,3 +26,17 @@ external_components:
       ref: main
     components: [ld2412, ld2450, ld24xx]
     refresh: 1d
+
+  # Sense360 platform components (SENSE360-CANONICALISATION-001 PR 08/09):
+  # the foundation component (shared engines + identity schema) and the
+  # RoomIQ domain component. Declared as a LOCAL source deliberately - every
+  # repository build lane compiles with products/ as the config directory
+  # (the release workflow maps webflash wrappers back to the canonical
+  # products/ path), so ../components is the checkout's own components tree
+  # and a PR branch compiles ITS OWN component code, never main's. Remote
+  # consumers never include this base package; they get these components
+  # from the git-sourced declarations in the packages/remote/ wrappers.
+  - source:
+      type: local
+      path: ../components
+    components: [sense360, sense360_roomiq]
