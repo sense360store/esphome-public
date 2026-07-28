@@ -68,8 +68,8 @@ FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "ventiq_framework.yaml
 LEGACY_PROFILE = REPO_ROOT / "packages" / "features" / "bathroom_profile.yaml"
 LEGACY_PROFILE_ALIAS = REPO_ROOT / "packages" / "features" / "ventiq_profile.yaml"
 BOARD_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-211-ventiq.yaml"
-HEADER = REPO_ROOT / "include" / "sense360" / "ventiq_engine.h"
-AIRIQ_HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
+HEADER = REPO_ROOT / "components" / "sense360" / "ventiq_engine.h"
+AIRIQ_HEADER = REPO_ROOT / "components" / "sense360" / "airiq_engine.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_ventiq_engine.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-ventiq-framework.md"
 CHECKLIST = REPO_ROOT / "docs" / "hardware" / "ventiq-framework-bench-checklist.md"
@@ -646,8 +646,8 @@ class FrameworkMechanicsTests(unittest.TestCase):
         # `esphome compile` fails (config validation alone cannot catch
         # this; proven by the first hosted compile round of this PR).
         includes = (self.framework.get("esphome") or {}).get("includes") or []
-        self.assertIn("../include/sense360/airiq_engine.h", includes)
-        self.assertIn("../include/sense360/ventiq_engine.h", includes)
+        self.assertIn("../components/sense360/airiq_engine.h", includes)
+        self.assertIn("../components/sense360/ventiq_engine.h", includes)
 
     def test_freshness_comes_from_update_callbacks(self) -> None:
         self.assertIn("on_value", self.raw)
@@ -764,7 +764,7 @@ class SimulationTests(unittest.TestCase):
         self.assertTrue(CPP_TEST.exists())
 
     def test_simulation_uses_the_production_header(self) -> None:
-        self.assertIn('#include "../../include/sense360/ventiq_engine.h"', self.raw)
+        self.assertIn('#include "../../components/sense360/ventiq_engine.h"', self.raw)
 
     def test_simulation_covers_required_scenarios(self) -> None:
         for keyword in (

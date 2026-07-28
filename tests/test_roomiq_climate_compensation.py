@@ -9,7 +9,7 @@ composition.
 What these tests pin:
 
 * the compensation model lives in exactly ONE pure, ESPHome-free header
-  (``include/sense360/roomiq_climate_compensation.h``), consumed by the RoomIQ
+  (``components/sense360/roomiq_climate_compensation.h``), consumed by the RoomIQ
   engine and by native tests — never duplicated in the engine, a package, a
   bundle, a product or customer YAML;
 * the named profile ``S360_200_R4_CLIMATE_PROFILE_V1`` carries the SKU, the
@@ -49,9 +49,9 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 COMPENSATION_HEADER = (
-    REPO_ROOT / "include" / "sense360" / "roomiq_climate_compensation.h"
+    REPO_ROOT / "components" / "sense360" / "roomiq_climate_compensation.h"
 )
-ENGINE_HEADER = REPO_ROOT / "include" / "sense360" / "roomiq_engine.h"
+ENGINE_HEADER = REPO_ROOT / "components" / "sense360" / "roomiq_engine.h"
 FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "roomiq_framework.yaml"
 CLIMATE_BOARD = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml"
 ROOMIQ_BOARD = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq.yaml"
@@ -68,7 +68,7 @@ PRESENCE_FILES = (
     REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-sen0609.yaml",
     REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-uart.yaml",
     REPO_ROOT / "packages" / "features" / "presence_framework.yaml",
-    REPO_ROOT / "include" / "sense360" / "presence_fusion.h",
+    REPO_ROOT / "components" / "sense360" / "presence_fusion.h",
 )
 
 PROFILE_ID = "S360_200_R4_CLIMATE_PROFILE_V1"
@@ -221,7 +221,7 @@ class SingleImplementationTests(unittest.TestCase):
                         raw,
                         f"{path.relative_to(REPO_ROOT)} must not duplicate the "
                         f"climate compensation constant {token} — the profile "
-                        "lives in include/sense360/roomiq_climate_compensation.h",
+                        "lives in components/sense360/roomiq_climate_compensation.h",
                     )
                 for token in ("saturation_vapour_pressure", "vapour_pressure ="):
                     self.assertNotIn(token, raw, str(path))

@@ -7,7 +7,7 @@
 # (PRESENCE-FRAMEWORK-001) on the S360-200 RoomIQ board. A Home Assistant
 # ESPHome user pulls THIS single file through a git package to add the full
 # RoomIQ + Presence experience to a Sense360 device — the shared C++ engines
-# (include/sense360/roomiq_engine.h and presence_fusion.h) are delivered
+# (components/sense360/roomiq_engine.h and presence_fusion.h) are delivered
 # automatically via the `sense360` external component, with no `/config/include`
 # setup, no manual header download, and no top-level
 # `esphome: includes: !remove` workaround in the consumer's device YAML.
@@ -69,7 +69,7 @@ external_components:
       type: git
       url: ${sense360_remote_url}
       ref: ${sense360_remote_ref}
-      path: include
+      path: components
     components: [sense360]
     refresh: 1d
 

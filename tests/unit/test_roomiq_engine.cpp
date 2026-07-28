@@ -1,5 +1,5 @@
 // ROOMIQ-FRAMEWORK-001 — deterministic simulation tests for the canonical
-// RoomIQ environmental engine (include/sense360/roomiq_engine.h).
+// RoomIQ environmental engine (components/sense360/roomiq_engine.h).
 //
 // This is the test-only simulation layer required by the accepted product
 // decisions: it feeds synthetic, timestamped sensor samples into the SAME
@@ -28,7 +28,7 @@
 //
 // Compile via tests/Makefile (auto-discovered):  cd tests && make test
 
-#include "../../include/sense360/roomiq_engine.h"
+#include "../../components/sense360/roomiq_engine.h"
 
 #include <cassert>
 #include <cmath>

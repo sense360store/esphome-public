@@ -8,7 +8,7 @@
 #
 # A Home Assistant ESPHome user pulls THIS single file through a git package
 # to add the LED behaviour framework to a device. The shared C++ engines
-# (include/sense360/led_controller.h and roomiq_engine.h) are delivered
+# (components/sense360/led_controller.h and roomiq_engine.h) are delivered
 # automatically via the `sense360` external component — no `/config/include`
 # setup and no manual header download, and NO `type: local` package (which
 # would break remote consumers). Exactly one copy of each engine header is
@@ -57,7 +57,7 @@ external_components:
       type: git
       url: ${sense360_remote_url}
       ref: ${sense360_remote_ref}
-      path: include
+      path: components
     components: [sense360]
     refresh: 1d
 

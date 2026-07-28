@@ -1,6 +1,6 @@
 // S360-200-R4-CLIMATE-COMPENSATION-001 — deterministic native tests for the
 // pure RoomIQ climate compensation model
-// (include/sense360/roomiq_climate_compensation.h).
+// (components/sense360/roomiq_climate_compensation.h).
 //
 // This exercises the SAME header the production firmware compiles (through the
 // RoomIQ engine), with no ESPHome dependency, so the tested model and the
@@ -17,7 +17,7 @@
 //
 // Compile via tests/Makefile (auto-discovered):  cd tests && make test
 
-#include "../../include/sense360/roomiq_climate_compensation.h"
+#include "../../components/sense360/roomiq_climate_compensation.h"
 
 #include <cassert>
 #include <cmath>

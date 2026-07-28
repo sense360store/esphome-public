@@ -5,14 +5,14 @@
 # Include this package from a Home Assistant ESPHome device configuration that
 # consumes a Sense360 *framework* (AirIQ / RoomIQ / VentIQ / LED / Presence)
 # through git packages. It delivers the canonical header-only logic engines
-# (include/sense360/*.h) to the build via the `sense360` external component and
+# (components/sense360/*.h) to the build via the `sense360` external component and
 # removes the framework packages' repository-local `esphome: includes:` entry,
 # so the shared C++ source resolves for ANY consumer config directory — no
 # `/config/include` setup, no manual header download.
 #
 # Why this is needed
 # ------------------
-# A framework package compiles its engine from `../include/sense360/<engine>.h`
+# A framework package compiles its engine from `../components/sense360/<engine>.h`
 # via `esphome: includes:`. ESPHome resolves that path against the *consumer's*
 # config directory, which does not contain the header when the framework is
 # pulled as a git package (it resolves to e.g. /config/include/...). This
@@ -22,7 +22,7 @@
 # and lands on the build include path regardless of the consumer's layout.
 #
 # Single source of truth: the `sense360` component IS the repository's
-# include/sense360/ directory (see include/sense360/__init__.py). It ships the
+# components/sense360/ directory (see components/sense360/__init__.py). It ships the
 # exact headers proven by the native C++ unit tests; nothing is duplicated and
 # no algorithm is re-implemented in YAML.
 #
@@ -42,10 +42,10 @@ external_components:
       type: git
       url: ${sense360_remote_url}
       ref: ${sense360_remote_ref}
-      # The component lives at include/sense360/; `path: include` narrows the
-      # external-components search directory to include/ so ESPHome finds the
-      # `sense360` component (include/sense360/__init__.py).
-      path: include
+      # The component lives at components/sense360/ (SENSE360-CANONICALISATION-001
+      # PR 08 moved it from the former include/sense360/ delivery hack into the
+      # real external-component tree alongside the radar components).
+      path: components
     components: [sense360]
     refresh: 1d
 
@@ -54,7 +54,7 @@ external_components:
 sense360:
 
 # Neutralise the framework packages' repository-local include path
-# (`../include/sense360/*.h`), which cannot resolve for a remote consumer. The
+# (`../components/sense360/*.h`), which cannot resolve for a remote consumer. The
 # headers are now delivered by the `sense360` external component above.
 esphome:
   includes: !remove

@@ -12,7 +12,7 @@
 // What it owns (the platform's single source of environmental truth):
 //   * Compensated temperature / humidity / illuminance — the built-in
 //     S360-200 R4 board climate profile (see
-//     include/sense360/roomiq_climate_compensation.h, which owns the
+//     components/sense360/roomiq_climate_compensation.h, which owns the
 //     constants, the Magnus/psychrometric model and the SHT45 sample-pairing
 //     rule; this engine never re-implements the formula) followed by the
 //     customer offsets (temperature, humidity) and multiplier (illuminance),
@@ -59,7 +59,7 @@
 //   * The built-in board profile is a VALIDATED PROVISIONAL profile for the
 //     tested S360-200 R4 board — not multi-unit, production, compliance or
 //     safety evidence (posture and numbers:
-//     include/sense360/roomiq_climate_compensation.h).
+//     components/sense360/roomiq_climate_compensation.h).
 //   * The ambient-light driver is reconciled to the schematic/BOM part
 //     (LTR-303ALS-01 @ 0x29 via ltr_als_ps;
 //     S360-200-R4-HARDWARE-RECONCILIATION-001). This engine consumes lux

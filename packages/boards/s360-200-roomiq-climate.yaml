@@ -313,7 +313,7 @@ binary_sensor:
 # consumer of those values. Every composition that displays them includes
 # that profile, so legacy products resolve identically, while
 # framework-bearing bundles compile exactly ONE environmental engine
-# (include/sense360/roomiq_engine.h) with no duplicate threshold logic.
+# (components/sense360/roomiq_engine.h) with no duplicate threshold logic.
 globals:
   # Comfort ceiling module presence flag
   - id: module_comfort_ceiling_present

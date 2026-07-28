@@ -16,7 +16,7 @@ Contract highlights enforced here:
   white/CCT channel), NO customer "Maximum Brightness" control (the software
   ceiling is a documented substitution), and NO novelty/strobe effects.
 * The behaviour logic is a single header-only implementation
-  (``include/sense360/led_controller.h``) shared by production YAML and the
+  (``components/sense360/led_controller.h``) shared by production YAML and the
   deterministic simulation tests (``tests/unit/test_led_controller.cpp``) —
   no second implementation that can drift.
 * State ownership: customer/manual intent always wins; automation reverses
@@ -50,7 +50,7 @@ BOARD_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-300-led.yaml"
 FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "led_framework.yaml"
 PRESENCE_BRIDGE = REPO_ROOT / "packages" / "features" / "led_presence_bridge.yaml"
 REMOTE_WRAPPER = REPO_ROOT / "packages" / "remote" / "led-framework.yaml"
-HEADER = REPO_ROOT / "include" / "sense360" / "led_controller.h"
+HEADER = REPO_ROOT / "components" / "sense360" / "led_controller.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_led_controller.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-led-framework.md"
 CHECKLIST = REPO_ROOT / "docs" / "hardware" / "led-framework-bench-checklist.md"
@@ -377,7 +377,7 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertIn("cannot", value)
 
     def test_framework_uses_the_shared_header(self) -> None:
-        self.assertIn("include/sense360/led_controller.h", self.raw)
+        self.assertIn("components/sense360/led_controller.h", self.raw)
 
     def test_framework_consumes_fused_occupancy_not_raw_sensors(self) -> None:
         # LED-04: the merged unified Occupancy contract is the input — never
@@ -409,7 +409,7 @@ class CustomerEntityContractTests(unittest.TestCase):
 
     def test_no_duplicate_darkness_engine_in_led_controller(self) -> None:
         # Regression guard: exactly one lux-threshold implementation exists
-        # (include/sense360/roomiq_engine.h). The LED controller consumes
+        # (components/sense360/roomiq_engine.h). The LED controller consumes
         # the injected decision only.
         header_raw = HEADER.read_text() if HEADER.is_file() else ""
         self.assertNotIn("input_lux", header_raw)
@@ -653,9 +653,9 @@ class RemoteWrapperTests(unittest.TestCase):
         self.assertTrue(ext, "wrapper must declare external_components")
         self.assertIn("sense360", ext[0]["components"])
         # Git-delivered component (NOT type: local, which regressed remote
-        # consumers), narrowed to include/.
+        # consumers), narrowed to components/.
         self.assertEqual(ext[0]["source"]["type"], "git")
-        self.assertEqual(ext[0]["source"]["path"], "include")
+        self.assertEqual(ext[0]["source"]["path"], "components")
         self.assertIn("sense360", self.doc)
         # Removes the framework's repository-local include — headers come from
         # the git-delivered component instead.
@@ -679,7 +679,7 @@ class RemoteWrapperTests(unittest.TestCase):
         # Repo-local bundle builds are unchanged: the framework file keeps its
         # local include (the wrapper removes it only for remote consumers).
         self.assertIn(
-            "../include/sense360/led_controller.h", FRAMEWORK_PACKAGE.read_text()
+            "../components/sense360/led_controller.h", FRAMEWORK_PACKAGE.read_text()
         )
 
 
@@ -795,7 +795,7 @@ class CompileLaneTests(unittest.TestCase):
         for needed in (
             "packages/boards/**",
             "packages/features/**",
-            "include/sense360/**",
+            "components/sense360/**",
             "tests/unit/**",
             "tests/test_led_framework.py",
         ):

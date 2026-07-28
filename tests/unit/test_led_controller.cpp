@@ -1,5 +1,5 @@
 // LED-FRAMEWORK-001 — deterministic simulation tests for the customer LED
-// controller engine (include/sense360/led_controller.h).
+// controller engine (components/sense360/led_controller.h).
 //
 // This is the test-only simulation layer for the Sense360 LED customer
 // experience: it feeds synthetic, timestamped inputs (customer commands,
@@ -23,7 +23,7 @@
 #include <cstring>
 #include <exception>
 
-#include "../../include/sense360/led_controller.h"
+#include "../../components/sense360/led_controller.h"
 
 using namespace sense360::ledfw;
 

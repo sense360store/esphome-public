@@ -14,19 +14,19 @@ hand.
 
 The Sense360 feature *frameworks* (AirIQ / RoomIQ / VentIQ / LED / Presence)
 compile a shared, header-only C++ engine (for example
-`include/sense360/airiq_engine.h`) — the exact file the native C++ unit tests
+`components/sense360/airiq_engine.h`) — the exact file the native C++ unit tests
 exercise, so tested logic and shipped logic never drift. A repository-local
 build finds that header through `esphome: includes:` because the build runs from
 `products/`. A **remote** consumer's build runs from *its own* config directory,
-so the same include path would resolve to `/config/include/sense360/...` — a file
+so the same include path would resolve to `/config/components/sense360/...` — a file
 the package does not deliver — and validation fails with:
 
 ```text
-Could not find file '/config/esphome/../include/sense360/airiq_engine.h'
+Could not find file '/config/esphome/../components/sense360/airiq_engine.h'
 ```
 
 The fix delivers the shared engine as a normal ESPHome **external component**
-(`sense360`, rooted at this repository's `include/sense360/` directory) that
+(`sense360`, rooted at this repository's `components/sense360/` directory) that
 travels with the git package and lands on the build's include path for any
 consumer layout. This is the same mechanism the repository already uses for its
 radar components. You never create `/config/include`, never download a header,
@@ -442,7 +442,7 @@ compositions also pull this repository's radar external component, unchanged.)
   mappings, product, release, channel or commercial state — it is a
   packaging/delivery convenience only.
 - The engine that ships is the **same single implementation**
-  (`include/sense360/*.h`) proven by the native C++ unit tests; nothing is
+  (`components/sense360/*.h`) proven by the native C++ unit tests; nothing is
   duplicated or re-implemented in YAML.
 
 See also: [`docs/getting-started.md`](getting-started.md),

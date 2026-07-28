@@ -2,7 +2,7 @@
 // headers must COEXIST in a single translation unit and cooperate.
 //
 // The production LED framework (packages/features/led_framework.yaml) compiles
-// BOTH include/sense360/led_controller.h AND include/sense360/roomiq_engine.h
+// BOTH components/sense360/led_controller.h AND components/sense360/roomiq_engine.h
 // into the build, then its evaluate lambda maps the RoomIQ darkness decision
 // into the LED controller. This test compiles the exact cross-namespace
 // pattern that lambda emits, so a C++ regression (a clashing enum, a namespace
@@ -17,8 +17,8 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "../../include/sense360/led_controller.h"
-#include "../../include/sense360/roomiq_engine.h"
+#include "../../components/sense360/led_controller.h"
+#include "../../components/sense360/roomiq_engine.h"
 
 using namespace sense360::ledfw;
 

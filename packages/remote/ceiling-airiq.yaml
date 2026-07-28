@@ -5,7 +5,7 @@
 # Remote-consumer entrypoint for the canonical Sense360 AirIQ air-quality
 # service (S360-210 AirIQ board + AIRIQ-FRAMEWORK-001). A Home Assistant
 # ESPHome user pulls THIS single file through a git package to add AirIQ to a
-# Sense360 device — the shared C++ engine (include/sense360/airiq_engine.h) is
+# Sense360 device — the shared C++ engine (components/sense360/airiq_engine.h) is
 # delivered automatically via the `sense360` external component, with no
 # `/config/include` setup and no manual header download.
 #
@@ -49,7 +49,7 @@ external_components:
       type: git
       url: ${sense360_remote_url}
       ref: ${sense360_remote_ref}
-      path: include
+      path: components
     components: [sense360]
     refresh: 1d
 

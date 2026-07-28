@@ -47,7 +47,7 @@
 #
 # Priority (LED-07): Fault > Identify > Night Mode > Room Light > Status.
 # State ownership, fail-safe rules and the restore contract are implemented
-# in the header-only engine include/sense360/led_controller.h — the SAME
+# in the header-only engine components/sense360/led_controller.h — the SAME
 # implementation exercised by the deterministic simulation tests
 # (tests/unit/test_led_controller.cpp), so tested logic and shipped logic
 # cannot drift. The contract is pinned by tests/test_led_framework.py.
@@ -142,14 +142,14 @@ substitutions:
 # packages/features/presence_framework.yaml.
 esphome:
   includes:
-    - ../include/sense360/led_controller.h
+    - ../components/sense360/led_controller.h
     # The canonical RoomIQ environmental engine is compiled here too so the
     # darkness service (below) resolves whether or not the RoomIQ framework is
     # composed (LED-FRAMEWORK-002). With no lux input the engine reports
     # DARKNESS_UNKNOWN — it never invents darkness. When RoomIQ IS composed the
     # roomiq framework feeds the SAME shared static instance its calibrated lux;
     # there is still exactly one implementation and no duplicate lux logic.
-    - ../include/sense360/roomiq_engine.h
+    - ../components/sense360/roomiq_engine.h
   # LIST FORM IS LOAD-BEARING (STATIC-DIAGNOSTIC-PUBLISH-001). This block was
   # previously written as a MAPPING (`on_boot:` -> `priority:` / `then:`).
   # ESPHome's package merging uses esphome.config_helpers.merge_config, which

@@ -20,7 +20,7 @@ How this avoids a false pass
 Each composition is validated in an isolated temp directory whose only real
 files are the device YAML and generated placeholder secrets; the repository's
 `packages/`, `include/` and `components/` trees are symlinked in so the
-frameworks' repository-local `esphome: includes:` (../include/sense360/*.h)
+frameworks' repository-local `esphome: includes:` (../components/sense360/*.h)
 resolve exactly as they do for a real one-deep product build. Nothing is
 copied or re-implemented.
 
@@ -179,12 +179,12 @@ def _esphome_cli() -> str | None:
 
 class _IsolatedComposition:
     """A temp product dir: only device.yaml + secrets are real; the repo
-    packages/include/components trees are symlinked so framework includes
+    packages/components trees are symlinked so framework includes
     resolve exactly as for a one-deep product build."""
 
     def __init__(self, name: str) -> None:
         self.work = Path(tempfile.mkdtemp(prefix="s360-led-comp-"))
-        for tree in ("packages", "include", "components"):
+        for tree in ("packages", "components"):
             os.symlink(REPO_ROOT / tree, self.work / tree)
         products = self.work / "products"
         products.mkdir()

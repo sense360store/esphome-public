@@ -22,7 +22,7 @@
 # NO "People Count" (radar targets are not verified people, PD-09).
 #
 # The fusion state machine is the header-only engine
-# include/sense360/presence_fusion.h — the SAME implementation exercised by
+# components/sense360/presence_fusion.h — the SAME implementation exercised by
 # the deterministic simulation tests (tests/unit/test_presence_fusion.cpp),
 # so tested logic and shipped logic cannot drift. Fail-safe rules, status
 # precedence, health rules and mode behaviour are documented in the
@@ -80,7 +80,7 @@ substitutions:
 # packages/features/ceiling_led_ring_air_quality.yaml.
 esphome:
   includes:
-    - ../include/sense360/presence_fusion.h
+    - ../components/sense360/presence_fusion.h
   # Compile-time health-contract honesty companion: never polled, so it is
   # published once at boot (STATIC-DIAGNOSTIC-PUBLISH-001). This package's
   # runtime module status is owned by the 500 ms `interval:` below, which

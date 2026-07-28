@@ -665,7 +665,7 @@ machine-readable runtime-status wiring:
 (`module_runtime_status.presence`); contract tests:
 `tests/test_presence_framework.py`; deterministic fusion simulation:
 `tests/unit/test_presence_fusion.cpp` against the single shared engine
-`include/sense360/presence_fusion.h`.
+`components/sense360/presence_fusion.h`.
 
 Scope facts (do not overclaim):
 
@@ -768,7 +768,7 @@ doc: [`docs/architecture/sense360-led-framework.md`](architecture/sense360-led-f
 contract tests: [`tests/test_led_framework.py`](../tests/test_led_framework.py);
 deterministic simulation: [`tests/unit/test_led_controller.cpp`](../tests/unit/test_led_controller.cpp)
 over the shared engine
-[`include/sense360/led_controller.h`](../include/sense360/led_controller.h)
+[`components/sense360/led_controller.h`](../components/sense360/led_controller.h)
 (the same header production YAML compiles — no drift-prone second
 implementation).
 
@@ -840,7 +840,7 @@ wired module after Presence). Canonical doc:
 contract tests: [`tests/test_roomiq_framework.py`](../tests/test_roomiq_framework.py);
 deterministic simulation: [`tests/unit/test_roomiq_engine.cpp`](../tests/unit/test_roomiq_engine.cpp)
 over the shared engine
-[`include/sense360/roomiq_engine.h`](../include/sense360/roomiq_engine.h)
+[`components/sense360/roomiq_engine.h`](../components/sense360/roomiq_engine.h)
 (the same header production YAML compiles — no drift-prone second
 implementation).
 
@@ -936,7 +936,7 @@ status (the third wired module after Presence and RoomIQ). Canonical doc:
 contract tests: [`tests/test_airiq_framework.py`](../tests/test_airiq_framework.py);
 deterministic simulation: [`tests/unit/test_airiq_engine.cpp`](../tests/unit/test_airiq_engine.cpp)
 over the shared engine
-[`include/sense360/airiq_engine.h`](../include/sense360/airiq_engine.h)
+[`components/sense360/airiq_engine.h`](../components/sense360/airiq_engine.h)
 (the same header production YAML compiles — no drift-prone second
 implementation).
 
@@ -1040,7 +1040,7 @@ wired module after Presence, RoomIQ and AirIQ. Canonical doc:
 contract tests: [`tests/test_ventiq_framework.py`](../tests/test_ventiq_framework.py);
 deterministic simulation: [`tests/unit/test_ventiq_engine.cpp`](../tests/unit/test_ventiq_engine.cpp)
 over the shared engine
-[`include/sense360/ventiq_engine.h`](../include/sense360/ventiq_engine.h)
+[`components/sense360/ventiq_engine.h`](../components/sense360/ventiq_engine.h)
 (the same header production YAML compiles — no drift-prone second
 implementation).
 
@@ -1157,7 +1157,7 @@ deterministic simulation:
 [`tests/unit/test_blower_controller.cpp`](../tests/unit/test_blower_controller.cpp)
 + [`tests/unit/test_blower_airiq_coexist.cpp`](../tests/unit/test_blower_airiq_coexist.cpp)
 over the shared engine
-[`include/sense360/blower_controller.h`](../include/sense360/blower_controller.h)
+[`components/sense360/blower_controller.h`](../components/sense360/blower_controller.h)
 (the same header production YAML compiles — no drift-prone second
 implementation).
 

@@ -2,8 +2,8 @@
 // headers must COEXIST in a single translation unit and cooperate.
 //
 // The production blower framework (packages/features/blower_framework.yaml)
-// compiles BOTH include/sense360/blower_controller.h AND
-// include/sense360/airiq_engine.h into the build, then its evaluate lambda maps
+// compiles BOTH components/sense360/blower_controller.h AND
+// components/sense360/airiq_engine.h into the build, then its evaluate lambda maps
 // the canonical AirIQ recommendation into a blower Demand:
 //
 //     Demand d = demand_from_airiq_recommendation(
@@ -24,8 +24,8 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "../../include/sense360/airiq_engine.h"
-#include "../../include/sense360/blower_controller.h"
+#include "../../components/sense360/airiq_engine.h"
+#include "../../components/sense360/blower_controller.h"
 
 using namespace sense360::blower;
 
