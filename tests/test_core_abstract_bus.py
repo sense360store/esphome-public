@@ -685,9 +685,20 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     # `airiq_i2c_id: core_i2c` default) moved from
     # `packages/expansions/airiq_ceiling.yaml` (now a thin alias) into the
     # SKU-aligned board package; the consumer-default assertion travels with
-    # the content. `airiq.yaml` is the generic base driver (no board package,
-    # cross-referenced not folded) and stays authoritative here.
-    (REPO_ROOT / "packages" / "expansions" / "airiq.yaml", "airiq_i2c_id"),
+    # the content.
+    #
+    # SENSE360-CANONICALISATION-001 PR 05: `packages/expansions/airiq.yaml`
+    # was ALSO converted to a thin alias (AIRIQ-HW-RECONCILE-001) and no
+    # longer declares substitutions of its own — its header records that it
+    # has no live binder and resolves to the board package. This entry's
+    # comment still claimed it "stays authoritative", which stopped being
+    # true at that conversion, so the assertion had been failing against a
+    # premise the tree no longer held. The entry is removed rather than
+    # satisfied: re-declaring `airiq_i2c_id` in the alias would recreate
+    # exactly the duplicate truth the reconciliation removed. Coverage is
+    # not lost — it moves to the board package below, which is where the
+    # value actually lives, and ALIAS_ONLY_I2C_CONSUMERS pins that the
+    # alias really is an alias.
     (REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml", "airiq_i2c_id"),
     # PACKAGE-RENAME-003 (docs/arch-board-bundle-plan.md §5.5): the authoritative
     # base VentIQ definition (incl. its `bathroom_i2c_id: core_i2c`
@@ -712,6 +723,19 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     (REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml", "fan_dac_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml", "sx1509_i2c_id"),
 ]
+
+# SENSE360-CANONICALISATION-001 PR 05. Legacy expansion aliases that must
+# NOT declare an i2c consumer default of their own: they resolve to a
+# board package that does. Pinning this stops the removed assertion being
+# "restored" by adding a duplicate substitution to the alias.
+ALIAS_ONLY_I2C_CONSUMERS = [
+    (
+        REPO_ROOT / "packages" / "expansions" / "airiq.yaml",
+        "airiq_i2c_id",
+        REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml",
+    ),
+]
+
 
 CEILING_HALO_LEDS_PACKAGE = REPO_ROOT / "packages" / "features" / "ceiling_halo_leds.yaml"
 FAN_GP8403_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
@@ -862,6 +886,35 @@ class SharedI2CBusTests(unittest.TestCase):
                     f"decision #4 (legacy bus ids removed; no parallel "
                     f"definitions). Active top-level i2c ids found: "
                     f"{active_ids!r}.",
+                )
+
+    def test_alias_only_consumers_do_not_redeclare_the_default(self) -> None:
+        """A legacy alias must not carry its own i2c consumer default.
+
+        SENSE360-CANONICALISATION-001 PR 05. These files resolve to a
+        board package that owns the value. Re-declaring it here would be
+        duplicate truth, and would let a future edit drift the alias away
+        from the board package silently.
+        """
+        for alias, sub_name, board in ALIAS_ONLY_I2C_CONSUMERS:
+            alias_text = alias.read_text()
+            with self.subTest(package=alias.name, substitution=sub_name):
+                self.assertIsNone(
+                    _substitution_value(alias_text, sub_name),
+                    f"{alias.name} must not declare `{sub_name}`; it "
+                    f"resolves to {board.name}, which owns the value.",
+                )
+                # It must actually resolve there, not merely omit it.
+                self.assertIn(
+                    f"boards/{board.name}",
+                    alias_text,
+                    f"{alias.name} omits `{sub_name}` but does not include "
+                    f"{board.name}, so the default resolves to nothing.",
+                )
+                self.assertEqual(
+                    _substitution_value(board.read_text(), sub_name),
+                    "core_i2c",
+                    f"{board.name} must own `{sub_name}` as core_i2c.",
                 )
 
     def test_every_in_scope_consumer_default_resolves_to_core_i2c(self) -> None:
