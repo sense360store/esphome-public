@@ -180,10 +180,11 @@ declare what a composition actually includes:
 | `led_has_roomiq` | `"false"` | a RoomIQ framework is composed (enables **When dark**) |
 | `led_has_presence` | `"false"` | a Presence framework is composed **and** `packages/features/led_presence_bridge.yaml` is included (enables **When dark and occupied**) |
 
-The flags substitute into the engine as C++ bool literals
-(`controller.set_capabilities(${led_has_roomiq}, ${led_has_presence})`), so
-**no reference to an absent RoomIQ / Presence id is ever compiled**. The
-capability model itself lives in the shared, deterministically-tested engine
+The flags flow into the `sense360_led` domain component's block as booleans
+(SENSE360-CANONICALISATION-001 PR 12) and the component applies them to the
+engine's capability model each evaluation, so **no reference to an absent
+RoomIQ / Presence id is ever compiled**. The capability model itself lives
+in the shared, deterministically-tested engine
 (`components/sense360/led_controller.h`), not in YAML.
 
 ### Supported composition matrix
@@ -202,18 +203,19 @@ offers Manual only.
 
 ### How the inputs flow
 
-* **Darkness** — the LED framework compiles the canonical RoomIQ engine
-  header unconditionally and always consults it. When RoomIQ is not composed
-  the engine simply never receives lux, so its darkness decision is
-  **Unknown** (never invented). There is still exactly one lux-threshold
-  implementation and no duplicate darkness logic.
-* **Occupancy** — the LED framework reads occupancy from its own globals
-  (`s360_led_occupied` / `s360_led_occupancy_valid`), which default to
-  *not occupied / not valid*. The optional `led_presence_bridge.yaml` — the
-  **only** place the fused Occupancy entity `s360_occupancy` is referenced by
-  the LED feature layer — copies the fused Occupancy contract and its
-  validity into those globals. A Presence-less device never references a
-  Presence id and never fabricates a placeholder occupancy sensor.
+* **Darkness** — the `sense360_led` component always consults the canonical
+  RoomIQ engine singleton (component delivery keeps it in every LED build).
+  When RoomIQ is not composed the engine simply never receives lux, so its
+  darkness decision is **Unknown** (never invented). There is still exactly
+  one lux-threshold implementation and no duplicate darkness logic.
+* **Occupancy** — the engine's occupancy input defaults to *not occupied /
+  not valid*. The optional `led_presence_bridge.yaml` — the **only** place
+  the fused Occupancy entity `s360_occupancy` is referenced by the LED
+  feature layer — feeds the fused Occupancy contract and its validity
+  straight into the controller on those entities' own state callbacks
+  (PR 12 retired the former RAM-only copy globals). A Presence-less device
+  never references a Presence id and never fabricates a placeholder
+  occupancy sensor.
 
 ### Fallback rules and fail-safe semantics
 

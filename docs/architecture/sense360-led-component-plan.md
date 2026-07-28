@@ -96,9 +96,69 @@ per-tick global reads. Therefore:
 
 1. `sense360_led` component + `led_framework.yaml` rewrite (includes
    mechanism replaced by component delivery) + equivalence proof + guard
-   retargeting.
+   retargeting. **Executed 2026-07-29.** Execution notes: the component
+   binds the Room Light, both selects and the darkness-threshold number by
+   id and re-evaluates on their callbacks (the YAML `on_value` hooks
+   retired with the tick and the evaluate script's switchboard); the boot
+   gate is component-owned (`mark_booted()` called by the restore hook,
+   queried by the new 1 s YAML persistence mirror so unrestored state can
+   never overwrite NVS); the presence bridge feeds `input_occupancy`
+   directly via `!extend` hooks on the fused contract entities, retiring
+   the two RAM-only copy globals; the core-framework composition walker
+   learned to skip `!extend` patches (they reference, never declare).
+   Equivalence: composition contract, firmware matrix and entity tables
+   all byte-identical; hosted compile lane green on the restacked head
+   (all eight representatives including both LED products), first attempt.
+
 2. Fan-path reconciliation records + wrapper evidence pass + TRIAC gate
-   verification; the Blower / `Core`-token resolution.
+   verification; the Blower / `Core`-token resolution. **Executed
+   2026-07-29.** Reconciliation record (dispositions, all KEEP — no fan
+   surface qualified for removal under the PR 07 owner evidence test):
+   - **FanRelay** (`packages/expansions/fan_relay.yaml`): proxies the Core
+     `main_relay` abstraction through a template switch, exactly as before
+     the component migrations; consumed by both FanRelay bundles;
+     `config/webflash-builds.json` rows on the **experimental** channel
+     only. Unchanged.
+   - **FanPWM** (`fan_pwm.yaml` + `fan_pwm_native.yaml` +
+     `fan_pwm_sx1509.yaml` + `sense360_fan_pwm.yaml` +
+     `gpio_expander_sx1509.yaml`): every file has live composers (bundles,
+     compile-only skeletons, feature profiles, the catalogued legacy
+     `products/sense360-fan-pwm.yaml`); rows on the **preview** channel.
+     Unchanged.
+   - **FanDAC** (`fan_gp8403.yaml`): binds the shared `core_i2c` bus via
+     the `fan_dac_i2c_id` substitution; consumed by all three FanDAC
+     bundles plus catalogued legacy products; rows on the **preview**
+     channel. `FANDAC-I2C-ADDR-001` stays PENDING and `0x59` stays
+     forbidden with VentIQ/AirIQ present — untouched.
+   - **FanTRIAC** (`fan_triac.yaml`): exactly one consumer (the FanTRIAC
+     bundle) — isolation verified. Gate verification (verify only, no pin
+     / blocker / status change): catalog row carries the full
+     experimental-self-build-mains posture with every `never_*` pin true
+     and `webflash_one_click_import_eligible: false`; the build-matrix row
+     is **experimental** channel only; read-only observation of the
+     WebFlash working tree shows all four `firmware/sources.json` entries
+     carry `FanTRIAC` in `block_tokens` (source-inspection evidence of the
+     distribution declaration only — not a runtime or release claim). The
+     human-review-only standing rule is respected: nothing TRIAC changed.
+   - **Wrapper evidence pass**: all nine fan `products/webflash/` wrappers
+     are the `product_yaml` addresses of committed build-matrix rows
+     (ESP-007 declared infrastructure); the unconsumed blower remote
+     wrapper was already deleted in PR 07; no wrapper is removable under
+     the evidence test.
+   - **Blower / `Core`-token resolution**: the canonical grammar cannot
+     express the fixture — `Blower` is not in `canonical_modules` and
+     `Core` is not in `canonical_power` — so the tokens are recorded as
+     **compile-only-lane-only** with a guard
+     (`tests/test_blower_framework.py::LaneOnlyTokenTests`): the
+     non-canonical facts, the string's absence from every release surface,
+     and the target's null `config_string` are all pinned, so
+     canonicalising either token or surfacing the string forces a
+     deliberate owner-visible revisit instead of drift. The blower
+     framework and its compile-only fixture stay (declared consumer:
+     `products/sense360-core-ceiling-airiq-blower.yaml`, target
+     `ceiling-core-airiq-blower-compile-only`); its own component
+     migration stays deliberately deferred.
+
 3. Docs, execution notes here, final suite / validator pass, PR. Hosted
    compile lane gates each slice.
 

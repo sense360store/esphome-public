@@ -67,14 +67,18 @@ external_components:
 sense360:                          # loads the component; delivers the engines
 ```
 
-Repository-local product builds keep their `esphome: includes:` path
-(`../components/sense360/<engine>.h`); the remote wrappers under
-[`packages/remote/`](../../packages/remote/) `!remove` that local include and
-load the component instead, so exactly one copy of each header is compiled in
-either mode. The consumer-side proof is
+The former `esphome: includes:` local-include mechanism is fully retired:
+every framework runs on its domain component (RoomIQ under PR 09, Presence
+under PR 10, AirIQ / VentIQ under PR 11, LED under PR 12 — the last local
+include and its header co-location hazard class went with it), and engine
+delivery comes from the `sense360` foundation component the domain
+components auto-load. The remote wrappers under
+[`packages/remote/`](../../packages/remote/) fetch the needed components
+from the git source, so exactly one copy of each header is compiled in
+either mode and no `!remove` workaround remains. The consumer-side proof is
 [`tests/test_remote_package_consumer.py`](../../tests/test_remote_package_consumer.py).
 
-## Migration map (foundation only — nothing migrated here)
+## Migration map (complete — every domain landed)
 
 | PR | Domain component | Owns |
 |----|------------------|------|

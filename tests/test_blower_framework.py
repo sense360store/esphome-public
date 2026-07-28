@@ -421,5 +421,57 @@ class CatalogGateTests(unittest.TestCase):
         self.assertNotIn("Blower", self.webflash_raw)
 
 
+class LaneOnlyTokenTests(unittest.TestCase):
+    """SENSE360-CANONICALISATION-001 PR 12: the `Core` / `Blower` tokens are
+    compile-only-lane-only — recorded, never silent drift.
+
+    The fixture config string ``Ceiling-Core-AirIQ-Blower`` is NOT expressible
+    in the canonical WebFlash grammar: ``Blower`` is not a canonical module
+    (the blower is the Core's on-board FAN net, not a fan-driver SKU) and
+    ``Core`` is not a canonical power token (the fixture deliberately carries
+    no PSU). The PR 12 resolution keeps the tokens confined to the
+    compile-only lane. If either token is ever canonicalised, or the string
+    ever reaches a release surface, these pins fail and force a deliberate
+    owner-visible revisit instead of drift.
+    """
+
+    COMPATIBILITY = REPO_ROOT / "config" / "webflash-compatibility.json"
+    COMBINATION_MATRIX = REPO_ROOT / "config" / "firmware-combination-matrix.json"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.compat = json.loads(cls.COMPATIBILITY.read_text())
+
+    def test_tokens_are_not_canonical(self) -> None:
+        # The reason the string is lane-only: the canonical grammar cannot
+        # express it. Canonicalising either token must consciously revisit
+        # the blower fixture's naming, not inherit it.
+        self.assertNotIn("Blower", self.compat.get("canonical_modules") or [])
+        self.assertNotIn("Core", self.compat.get("canonical_power") or [])
+
+    def test_string_stays_off_every_release_surface(self) -> None:
+        # Compile-only lane only: no build-matrix row (checked above for the
+        # raw text too), no firmware-combination-matrix row, no webflash
+        # wrapper file.
+        self.assertNotIn(CONFIG_STRING, self.COMBINATION_MATRIX.read_text())
+        webflash_dir = REPO_ROOT / "products" / "webflash"
+        for path in sorted(webflash_dir.glob("*.yaml")):
+            self.assertNotIn("Blower", path.read_text(), path.name)
+
+    def test_compile_only_target_declares_no_config_string(self) -> None:
+        # The lane target addresses the product YAML only; the non-canonical
+        # string is never declared as a target config_string (it exists as a
+        # catalog identity for the compile-only product alone).
+        targets = json.loads(
+            (REPO_ROOT / "config" / "compile-only-targets.json").read_text()
+        )
+        target = next(
+            t
+            for t in targets.get("targets", [])
+            if t.get("id") == "ceiling-core-airiq-blower-compile-only"
+        )
+        self.assertIsNone(target.get("config_string"))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
