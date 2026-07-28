@@ -112,7 +112,7 @@ packages:
   core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 FanPWM (S360-311, NATIVE ESP32-S3 GPIO) ===
   # Native ledc PWM-drive outputs (TachPMW1..4 -> IO10/IO11/IO12/IO39) and

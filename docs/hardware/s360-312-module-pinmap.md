@@ -136,7 +136,7 @@ compatibility, and analog-DAC firmware path are out of scope.
    evidence.
 5. **DAC fan-driver firmware reconciliation.** The FanDAC
    firmware package
-   [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml)
+   ``packages/expansions/fan_dac.yaml``
    is not reconciled against this pinmap by this PR.
 
 ## Cross references

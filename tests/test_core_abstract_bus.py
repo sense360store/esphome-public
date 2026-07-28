@@ -100,15 +100,20 @@ RELAY_REBIND_PACKAGES = [
 # travel with the content. RoomIQ is authoritative PER DRIVER (the comfort and
 # presence halves are bound independently), so the comfort half is its own
 # board file rather than a single merged board document.
-COMFORT_CEILING_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml"
+COMFORT_CEILING_PACKAGE = (
+    REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml"
+)
 SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml"
 # CORE-ABSTRACT-BUS-SX1509-001: neutral FanPWM SX1509 binding layer.
 FAN_PWM_SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_pwm_sx1509.yaml"
 FAN_RELAY_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_relay.yaml"
-FAN_DAC_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_dac.yaml"
 FAN_GP8403_PACKAGE_PATH = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
-SENSE360_CORE_CEILING = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
-SENSE360_CORE_MAPPING = REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml"
+SENSE360_CORE_CEILING = (
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
+)
+SENSE360_CORE_MAPPING = (
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml"
+)
 # PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §5.5): the authoritative
 # ceiling LED definition (incl. `led_data_pin: GPIO38`) moved from
 # `packages/hardware/led_ring_ceiling.yaml` (now a thin alias) into the
@@ -120,8 +125,12 @@ LED_RING_CEILING_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-300-led.yam
 # `packages/expansions/airiq_ceiling_s3.yaml` (now a thin alias) into the
 # SKU-aligned board overlay below; the GPIO7 / GPIO8 content-assertions travel
 # with it.
-AIRIQ_CEILING_S3_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-210-airiq-ceiling-s3.yaml"
-SENSE360_CORE_CEILING_S3 = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml"
+AIRIQ_CEILING_S3_PACKAGE = (
+    REPO_ROOT / "packages" / "boards" / "s360-210-airiq-ceiling-s3.yaml"
+)
+SENSE360_CORE_CEILING_S3 = (
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml"
+)
 
 PACKAGES_DIR = REPO_ROOT / "packages"
 
@@ -160,8 +169,7 @@ def _find_uart_block(text: str, bus_id: str) -> Optional[dict]:
     the ``- id: ...`` line.
     """
     pattern = re.compile(
-        rf"-\s*id:\s*{re.escape(bus_id)}\s*\n"
-        r"(?P<body>(?:\s*[a-z_]+:\s*\S+\s*\n)+)",
+        rf"-\s*id:\s*{re.escape(bus_id)}\s*\n" r"(?P<body>(?:\s*[a-z_]+:\s*\S+\s*\n)+)",
         re.MULTILINE,
     )
     match = pattern.search(text)
@@ -181,9 +189,7 @@ class PirSensorPinTests(unittest.TestCase):
     """PIR rebind: GPIO47 (ALS_INT, conflict) → GPIO15 (schematic PIR)."""
 
     def test_pir_sensor_pin_is_gpio15_in_sense360_core_ceiling(self) -> None:
-        value = _substitution_value(
-            SENSE360_CORE_CEILING.read_text(), "pir_sensor_pin"
-        )
+        value = _substitution_value(SENSE360_CORE_CEILING.read_text(), "pir_sensor_pin")
         self.assertEqual(
             value,
             "GPIO15",
@@ -272,9 +278,7 @@ class SX1509InterruptPinTests(unittest.TestCase):
     """SX1509 interrupt: GPIO3 → GPIO17 (same schematic expander_int net)."""
 
     def test_sx1509_interrupt_pin_is_gpio17(self) -> None:
-        value = _substitution_value(
-            SX1509_PACKAGE.read_text(), "sx1509_interrupt_pin"
-        )
+        value = _substitution_value(SX1509_PACKAGE.read_text(), "sx1509_interrupt_pin")
         self.assertEqual(
             value,
             "GPIO17",
@@ -519,9 +523,7 @@ class NoSubstitutionCollisionTests(unittest.TestCase):
         expander_mapping = _substitution_value(
             SENSE360_CORE_MAPPING.read_text(), "expander_int_pin"
         )
-        sx1509 = _substitution_value(
-            SX1509_PACKAGE.read_text(), "sx1509_interrupt_pin"
-        )
+        sx1509 = _substitution_value(SX1509_PACKAGE.read_text(), "sx1509_interrupt_pin")
 
         for pkg in AFFECTED_CORE_PACKAGES:
             relay = _substitution_value(pkg.read_text(), "relay_pin")
@@ -559,9 +561,7 @@ class NoSubstitutionCollisionTests(unittest.TestCase):
         expander_mapping = _substitution_value(
             SENSE360_CORE_MAPPING.read_text(), "expander_int_pin"
         )
-        sx1509 = _substitution_value(
-            SX1509_PACKAGE.read_text(), "sx1509_interrupt_pin"
-        )
+        sx1509 = _substitution_value(SX1509_PACKAGE.read_text(), "sx1509_interrupt_pin")
         # comfort_ceiling_als_int_pin (GPIO47) and expander_int_pin /
         # sx1509_interrupt_pin (both GPIO17) must be distinct nets.
         # expander_int_pin and sx1509_interrupt_pin SHARE the same net
@@ -719,27 +719,33 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     # its own board file. The shared radar primitives
     # `presence_ld2450.yaml` / `presence_ld2412.yaml` are UART (not I2C) base
     # drivers and carry no `*_i2c_id` default, so they do not appear here.
-    (REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml", "comfort_ceiling_i2c_id"),
+    (
+        REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml",
+        "comfort_ceiling_i2c_id",
+    ),
     (REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml", "fan_dac_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml", "sx1509_i2c_id"),
+    (
+        REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml",
+        "sx1509_i2c_id",
+    ),
 ]
 
 # SENSE360-CANONICALISATION-001 PR 05. Legacy expansion aliases that must
 # NOT declare an i2c consumer default of their own: they resolve to a
 # board package that does. Pinning this stops the removed assertion being
 # "restored" by adding a duplicate substitution to the alias.
-ALIAS_ONLY_I2C_CONSUMERS = [
-    (
-        REPO_ROOT / "packages" / "expansions" / "airiq.yaml",
-        "airiq_i2c_id",
-        REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml",
-    ),
-]
+# Emptied under SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the
+# airiq.yaml alias this list pinned was deleted outright; the board package
+# entry in SHARED_I2C_CONSUMER_DEFAULTS above still owns airiq_i2c_id, and
+# tests/test_zero_alias.py pins that the alias stays deleted. The list stays
+# so a future retained alias can be pinned the same way.
+ALIAS_ONLY_I2C_CONSUMERS: list = []
 
 
-CEILING_HALO_LEDS_PACKAGE = REPO_ROOT / "packages" / "features" / "ceiling_halo_leds.yaml"
+CEILING_HALO_LEDS_PACKAGE = (
+    REPO_ROOT / "packages" / "features" / "ceiling_halo_leds.yaml"
+)
 FAN_GP8403_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
-GP8403_FANDAC_ALIAS_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_dac.yaml"
 GENERATE_TEST_CONFIGS_SCRIPT = REPO_ROOT / "tests" / "generate_test_configs.py"
 
 # Legacy bus ids retired from every in-scope Core abstract package by
@@ -767,8 +773,7 @@ def _find_i2c_bus_block(text: str, bus_id: str) -> Optional[dict]:
     immediately-following indented lines.
     """
     pattern = re.compile(
-        rf"-\s*id:\s*{re.escape(bus_id)}\s*\n"
-        r"(?P<body>(?:\s*[a-z_]+:\s*\S+\s*\n)+)",
+        rf"-\s*id:\s*{re.escape(bus_id)}\s*\n" r"(?P<body>(?:\s*[a-z_]+:\s*\S+\s*\n)+)",
         re.MULTILINE,
     )
     match = pattern.search(text)
@@ -978,16 +983,10 @@ class SharedI2CBusTests(unittest.TestCase):
             "`i2c_id: ${fan_dac_i2c_id}` so the rename flows through.",
         )
 
-    def test_fan_dac_alias_includes_fan_gp8403_implementation(self) -> None:
-        text = GP8403_FANDAC_ALIAS_PACKAGE.read_text()
-        self.assertIn(
-            "!include fan_gp8403.yaml",
-            text,
-            "packages/expansions/fan_dac.yaml must remain a thin "
-            "`!include` of fan_gp8403.yaml so the canonical FanDAC alias "
-            "inherits the core_i2c rebind without adding parallel "
-            "substitutions.",
-        )
+    # Removed under SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the
+    # fan_dac.yaml alias was deleted after re-pointing its consumers to
+    # fan_gp8403.yaml directly; tests/test_zero_alias.py pins that it stays
+    # deleted, which is the inverse of the thin-include pin that lived here.
 
     def test_sx1509_binds_core_i2c_via_substitution(self) -> None:
         text = SX1509_PACKAGE.read_text()
@@ -1074,7 +1073,9 @@ class SharedI2CBusTests(unittest.TestCase):
                     continue
                 value = (m.group(1) or m.group(2) or "").split("#", 1)[0].strip()
                 value = value.strip("\"'")
-                with self.subTest(file=str(yaml_path.relative_to(REPO_ROOT)), line=line_no):
+                with self.subTest(
+                    file=str(yaml_path.relative_to(REPO_ROOT)), line=line_no
+                ):
                     self.assertNotIn(
                         value,
                         LEGACY_BUS_IDS,
@@ -1171,9 +1172,7 @@ class FanPwmSx1509BoundThroughCoreI2cTests(unittest.TestCase):
     """SX1509 is bound through the shared ``core_i2c`` bus."""
 
     def test_sx1509_i2c_id_defaults_to_core_i2c(self) -> None:
-        value = _substitution_value(
-            FAN_PWM_SX1509_PACKAGE.read_text(), "sx1509_i2c_id"
-        )
+        value = _substitution_value(FAN_PWM_SX1509_PACKAGE.read_text(), "sx1509_i2c_id")
         self.assertEqual(
             value,
             "core_i2c",
@@ -1275,9 +1274,7 @@ class FanPwmTachIoDirectOnGpio16Tests(unittest.TestCase):
     """TachIO remains direct on ESP32 IO16 (NOT the expander)."""
 
     def test_tach_io_pin_is_gpio16(self) -> None:
-        value = _substitution_value(
-            FAN_PWM_SX1509_PACKAGE.read_text(), "tach_io_pin"
-        )
+        value = _substitution_value(FAN_PWM_SX1509_PACKAGE.read_text(), "tach_io_pin")
         self.assertEqual(
             value,
             "GPIO16",
@@ -1342,8 +1339,7 @@ class FanPwmSx1509NeutralityTests(unittest.TestCase):
     def test_no_esphome_block_or_webflash_surface(self) -> None:
         text = FAN_PWM_SX1509_PACKAGE.read_text()
         active = "\n".join(
-            line for line in text.splitlines()
-            if not line.lstrip().startswith("#")
+            line for line in text.splitlines() if not line.lstrip().startswith("#")
         )
         for forbidden in ("esphome:", "artifact_name", "webflash", "fan:", "light:"):
             with self.subTest(token=forbidden):
@@ -1379,14 +1375,10 @@ class FanRelayAndFanDacUnchangedTests(unittest.TestCase):
             "SX1509 binding must not leak into FanRelay).",
         )
 
-    def test_fan_dac_remains_thin_gp8403_include(self) -> None:
-        text = FAN_DAC_PACKAGE.read_text()
-        self.assertIn(
-            "!include fan_gp8403.yaml",
-            text,
-            "fan_dac.yaml must remain a thin !include of fan_gp8403.yaml "
-            "(unchanged by CORE-ABSTRACT-BUS-SX1509-001).",
-        )
+    # Removed under SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the
+    # fan_dac.yaml alias was deleted after re-pointing its consumers to
+    # fan_gp8403.yaml directly; tests/test_zero_alias.py pins that it stays
+    # deleted, which is the inverse of the thin-include pin that lived here.
 
     def test_fan_gp8403_uses_dac_not_sx1509(self) -> None:
         text = FAN_GP8403_PACKAGE_PATH.read_text()
@@ -1398,8 +1390,7 @@ class FanRelayAndFanDacUnchangedTests(unittest.TestCase):
         self.assertNotIn(
             "sx1509",
             text,
-            "fan_gp8403.yaml (FanDAC) must not route through the SX1509 "
-            "expander.",
+            "fan_gp8403.yaml (FanDAC) must not route through the SX1509 " "expander.",
         )
 
 

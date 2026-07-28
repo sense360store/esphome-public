@@ -152,12 +152,10 @@ BOARD_SKU_ENTITIES: Dict[str, Tuple[str, str, str, str]] = {
         "led_ring_sku",
         "S360-300",
     ),
-    "packages/boards/s360-300-led-mic-ceiling.yaml": (
-        "s360_led_voice_ring_sku",
-        "${friendly_name} LED Ring SKU",
-        "led_voice_ring_sku",
-        "S360-300",
-    ),
+    # s360-300-led-mic-ceiling.yaml was deleted under PR 07 (zero-alias):
+    # the undocumented led-mic pair failed the owner evidence test of
+    # 2026-07-28 and both halves were internal and removable
+    # (tests/test_zero_alias.py pins the deletion).
     "packages/boards/s360-200-roomiq-radar.yaml": (
         "s360_presence_module_sku",
         "${friendly_name} Presence Module SKU",

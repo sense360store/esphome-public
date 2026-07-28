@@ -408,7 +408,7 @@ logger:
 #
 # For Comfort Ceiling Module:
 #   packages:
-#     comfort: !include ../expansions/comfort_ceiling.yaml
+#     comfort: !include ../boards/s360-200-roomiq-climate.yaml
 #
 # ============================================================================
 # KNOWN ISSUES / WARNINGS

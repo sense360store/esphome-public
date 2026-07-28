@@ -21,12 +21,9 @@
        packages/boards/s360-200-roomiq-radar.yaml
        packages/boards/s360-200-roomiq-sen0609.yaml
        packages/boards/s360-410-poe-psu.yaml
-       packages/expansions/comfort_ceiling.yaml
-       packages/expansions/presence_ceiling.yaml
        packages/features/device_health.yaml
        packages/features/presence_framework.yaml
        packages/features/roomiq_framework.yaml
-       packages/hardware/power_poe.yaml
        packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-roomiq.yaml
        products/sense360-ceiling-poe-roomiq.yaml

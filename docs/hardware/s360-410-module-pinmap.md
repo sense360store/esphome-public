@@ -26,7 +26,7 @@ It is **documentation only**. It does **not**:
   [`s360-100-r4-core.md` § S360-100-BENCH-001 status](s360-100-r4-core.md#s360-100-bench-001-status));
 - resolve the PoE-module part-identity disagreement between the
   package header
-  [`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml)
+  ``packages/hardware/power_poe.yaml``
   (`Ag9712M, Silvertel Ag9700, or similar` whole-module hint) and
   the schematic-shown discrete topology (`TPS2378DDAR(HSOIC-8)`
   PoE PD controller + `TX4138(ESOIC-8)` buck + `F0505S-2WR2(SIP-7)`

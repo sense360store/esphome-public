@@ -229,7 +229,7 @@ packages:
   core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 LED (S360-300) ===
   # Intentionally NOT included. A LED-bearing variant would be a separate

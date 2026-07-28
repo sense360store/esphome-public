@@ -27,6 +27,28 @@ tests, config, docs and workflows. Evidence level: static inspection only.
 
 Total paths: 169.
 
+## Execution log (updated in place as slices land)
+
+- **2026-07-28, slice 1 — packages/remote resolution.** Four documented
+  entrypoints kept as protected canonical entrypoints;
+  `blower-framework.yaml` deleted as the unpublished remainder.
+- **2026-07-28, slice 2 — zero-alias sweep.** 22 hardware/feature-layer
+  paths deleted (12 expansion aliases, `power_poe` / `led_ring_ceiling`,
+  both halves of the undocumented led-mic pair under the owner evidence
+  test, 7 feature-profile aliases) after re-pointing 23 consumer files to
+  the authoritative board packages. The PR 06 contract gate proved all 20
+  board compositions byte-identical across the removal. The four
+  alias-pinning test modules were replaced by the inverted ledger guard
+  `tests/test_zero_alias.py`; CLAUDE.md's alias-retention rule was corrected
+  (the tree is the source of truth it must follow).
+- **Correction recorded:** `packages/expansions/fan_pwm.yaml` was initially
+  misclassified `delete-and-repoint`. It composes the sx1509 binding layer
+  AND declares the four fan speed controllers, so it is authoritative, not
+  an alias. The deletion was caught by its content guards and fully
+  reverted before commit; its row below is corrected to **keep-with-reason**
+  (preserved legacy SX1509 composition consumed by the historical
+  compile-proof skeleton).
+
 ## Disposition vocabulary
 
 - **keep** — protected canonical entrypoint, canonical composition, declared

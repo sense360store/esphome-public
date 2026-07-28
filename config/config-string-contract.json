@@ -162,7 +162,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 11,
+      "resolved_yaml_count": 10,
       "unresolved_includes": []
     },
     {
@@ -197,7 +197,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 14,
+      "resolved_yaml_count": 12,
       "unresolved_includes": []
     },
     {
@@ -245,7 +245,7 @@
         "packages/expansions/fan_gp8403.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 25,
+      "resolved_yaml_count": 24,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -453,7 +453,7 @@
         "packages/expansions/fan_gp8403.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 15,
+      "resolved_yaml_count": 13,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -496,7 +496,7 @@
         "packages/expansions/fan_pwm_native.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 13,
+      "resolved_yaml_count": 12,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -544,7 +544,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 21,
+      "resolved_yaml_count": 18,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -637,7 +637,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 15,
+      "resolved_yaml_count": 13,
       "unresolved_includes": []
     },
     {
@@ -684,7 +684,7 @@
         "packages/expansions/fan_gp8403.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 27,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -738,7 +738,7 @@
         "packages/expansions/fan_pwm_native.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 26,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -792,7 +792,7 @@
         "packages/expansions/fan_relay.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 26,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -846,7 +846,7 @@
         "packages/expansions/fan_triac.yaml",
         "packages/hardware/sense360_core_ceiling.yaml"
       ],
-      "resolved_yaml_count": 26,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",

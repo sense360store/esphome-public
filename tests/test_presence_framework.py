@@ -55,12 +55,8 @@ SEN0609_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-sen0609.y
 RADAR_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-radar.yaml"
 UART_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-uart.yaml"
 MERGED_BOARD = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq.yaml"
-REMOTE_PRESENCE = (
-    REPO_ROOT / "packages" / "remote" / "ceiling-roomiq-presence.yaml"
-)
-CORE_CEILING = (
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
-)
+REMOTE_PRESENCE = REPO_ROOT / "packages" / "remote" / "ceiling-roomiq-presence.yaml"
+CORE_CEILING = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
 HEADER = REPO_ROOT / "include" / "sense360" / "presence_fusion.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_presence_fusion.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-presence-framework.md"
@@ -289,7 +285,9 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertIn("radar_fresh()", self.raw)
         self.assertIn("NAN", self.raw)
         # The publish is gated on freshness (NAN when not fresh).
-        self.assertIn("engine.radar_fresh() ? (float) engine.radar_target_count() : NAN", self.raw)
+        self.assertIn(
+            "engine.radar_fresh() ? (float) engine.radar_target_count() : NAN", self.raw
+        )
 
     def test_verification_coverage_diagnostic_exists(self) -> None:
         # Option A companion: a diagnostic entity states, in plain words,
@@ -431,9 +429,7 @@ class RadarAdapterTests(unittest.TestCase):
         # One board-local helper records radar activity so the freshness
         # logic is not duplicated across the three frame-driven callbacks.
         scripts = {
-            s.get("id")
-            for s in (self.doc.get("script") or [])
-            if isinstance(s, dict)
+            s.get("id") for s in (self.doc.get("script") or []) if isinstance(s, dict)
         }
         self.assertIn("s360_radar_mark_frame", scripts)
 
@@ -484,7 +480,8 @@ class RadarAdapterTests(unittest.TestCase):
         # s360_radar_mark_frame script (a real component-callback path).
         assignments = self.raw.count("id(s360_radar_last_frame_ms) = millis();")
         self.assertEqual(
-            assignments, 1,
+            assignments,
+            1,
             "freshness timestamp must be written in exactly one place "
             "(the s360_radar_mark_frame helper)",
         )
@@ -612,7 +609,7 @@ class CompositionResolutionTests(unittest.TestCase):
         # AirIQ / MICS packages (a different board family). Header comments may
         # mention sibling families; what matters is the `packages:` includes.
         for path in (MERGED_BOARD, REMOTE_PRESENCE):
-            pkgs = (load_yaml(path).get("packages") or {})
+            pkgs = load_yaml(path).get("packages") or {}
             joined = " ".join(str(v) for v in pkgs.values()).lower()
             self.assertNotIn("airiq", joined, path.name)
             self.assertNotIn("mics", joined, path.name)
@@ -658,16 +655,10 @@ class BundleWiringTests(unittest.TestCase):
             self.assertNotIn("presence_framework.yaml", raw, bundle.name)
             self.assertNotIn("s360-200-roomiq-pir.yaml", raw, bundle.name)
 
-    def test_legacy_profile_and_alias_paths_still_resolve(self) -> None:
-        # Customers pin legacy paths; they must keep existing.
-        for rel in (
-            "packages/features/presence_basic_profile.yaml",
-            "packages/expansions/presence_ceiling.yaml",
-        ):
-            self.assertTrue((REPO_ROOT / rel).is_file(), rel)
-
-
-# --- Fusion header / simulation layer -------------------------------------------
+    # The "legacy paths still resolve" guard was removed under
+    # SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the alias paths it
+    # pinned were deleted after re-pointing every live consumer, and
+    # tests/test_zero_alias.py now pins the INVERSE - they must stay deleted.
 
 
 class FusionHeaderTests(unittest.TestCase):

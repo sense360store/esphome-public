@@ -82,7 +82,7 @@ packages:
   core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml

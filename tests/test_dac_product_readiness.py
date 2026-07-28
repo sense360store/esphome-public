@@ -63,7 +63,6 @@ from typing import Any, Dict, List
 
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 DAC_PRODUCT_YAML = REPO_ROOT / "products" / "sense360-ceiling-poe-fandac.yaml"
@@ -230,7 +229,7 @@ class DacProductPackageCompositionTests(unittest.TestCase):
 
     def test_includes_poe_power_package(self) -> None:
         self.assertIn(
-            "packages/hardware/power_poe.yaml",
+            "packages/boards/s360-410-poe-psu.yaml",
             self.text,
             "FanDAC product YAML must !include the PoE power package.",
         )
@@ -249,7 +248,7 @@ class DacProductPackageCompositionTests(unittest.TestCase):
         for forbidden in (
             "packages/expansions/airiq.yaml",
             "packages/expansions/airiq_ceiling.yaml",
-            "packages/expansions/airiq_bathroom_base.yaml",
+            "packages/boards/s360-211-ventiq.yaml",
         ):
             self.assertNotIn(
                 forbidden,
@@ -660,9 +659,7 @@ class DacProductCompileOnlyTargetUnchangedTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.doc = _load_json(COMPILE_ONLY_TARGETS)
-        cls.by_id = {
-            t.get("id"): t for t in cls.doc.get("targets", []) if t.get("id")
-        }
+        cls.by_id = {t.get("id"): t for t in cls.doc.get("targets", []) if t.get("id")}
         cls.target = cls.by_id.get(FANDAC_COMPILE_ONLY_TARGET_ID)
 
     def test_compile_only_target_exists(self) -> None:
@@ -759,8 +756,7 @@ class ReleaseOneRelayAndLedPostureTests(unittest.TestCase):
         self.assertTrue(entry["webflash_build_matrix"])
         self.assertEqual(
             entry["artifact_name"],
-            f"Sense360-{RELAY_CONFIG_STRING}-v{entry['version']}"
-            "-experimental.bin",
+            f"Sense360-{RELAY_CONFIG_STRING}-v{entry['version']}" "-experimental.bin",
         )
         self.assertEqual(entry["product_yaml"], RELAY_PRODUCT_REL)
         self.assertEqual(entry["hardware_status"], OWNER_DECLARED_HW_STATUS)
@@ -849,9 +845,7 @@ class FanDacManualFirmwareCandidateTests(unittest.TestCase):
             "not compliance",
             "not cloudlift-ready",
         ):
-            self.assertIn(
-                marker, notes, f"FanDAC notes must disclaim {marker!r}"
-            )
+            self.assertIn(marker, notes, f"FanDAC notes must disclaim {marker!r}")
 
     def test_catalog_status_is_preview_per_hw_release_001(self) -> None:
         # Inverted from "stays hardware-pending" by HW-RELEASE-001.

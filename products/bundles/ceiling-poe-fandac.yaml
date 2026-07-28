@@ -222,7 +222,7 @@ packages:
   core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 LED (S360-300) ===
   # Intentionally NOT included. A LED-bearing variant would be a separate
@@ -238,7 +238,7 @@ packages:
   # artifact / build-matrix row. The full ESPHome compile of this
   # composition is validated by run 26364679370 (see header
   # full-compile-validated caveat).
-  fan_dac_module: !include ../../packages/expansions/fan_dac.yaml
+  fan_dac_module: !include ../../packages/expansions/fan_gp8403.yaml
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml

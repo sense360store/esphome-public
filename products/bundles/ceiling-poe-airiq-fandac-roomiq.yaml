@@ -237,7 +237,7 @@ packages:
   # not collide with the AirIQ SGP41 @ 0x59. PACKAGE-DAC-001 implemented the
   # package; this room-bundle product adds NO WebFlash exposure / release
   # artifact / build-matrix row.
-  fan_dac_module: !include ../../packages/expansions/fan_dac.yaml
+  fan_dac_module: !include ../../packages/expansions/fan_gp8403.yaml
 
   # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
   # NOT included. The FanTRIAC slot remains blocked per HW-005.

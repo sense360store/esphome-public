@@ -102,13 +102,13 @@ packages:
   core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 FanDAC (S360-312, two GP8403 DACs / four outputs) ===
   # Canonical FanDAC alias -> packages/expansions/fan_gp8403.yaml.
   # Inherits `fan_dac_i2c_id: core_i2c` and per-chip address / `voltage:`
   # enum (10V) substitutions from the package; do NOT hard-code them here.
-  fan_dac_module: !include ../../packages/expansions/fan_dac.yaml
+  fan_dac_module: !include ../../packages/expansions/fan_gp8403.yaml
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml

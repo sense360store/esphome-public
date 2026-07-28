@@ -169,7 +169,7 @@ This document is hardware reference only.
 The Release-One product YAML
 [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
 consumes the VentIQ slot via the package
-[`packages/expansions/airiq_bathroom_base.yaml`](../../packages/expansions/airiq_bathroom_base.yaml).
+``packages/expansions/airiq_bathroom_base.yaml``.
 The package filename retains the legacy `airiq_bathroom_base` form
 **on purpose** per the WebFlash contract §6 footnote about legacy package
 filenames — do not rename it.

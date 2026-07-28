@@ -79,7 +79,7 @@ packages:
   core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
 
   # === Power Configuration ===
-  power_config: !include ../packages/hardware/power_poe.yaml
+  power_config: !include ../packages/boards/s360-410-poe-psu.yaml
 
 # ============================================================================
 # PRODUCT IDENTIFICATION

@@ -329,8 +329,8 @@ the ESPHome YAML is correct.
 Firmware mappings must be verified in a later audit PR by comparing this
 document against:
 
-- [`packages/expansions/comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml)
-- [`packages/expansions/presence_ceiling.yaml`](../../packages/expansions/presence_ceiling.yaml)
+- ``packages/expansions/comfort_ceiling.yaml``
+- ``packages/expansions/presence_ceiling.yaml``
 - [`packages/features/comfort_basic_profile.yaml`](../../packages/features/comfort_basic_profile.yaml)
 - [`packages/features/presence_basic_profile.yaml`](../../packages/features/presence_basic_profile.yaml)
 - [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)

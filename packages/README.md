@@ -1,5 +1,13 @@
 # ESPHome Packages Structure
 
+> **Zero-alias note (SENSE360-CANONICALISATION-001 PR 07, 2026-07-28).**
+> The legacy alias layer this document describes was removed: the thin
+> `!include` alias files under `hardware/` and `expansions/` are gone,
+> every live consumer composes the authoritative board package
+> directly, and `tests/test_zero_alias.py` pins the deleted paths.
+> Alias references below are historical description, not live paths;
+> the table rewrite lands with the PR 16 documentation regeneration.
+
 This directory contains modular ESPHome configuration packages organized by category.
 
 > **Production Release-One ships `Ceiling-POE-VentIQ-RoomIQ`** — built from

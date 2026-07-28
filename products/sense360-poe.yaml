@@ -36,7 +36,7 @@ packages:
   hardware: !include ../packages/hardware/sense360_core_poe.yaml
 
   # PoE power configuration
-  power: !include ../packages/hardware/power_poe.yaml
+  power: !include ../packages/boards/s360-410-poe-psu.yaml
 
 substitutions:
   device_name: sense360-poe

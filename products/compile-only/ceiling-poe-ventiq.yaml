@@ -93,13 +93,13 @@ packages:
   core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
   # Package-level expected; schematic verification pending — no committed
   # S360-211 schematic in this repo. See docs/release-one-hardware-audit.md.
   # AirIQ and VentIQ are mutually exclusive; this skeleton uses VentIQ.
-  ventiq_module: !include ../../packages/expansions/airiq_bathroom_base.yaml
+  ventiq_module: !include ../../packages/boards/s360-211-ventiq.yaml
   ventiq_profile: !include ../../packages/features/bathroom_profile.yaml
 
   # === Device Health & Diagnostics ===

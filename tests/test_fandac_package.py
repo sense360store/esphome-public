@@ -39,7 +39,6 @@ import re
 import unittest
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PACKAGES_EXPANSIONS = REPO_ROOT / "packages" / "expansions"
 
@@ -85,19 +84,10 @@ def _active_lines(text: str) -> list[str]:
 class FanDACAliasContractTests(unittest.TestCase):
     """fan_dac.yaml must remain a pure alias of fan_gp8403.yaml."""
 
-    def test_alias_includes_fan_gp8403(self) -> None:
-        text = _read(FAN_DAC_ALIAS)
-        includes = re.findall(
-            r"^\s*[A-Za-z0-9_\-]+\s*:\s*!include\s+(\S+)\s*$",
-            text,
-            re.MULTILINE,
-        )
-        self.assertEqual(
-            includes,
-            ["fan_gp8403.yaml"],
-            "fan_dac.yaml must alias fan_gp8403.yaml via exactly one "
-            f"`!include fan_gp8403.yaml`; found {includes!r}.",
-        )
+    # Removed under SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the
+    # fan_dac.yaml alias was deleted after re-pointing its consumers to
+    # fan_gp8403.yaml directly; tests/test_zero_alias.py pins that it stays
+    # deleted, which is the inverse of the thin-include pin that lived here.
 
 
 class FanDACBusBindingTests(unittest.TestCase):
@@ -251,9 +241,7 @@ class FanDACRangeSubstitutionTests(unittest.TestCase):
         range substitution (operator decision D2)."""
 
         text = _read(FAN_GP8403)
-        per_output_range = re.findall(
-            r"fan_dac_\d_vout\d_(?:output_)?range", text
-        )
+        per_output_range = re.findall(r"fan_dac_\d_vout\d_(?:output_)?range", text)
         self.assertEqual(
             per_output_range,
             [],
@@ -303,8 +291,7 @@ class FanDACOutputTests(unittest.TestCase):
                 self.assertRegex(
                     text,
                     rf"id:\s*fan_dac_{chip}_vout{ch}\b[\s\S]*?gp8403_id:\s*fan_dac_{chip}\b",
-                    f"fan_dac_{chip}_vout{ch} must bind gp8403_id "
-                    f"fan_dac_{chip}.",
+                    f"fan_dac_{chip}_vout{ch} must bind gp8403_id " f"fan_dac_{chip}.",
                 )
 
 
@@ -313,7 +300,11 @@ class FanDACRangeMechanismTests(unittest.TestCase):
 
     def test_no_stale_jumper_selectable_wording(self) -> None:
         lowered = _read(FAN_GP8403).lower()
-        for stale in ("jumper selectable", "jumper-selectable", "selectable on hardware"):
+        for stale in (
+            "jumper selectable",
+            "jumper-selectable",
+            "selectable on hardware",
+        ):
             self.assertNotIn(
                 stale,
                 lowered,
@@ -380,7 +371,12 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
 
     def test_no_webflash_or_release_tokens(self) -> None:
         lowered = _read(FAN_GP8403).lower()
-        for token in ("artifact_name", "webflash_build_matrix", "webflash", "config_string"):
+        for token in (
+            "artifact_name",
+            "webflash_build_matrix",
+            "webflash",
+            "config_string",
+        ):
             self.assertNotIn(
                 token,
                 lowered,

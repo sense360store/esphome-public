@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "work_item": "SENSE360-CANONICALISATION-001 PR 06",
-  "description": "Exhaustive binding from every hardware-layer package to the board SKU whose firmware it holds, or to null when it holds none. This is the single declaration of which package IS which board; config/config-string-contract.json derives every config string's board composition from it by walking the ESPHome include graph. Exhaustiveness is enforced by tests/test_config_string_contract.py: every YAML under the listed directories must appear exactly once, and no entry may name a file that does not exist, so a new package cannot enter the tree unclassified.",
+  "description": "Exhaustive binding from every hardware-layer package to the board SKU whose firmware it holds, or to null when it holds none. This is the single declaration of which package IS which board; config/config-string-contract.json derives every config string's board composition from it by walking the ESPHome include graph. Exhaustiveness is enforced by tests/test_config_string_contract.py: every YAML under the listed directories must appear exactly once, and no entry may name a file that does not exist, so a new package cannot enter the tree unclassified. PR 07 removed sixteen hardware-layer paths (twelve expansion aliases, the power_poe and led_ring_ceiling aliases, and both halves of the undocumented led-mic pair) after re-pointing every live consumer to the authoritative board package; the exhaustiveness test enforced this file moving in the same commit.",
   "sources": {
     "hardware_catalog": "config/hardware-catalog.json",
     "feature_entity_matrix": "config/feature-entity-matrix.json"
@@ -26,9 +26,9 @@
     "packages/expansions"
   ],
   "totals": {
-    "packages": 57,
+    "packages": 42,
     "bound": 28,
-    "unbound": 29
+    "unbound": 14
   },
   "bindings": [
     {
@@ -110,12 +110,6 @@
       "reason": "Authoritative VentIQ board firmware."
     },
     {
-      "package": "packages/boards/s360-300-led-mic-ceiling.yaml",
-      "board_sku": "S360-300",
-      "basis": "authoritative-board-firmware",
-      "reason": "LED voice/mic ceiling variant. No config string, catalogue entry or product reaches it; recorded as an unowned composition in docs/sense360-canonicalisation-001-pr06-contract.md."
-    },
-    {
       "package": "packages/boards/s360-300-led.yaml",
       "board_sku": "S360-300",
       "basis": "authoritative-board-firmware",
@@ -128,46 +122,10 @@
       "reason": "Authoritative PoE PSU board firmware."
     },
     {
-      "package": "packages/expansions/airiq.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-210-airiq.yaml."
-    },
-    {
-      "package": "packages/expansions/airiq_bathroom_base.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-211-ventiq.yaml."
-    },
-    {
-      "package": "packages/expansions/airiq_ceiling.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-210-airiq.yaml."
-    },
-    {
-      "package": "packages/expansions/airiq_ceiling_s3.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-210-airiq-ceiling-s3.yaml."
-    },
-    {
-      "package": "packages/expansions/bathroom.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-211-ventiq.yaml plus the legacy bathroom feature profile."
-    },
-    {
       "package": "packages/expansions/comfort.yaml",
       "board_sku": null,
       "basis": "legacy-pre-r4-driver",
       "reason": "Pre-R4 generic comfort expansion driver (SHT40 / BH1750 / optional BME680). That sensor set is not S360-200-R4, which carries LTR-303ALS, SHT4x and BMP581, so it binds to no R4 board SKU."
-    },
-    {
-      "package": "packages/expansions/comfort_ceiling.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-200-roomiq-climate.yaml."
     },
     {
       "package": "packages/expansions/comfort_ceiling_s3.yaml",
@@ -182,12 +140,6 @@
       "reason": "12V PWM fan driver firmware for the Sense360 PWM board. No packages/boards entry exists for S360-311; the board is schematic_status cataloged_unverified and no fan config ships stable."
     },
     {
-      "package": "packages/expansions/fan_dac.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/expansions/fan_gp8403.yaml."
-    },
-    {
       "package": "packages/expansions/fan_gp8403.yaml",
       "board_sku": "S360-312",
       "basis": "authoritative-board-firmware",
@@ -195,9 +147,9 @@
     },
     {
       "package": "packages/expansions/fan_pwm.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/expansions/fan_pwm_sx1509.yaml."
+      "board_sku": "S360-311",
+      "basis": "authoritative-board-firmware",
+      "reason": "SX1509-lineage FanPWM composition: composes the neutral fan_pwm_sx1509.yaml binding layer AND declares the four customer fan speed controllers, so it is NOT a thin alias. Kept with reason: the preserved legacy compile-only skeleton products/compile-only/ceiling-poe-fanpwm.yaml (historical SX1509 compile proof) composes it. PR 07 initially misclassified it as an alias and the deletion was reverted before commit; the native fan_pwm_native.yaml path remains the current S360-311 implementation."
     },
     {
       "package": "packages/expansions/fan_pwm_native.yaml",
@@ -230,12 +182,6 @@
       "reason": "Legacy / superseded SX1509 expander path (SX1509-RECONCILE-001). Retained with reason for the CORE-ABSTRACT-BUS-001C interrupt-pin guard; implements no board."
     },
     {
-      "package": "packages/expansions/presence_ceiling.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-200-roomiq-radar.yaml."
-    },
-    {
       "package": "packages/expansions/presence_ceiling_s3.yaml",
       "board_sku": null,
       "basis": "composer",
@@ -260,40 +206,10 @@
       "reason": "Pre-merge standalone Presence expansion module mapping. Presence merged into S360-200 RoomIQ at R4, so this file binds to no R4 board SKU."
     },
     {
-      "package": "packages/expansions/roomiq.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Phase-2 naming alias; resolves through comfort_ceiling.yaml to the RoomIQ climate board half."
-    },
-    {
-      "package": "packages/expansions/roomiq_radar.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Phase-2 naming alias; resolves through presence_ceiling.yaml to the RoomIQ radar board half."
-    },
-    {
       "package": "packages/expansions/sense360_fan_pwm.yaml",
       "board_sku": "S360-311",
       "basis": "authoritative-board-firmware",
       "reason": "Standalone PWM fan-driver composition consumed by the published legacy product products/sense360-fan-pwm.yaml."
-    },
-    {
-      "package": "packages/expansions/ventiq.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Naming alias; resolves through airiq_bathroom_base.yaml to packages/boards/s360-211-ventiq.yaml."
-    },
-    {
-      "package": "packages/hardware/led_ring_ceiling.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-300-led.yaml."
-    },
-    {
-      "package": "packages/hardware/led_ring_mic_ceiling.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-300-led-mic-ceiling.yaml."
     },
     {
       "package": "packages/hardware/power_240v.yaml",
@@ -306,12 +222,6 @@
       "board_sku": null,
       "basis": "not-board-bearing",
       "reason": "Per-rail power budget accounting shared across boards; implements no board."
-    },
-    {
-      "package": "packages/hardware/power_poe.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Legacy functional path; resolves to packages/boards/s360-410-poe-psu.yaml."
     },
     {
       "package": "packages/hardware/power_usb.yaml",

@@ -37,7 +37,7 @@ packages:
   fan_pwm: !include ../packages/expansions/sense360_fan_pwm.yaml
 
   # Power configuration (choose one below)
-  power: !include ../packages/hardware/power_poe.yaml
+  power: !include ../packages/boards/s360-410-poe-psu.yaml
   # Alternative power options:
   # power: !include ../packages/hardware/power_240v.yaml
 

@@ -87,10 +87,10 @@ packages:
   core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 AirIQ (S360-AIR-C, ceiling-mount air quality) ===
-  airiq_module: !include ../../packages/expansions/airiq_ceiling.yaml
+  airiq_module: !include ../../packages/boards/s360-210-airiq.yaml
   airiq_profile: !include ../../packages/features/airiq_basic_profile.yaml
 
   # === Device Health & Diagnostics ===

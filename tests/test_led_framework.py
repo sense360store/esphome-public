@@ -528,16 +528,10 @@ class BundleWiringTests(unittest.TestCase):
             self.assertIn("s360-200-roomiq.yaml", raw, bundle.name)
             self.assertIn("roomiq_framework.yaml", raw, bundle.name)
 
-    def test_legacy_alias_paths_still_resolve(self) -> None:
-        # Customers pin legacy paths; they must keep existing.
-        for rel in (
-            "packages/hardware/led_ring_ceiling.yaml",
-            "packages/hardware/led_ring_mic_ceiling.yaml",
-        ):
-            self.assertTrue((REPO_ROOT / rel).is_file(), rel)
-
-
-# --- Optional-input capability model (LED-FRAMEWORK-002) ---------------------
+    # The "legacy paths still resolve" guard was removed under
+    # SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the alias paths it
+    # pinned were deleted after re-pointing every live consumer, and
+    # tests/test_zero_alias.py now pins the INVERSE - they must stay deleted.
 
 
 class OptionalInputCapabilityTests(unittest.TestCase):
