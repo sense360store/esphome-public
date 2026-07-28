@@ -84,7 +84,7 @@ packages:
   base_time: !include ../../packages/base/time.yaml
 
   # === Sense360 Core (Ceiling, S360-100-R4) ===
-  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
   power_config: !include ../../packages/boards/s360-410-poe-psu.yaml

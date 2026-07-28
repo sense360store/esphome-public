@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "work_item": "FEATURE-ENTITY-MATRIX-001",
-  "parent_plan": "PRE-HARDWARE-PREP-PLAN-001 \u2014 Workstream C (feature and entity completeness)",
+  "parent_plan": "PRE-HARDWARE-PREP-PLAN-001 — Workstream C (feature and entity completeness)",
   "description": "Per-board / per-module feature and entity matrix. This is the NEW source of truth for which Home Assistant sensor entities and product HA features each Sense360 board/module YAML is supposed to expose, and the present-vs-required audit against the YAML that exists today. It complements config/kit-intent-matrix.json (which is MODULE COMPOSITION only and says nothing about per-product entities/features). This file is PLANNING / AUDIT only: it does not add, remove, or change any entity or feature in any board, feature, expansion, hardware, or product YAML, and it does not imply WebFlash exposure, stable promotion, firmware builds, or release artifacts. The actual addition of any missing entity or feature happens in the per-board implementation slices named in `queued_fill_slice`, never in the PR that introduces this matrix. See docs/feature-entity-matrix.md.",
   "sources": {
     "hardware_catalog": "config/hardware-catalog.json",
@@ -30,7 +30,7 @@
     "missing": "No entity / feature satisfying the required row exists in any current YAML for this board/module."
   },
   "derivation_legend": {
-    "design-derived": "Row is derived from the board BOM / schematic / pin-map. It can be filled now from the schematic and fully pinned once the BOM/gerbers land. It is NOT product intent \u2014 a populated sensor is expected to surface an entity.",
+    "design-derived": "Row is derived from the board BOM / schematic / pin-map. It can be filled now from the schematic and fully pinned once the BOM/gerbers land. It is NOT product intent — a populated sensor is expected to surface an entity.",
     "product-intent": "Row is product intent (modes, presets, dedicated night-light, fan speed/preset UX, exposed comfort indices, etc.). It is NOT derivable from the schematic and MUST be marked needs-operator-confirm wherever the intended behaviour is not already obvious from existing YAML or product docs. The matrix never invents a feature set."
   },
   "confirm_flags": {
@@ -43,9 +43,9 @@
       "sku": "S360-100",
       "friendly_name": "Sense360 Core",
       "schematic_status": "verified",
-      "canonical_board_package": "packages/boards/s360-100-core.yaml",
+      "canonical_board_package": "packages/boards/s360-100-core-ceiling.yaml",
       "composed_of": [],
-      "notes": "ESP32-S3-WROOM-1 hub. Owns the on-board relay K1 (GPIO3) and the shared core_i2c / RoomIQ UART buses. Device-health and diagnostics entities (uptime, WiFi, restart/safe-mode, internal temperature, CPU duty) are defined in the hardware core config and the device_health.yaml / diagnostics.yaml feature packages, not duplicated per board.",
+      "notes": "PR 07 Core source-of-truth flip: the canonical board package is boards/s360-100-core-ceiling.yaml (content moved verbatim from the deleted hardware/sense360_core_ceiling.yaml; the never-wired boards/s360-100-core.yaml prototype was deleted). ESP32-S3-WROOM-1 hub. Owns the on-board relay K1 (GPIO3) and the shared core_i2c / RoomIQ UART buses. Device-health and diagnostics entities (uptime, WiFi, restart/safe-mode, internal temperature, CPU duty) are defined in the hardware core config and the device_health.yaml / diagnostics.yaml feature packages, not duplicated per board.",
       "rows": [
         {
           "row": "On-board relay K1 control (GPIO3)",
@@ -142,7 +142,7 @@
           "defined_in": "packages/boards/s360-200-roomiq-sen0609.yaml",
           "confirm": "none",
           "queued_fill_slice": null,
-          "notes": "Filled by PRESENCE-FRAMEWORK-001 (executed ENTITY-FILL-200-SEN0609-001): digital presence output on roomiq_sen0609_output_pin (GPIO6); the roomiq_sen0609_uart bus (115200) stays Core-owned and reserved \u2014 ESPHome 2026.4.5 has no supported C4001/SEN0609 UART component. Compile/simulation proof only; no hardware verification claimed."
+          "notes": "Filled by PRESENCE-FRAMEWORK-001 (executed ENTITY-FILL-200-SEN0609-001): digital presence output on roomiq_sen0609_output_pin (GPIO6); the roomiq_sen0609_uart bus (115200) stays Core-owned and reserved — ESPHome 2026.4.5 has no supported C4001/SEN0609 UART component. Compile/simulation proof only; no hardware verification claimed."
         },
         {
           "row": "PIR motion (EKMC1601111, IO15)",
@@ -536,7 +536,7 @@
       "schematic_status": "cataloged_unverified",
       "canonical_board_package": null,
       "composed_of": [],
-      "notes": "Phase-dimmer for mains fan or lamp. NO board-layer package. Driver lives in packages/expansions/fan_triac.yaml and stays BLOCKED from exposure: publish is gated by PACKAGE-TRIAC-001 (signed attestation) + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 closed by market posture \u2014 S360-320 is never placed on the market; see docs/decisions/COMPLIANCE-001-RESOLUTION-001.md). Historical note: the placeholder-pin / SX1509 buildability blocker (HW-005) was resolved by TRIAC-PINMAP-CORRECT-001.",
+      "notes": "Phase-dimmer for mains fan or lamp. NO board-layer package. Driver lives in packages/expansions/fan_triac.yaml and stays BLOCKED from exposure: publish is gated by PACKAGE-TRIAC-001 (signed attestation) + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 closed by market posture — S360-320 is never placed on the market; see docs/decisions/COMPLIANCE-001-RESOLUTION-001.md). Historical note: the placeholder-pin / SX1509 buildability blocker (HW-005) was resolved by TRIAC-PINMAP-CORRECT-001.",
       "rows": [
         {
           "row": "AC phase-cut dimmer output + fan entity",

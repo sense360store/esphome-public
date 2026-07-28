@@ -26,22 +26,16 @@
     "packages/expansions"
   ],
   "totals": {
-    "packages": 33,
-    "bound": 27,
-    "unbound": 6
+    "packages": 31,
+    "bound": 26,
+    "unbound": 5
   },
   "bindings": [
     {
       "package": "packages/boards/s360-100-core-ceiling.yaml",
-      "board_sku": null,
-      "basis": "alias",
-      "reason": "Ceiling mount overlay. Wraps packages/hardware/sense360_core_ceiling.yaml, which holds the content until the Core source-of-truth flip; the SKU is contributed there."
-    },
-    {
-      "package": "packages/boards/s360-100-core.yaml",
       "board_sku": "S360-100",
       "basis": "authoritative-board-firmware",
-      "reason": "Base Core board firmware: ESP32-S3 platform, abstract bus and board_sku declaration."
+      "reason": "Authoritative S360-100 ceiling Core board firmware. PR 07 Core source-of-truth flip: the content moved here verbatim from the deleted packages/hardware/sense360_core_ceiling.yaml; the former overlay declared nothing of its own, so every resolved configuration is unchanged."
     },
     {
       "package": "packages/boards/s360-200-roomiq-climate.yaml",
@@ -200,16 +194,10 @@
       "reason": "Core board firmware, legacy functional path still holding content."
     },
     {
-      "package": "packages/hardware/sense360_core_ceiling.yaml",
-      "board_sku": "S360-100",
-      "basis": "authoritative-board-firmware",
-      "reason": "Core ceiling-mount firmware; still the source of truth wrapped by the board overlay."
-    },
-    {
       "package": "packages/hardware/sense360_core_ceiling_s3.yaml",
       "board_sku": "S360-100",
       "basis": "authoritative-board-firmware",
-      "reason": "Core ceiling S3-lineage firmware. Also composes AirIQ and RoomIQ paths, which contribute their own SKUs through the include graph."
+      "reason": "Pre-R4 S3-lineage Core firmware, kept with reason: read directly by the CORE-ABSTRACT-BUS-001 guards in tests/test_core_abstract_bus.py as the S3 out-of-scope reference, paired with the retained s360-210-airiq-ceiling-s3 board. The S3 lineage retires wholesale with PR 08."
     },
     {
       "package": "packages/hardware/sense360_core_mapping.yaml",

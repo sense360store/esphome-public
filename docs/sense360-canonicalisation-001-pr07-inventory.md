@@ -65,6 +65,34 @@ Total paths: 169.
   Remaining execution: the Core source-of-truth flip (`sense360_core_*`,
   `power_usb`, `s360-100-core*`), the `device_sku` identifier, and the
   final full-suite / validator pass before the acceptance request.
+- **2026-07-28, slice 4 — Core source-of-truth flip.** The S360-100 ceiling
+  Core content moved verbatim (one stale comment cross-reference retargeted)
+  from `packages/hardware/sense360_core_ceiling.yaml` into
+  `packages/boards/s360-100-core-ceiling.yaml`; the former overlay it
+  replaced was a pure single-`!include` wrapper declaring nothing of its
+  own, so every consumer's resolved composition is unchanged (PR 06
+  contract gate: byte-identical, again). 20 consumer files re-pointed
+  (bundles, compile-only skeletons, legacy products). Deleted with the
+  flip: the legacy `hardware/sense360_core_ceiling.yaml` path and the
+  never-wired `boards/s360-100-core.yaml` prototype (its substitution-layer
+  idea lands with PR 08); the zero-alias ledger now pins 41 paths. Kept
+  with reasons: `hardware/sense360_core.yaml` / `sense360_core_poe.yaml` /
+  `sense360_core_voice.yaml` (implementations of catalogued
+  legacy-compatible products), `sense360_core_mapping.yaml` (pin-map
+  contract read by four test modules), `sense360_core_ceiling_s3.yaml`
+  (CORE-ABSTRACT-BUS-001 guard input; retires with PR 08), `power_usb`
+  (consumed by legacy USB products). Test fallout repaired by retargeting
+  path constants in seven test modules (content assertions unchanged);
+  stale "wraps the legacy path" / pending-flip claims corrected in
+  `docs/system-architecture.md`, `docs/hardware-catalog.md`,
+  `packages/README.md`, `packages/SENSE360_MODULES.md`,
+  `docs/feature-entity-matrix.md`, `docs/hardware/s360-100-r4-core.md` and
+  live YAML comments. The owner-authored bench record
+  `docs/hardware/CORE-BENCH-RUNTIME-EVIDENCE-001.md` keeps its recorded
+  path strings verbatim (dead links converted to plain literals only);
+  its pinning test is untouched. Entity tables regenerated
+  (include-source lists only; no entity change). Full suite green
+  (2456 tests) and all validators pass.
 - **Correction recorded:** `packages/expansions/fan_pwm.yaml` was initially
   misclassified `delete-and-repoint`. It composes the sx1509 binding layer
   AND declares the four fan speed controllers, so it is authoritative, not

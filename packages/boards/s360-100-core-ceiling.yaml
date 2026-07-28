@@ -1,26 +1,271 @@
 # ============================================================================
-# Sense360 Core — Ceiling variant overlay (S360-100-R4)
+# Sense360 Core — Authoritative Board Package (S360-100-R4, ceiling hub)
 # ============================================================================
-# BOARD-PACKAGE-LAYER-001. SKU-aligned mount variant of the canonical Core
-# board package `packages/boards/s360-100-core.yaml`.
+# SENSE360-CANONICALISATION-001 PR 07: the Core source-of-truth flip. This
+# file previously wrapped packages/hardware/sense360_core_ceiling.yaml with a
+# single !include; that legacy path held the content. The content now lives
+# HERE, verbatim apart from one stale comment cross-reference retargeted to
+# this file, and the legacy path is deleted (tests/test_zero_alias.py pins the
+# deletion). The overlay it replaced declared nothing of its own, so every
+# consumer's resolved configuration is unchanged; the one nesting level
+# removed carried no substitutions and no keys.
 #
-# This overlay is a thin wrapper over the existing functional package
-# `packages/hardware/sense360_core_ceiling.yaml`, so the ceiling Core behaviour
-# is byte-identical to the legacy path that products and tests already resolve.
-# The wrapped functional package embeds the same reconciled
-# ESP32-S3-WROOM-1-N16R8 chip block (16 MB / 8 MB octal PSRAM), the schematic
-# pin map, and the single shared `core_i2c` bus that the canonical base
-# (`s360-100-core.yaml`) defines — i.e. base + the ceiling mount delta
-# (`pir_sensor_pin: GPIO15`, `roomiq_sen0609_output_pin: GPIO6`, ceiling
-# identity).
-#
-# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
-# `packages/hardware/sense360_core_ceiling.yaml` path is preserved unchanged as
-# the source of truth; no product is rebound onto this board package in this
-# slice. A later PACKAGE-RENAME slice flips source-of-truth into the board tree
-# (refactoring to a literal base + delta) once the path-constant tests travel
-# with that slice per §5.5.
+# The never-wired prototype packages/boards/s360-100-core.yaml (board_sku /
+# abstract-bus base authored for this fold but never consumed) was deleted in
+# the same commit; its substitution-layer idea lands with the PR 08
+# external-component architecture instead.
 # ============================================================================
+# Sense360 Core Ceiling - Ceiling-Mounted Smart Home Hub
+#
+# This is the ceiling-mounted variant of the Sense360 Core board.
+# Designed for recessed ceiling installation with halo LED ring.
+#
+# Hardware Features:
+# - ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
+#   (flash/PSRAM reconciled to the verified S360-100-R4 value by
+#    BOARD-PACKAGE-LAYER-001; canonical board package: this file)
+# - WiFi 2.4GHz, Bluetooth 5.0 LE
+# - Power: 240V AC / PoE (via separate power packages)
+# - Shared Core I²C bus (halo LED ring PCA9685 + sensors + SX1509 expander +
+#   GP8403 DAC all live on the same schematic-correct IO48/IO45 bus)
+# - UART for presence/radar sensors
+# - Built-in relay for load switching (ceiling fan, lights)
+# - GPIO expansion pins
+# - RGB LED halo ring and status LED
+#
+# Pin Assignments (ESP32-S3):
+# - Core I2C (shared): SDA=GPIO48, SCL=GPIO45, 400kHz
+# - UART (Hi-Link):   TX=GPIO2, RX=GPIO1, baud 256000  (RoomIQ J10 LD2450 radar)
+# - UART (SEN0609):   TX=GPIO5, RX=GPIO4, baud 115200  (RoomIQ J10 DFRobot radar)
+# - Relay:            GPIO3 (10A AC/DC for ceiling fan/light; schematic Relay
+#                     net per S360-100-R4. CORE-ABSTRACT-BUS-001A rebound
+#                     relay_pin GPIO4 → GPIO3 after CORE-ABSTRACT-BUS-001C
+#                     freed GPIO3 by moving ALS_INT off it.)
+# - PIR/Motion:       GPIO15 (schematic IO15 = PIR, RoomIQ J10 motion input)
+# - Fan Status LED:   GPIO46 (schematic IO46 = GP_Fan_Status_Led, Core-side
+#                     indicator independent of any module)
+# - SEN0609 output:   GPIO6  (schematic IO6 = out(gpio6), RoomIQ J10 aux line)
+#
+# CORE-ABSTRACT-BUS-001B rebinds applied here:
+#   * Single shared Core I²C bus `core_i2c` on schematic-correct
+#     `IO48` (SDA) / `IO45` (SCL) at `400kHz`; the legacy dual-bus
+#     `halo_i2c` (`GPIO39` / `GPIO40`) and `expansion_i2c`
+#     (`GPIO21` / `GPIO18`) definitions and their `halo_i2c_*` /
+#     `expansion_i2c_*` pin substitutions are retired (hard rename only,
+#     no compatibility aliases per CORE-ABSTRACT-BUS-001B-PLAN-001
+#     operator decisions).
+# CORE-ABSTRACT-BUS-001C rebinds applied here:
+#   * generic `status_led_pin` retired (no Core-baseline status-LED net on the
+#     schematic; the S360-300 LED ring is owned by `led_ring_ceiling.yaml`)
+#   * `expansion_gpio1..4` retired (replaced by function-specific names)
+#   * UART split into `roomiq_hi_link_uart` (256000) and `roomiq_sen0609_uart`
+#     (115200); ESP-perspective tx/rx direction is now schematic-correct
+#   * `pir_sensor_pin` rebound GPIO47 → GPIO15 (schematic PIR net)
+#   * `fan_status_led_pin` introduced on GPIO46 (Core-side indicator)
+#   * `roomiq_sen0609_output_pin` introduced on GPIO6
+# CORE-ABSTRACT-BUS-001A rebinds relay_pin GPIO4 → GPIO3 (schematic Relay
+# net per S360-100-R4). The GPIO3 collision was resolved by 001C (#557)
+# which moved ALS_INT to GPIO47 and the expander interrupt to GPIO17.
+#
+# Form Factor:
+# - Ceiling recessed mount
+# - Halo LED ring for ambient feedback
+# - Downward-facing sensors (presence, air quality)
+# - Top-side power and expansion connectors
+#
+# Expansion Bus Pinout (10-pin connector):
+# 1. GND
+# 2. 3.3V (500mA max)
+# 3. 5V (1A max)
+# 4. Core I2C SDA (GPIO48) - shared Core I²C bus per CORE-ABSTRACT-BUS-001B
+# 5. Core I2C SCL (GPIO45) - shared Core I²C bus per CORE-ABSTRACT-BUS-001B
+# 6. Hi-Link UART RX (GPIO1) — ESP receives from Hi-Link radar
+# 7. Hi-Link UART TX (GPIO2) — ESP transmits to Hi-Link radar
+# 8. SEN0609 UART RX (GPIO4) — ESP receives from DFRobot radar
+# 9. SEN0609 UART TX (GPIO5) — ESP transmits to DFRobot radar
+# 10. SEN0609 out (GPIO6) — DFRobot auxiliary line
 
-packages:
-  board_core: !include ../hardware/sense360_core_ceiling.yaml
+substitutions:
+  device_name: sense360-ceiling
+  friendly_name: Sense360 Ceiling
+  timezone: "America/New_York"
+
+  # Relay (ceiling fan/light control)
+  # CORE-ABSTRACT-BUS-001A: schematic-correct Relay net on IO3 per
+  # S360-100-R4. GPIO3 was freed by CORE-ABSTRACT-BUS-001C (#557) which
+  # moved ALS_INT off GPIO3 to GPIO47 and the expander interrupt off
+  # GPIO3 to GPIO17.
+  relay_pin: GPIO3
+  relay_max_current: "10A"
+
+  # CORE-ABSTRACT-BUS-001C: Fan Status LED indicator (Core-side, no module
+  # dependency). Schematic IO46 = GP_Fan_Status_Led per S360-100-R4.
+  fan_status_led_pin: GPIO46
+
+  # CORE-ABSTRACT-BUS-001C: PIR motion input.
+  # Schematic IO15 = PIR (RoomIQ J10 PIR motion input). Was GPIO47 (= ALS_INT
+  # net, schematic-conflicting).
+  pir_sensor_pin: GPIO15
+
+  # CORE-ABSTRACT-BUS-001C: SEN0609 auxiliary output line.
+  # Schematic IO6 = out(gpio6), RoomIQ J10 auxiliary line.
+  roomiq_sen0609_output_pin: GPIO6
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.ceiling
+    version: 1.0.0
+  on_boot:
+    - priority: 600
+      then:
+        - logger.log: "Sense360 Ceiling board initializing..."
+    - priority: -100
+      then:
+        - logger.log: "Sense360 Ceiling board ready"
+
+# Reconciled ESP32-S3-WROOM-1-N16R8 chip block (16 MB flash, 8 MB octal PSRAM)
+# per BOARD-PACKAGE-LAYER-001 (was 8 MB / 2 MB — flash/PSRAM drift, §4.1).
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_SIZE: y
+      # Enable PSRAM (octal-SPI, 80 MHz — ESP32-S3-WROOM-1-N16R8)
+      CONFIG_ESP32S3_SPIRAM_SUPPORT: y
+      CONFIG_SPIRAM_MODE_OCT: y
+      CONFIG_SPIRAM_SPEED_80M: y
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# Shared Core I2C bus (CORE-ABSTRACT-BUS-001B).
+# Schematic IO48 = I2C_SDA, IO45 = I2C_SCL per S360-100-R4; pulled up by
+# R22/R21 10 kΩ. Single bus serves the halo LED ring PCA9685
+# (consumed via packages/features/ceiling_halo_leds.yaml) and every
+# expansion module (sensors, SX1509 expander, GP8403 DAC).
+i2c:
+  - id: core_i2c
+    sda: GPIO48
+    scl: GPIO45
+    scan: true
+    frequency: 400kHz
+
+# CORE-ABSTRACT-BUS-001C: split single uart_bus into two named RoomIQ UARTs
+# matching the schematic-correct ESP-perspective direction and baud rates.
+uart:
+  # RoomIQ J10 Hi-Link radar UART — Hi-Link LD2450 default baud 256000.
+  - id: roomiq_hi_link_uart
+    tx_pin: GPIO2
+    rx_pin: GPIO1
+    baud_rate: 256000
+
+  # RoomIQ J10 DFRobot SEN0609 radar UART — SEN0609/C4001 default baud 115200.
+  - id: roomiq_sen0609_uart
+    tx_pin: GPIO5
+    rx_pin: GPIO4
+    baud_rate: 115200
+
+# Core-side Fan Status LED indicator (independent of any module).
+# Replaces the retired generic status_led_pin per CORE-ABSTRACT-BUS-001C.
+status_led:
+  pin:
+    number: ${fan_status_led_pin}
+    inverted: true
+
+# Main relay for ceiling fan or light control
+switch:
+  - platform: gpio
+    name: "${friendly_name} Relay"
+    id: main_relay
+    pin: ${relay_pin}
+    restore_mode: RESTORE_DEFAULT_OFF
+    icon: mdi:electric-switch
+    on_turn_on:
+      - logger.log: "Ceiling relay turned ON"
+    on_turn_off:
+      - logger.log: "Ceiling relay turned OFF"
+
+# Binary sensors
+binary_sensor:
+  - platform: status
+    name: "${friendly_name} Status"
+    id: system_status
+
+# Optional: PIR motion sensor (backup for mmWave radar)
+# Uncomment if PIR sensor is installed on GPIO15 (schematic PIR net).
+# binary_sensor:
+#   - platform: gpio
+#     name: "${friendly_name} PIR Motion"
+#     id: pir_motion
+#     pin:
+#       number: ${pir_sensor_pin}
+#       mode:
+#         input: true
+#         pulldown: true
+#     device_class: motion
+#     filters:
+#       - delayed_on: 100ms
+#       - delayed_off: 5s
+
+# System controls
+button:
+  - platform: restart
+    id: reset_button
+    name: "${friendly_name} Restart"
+    icon: mdi:restart
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: mdi:safety-goggles
+
+  - platform: factory_reset
+    name: "${friendly_name} Factory Reset"
+    id: factory_reset_btn
+    icon: mdi:delete-forever
+    disabled_by_default: true
+
+# System sensors
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 60s
+    icon: mdi:wifi
+
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+    icon: mdi:clock-outline
+
+  # Internal temperature sensor (ESP32-S3)
+  - platform: internal_temperature
+    name: "${friendly_name} Internal Temperature"
+    id: internal_temp
+    update_interval: 60s
+    icon: mdi:thermometer
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP Address"
+      icon: mdi:ip-network
+    ssid:
+      name: "${friendly_name} SSID"
+      icon: mdi:wifi
+    mac_address:
+      name: "${friendly_name} MAC Address"
+      icon: mdi:network-outline
+
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    hide_timestamp: true
+    icon: mdi:information-outline

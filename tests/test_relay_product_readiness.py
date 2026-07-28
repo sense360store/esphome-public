@@ -202,12 +202,14 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_core_ceiling_package(self) -> None:
+        # SENSE360-CANONICALISATION-001 PR 07 Core flip: the ceiling Core
+        # content lives in the SKU-aligned board package.
         text = RELAY_BUNDLE.read_text()
         self.assertIn(
-            "packages/hardware/sense360_core_ceiling.yaml",
+            "packages/boards/s360-100-core-ceiling.yaml",
             text,
             "FanRelay product YAML must !include the Core ceiling "
-            "abstract package so `${relay_pin}` resolves to the "
+            "board package so `${relay_pin}` resolves to the "
             "schematic-correct GPIO3 bound by CORE-ABSTRACT-BUS-001A.",
         )
 

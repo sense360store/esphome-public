@@ -81,6 +81,11 @@ DELETED_PATHS = {
     "packages/features/presence_advanced_profile.yaml": "orphan advanced presence profile, no consumer",
     "packages/features/presence_advanced_profile_ld2412.yaml": "orphan LD2412 advanced profile, no consumer",
     "packages/features/presence_advanced_ld2412.yaml": "orphan LD2412 advanced entities (cascade of the profile above)",
+    # The Core source-of-truth flip (PR 07): the ceiling Core content moved
+    # verbatim into packages/boards/s360-100-core-ceiling.yaml; the legacy
+    # source path and the never-wired prototype base are gone.
+    "packages/hardware/sense360_core_ceiling.yaml": "content moved into boards/s360-100-core-ceiling.yaml",
+    "packages/boards/s360-100-core.yaml": "never-wired prototype base; superseded by the flip, PR 08 owns the idea",
     # PR 07 packages/remote resolution (owner evidence test).
     "packages/remote/blower-framework.yaml": "unpublished remainder of packages/remote/",
 }
@@ -120,7 +125,7 @@ class ZeroAliasLedgerTests(unittest.TestCase):
 
     def test_the_ledger_is_not_silently_shrunk(self):
         """Removing an entry here needs the same deliberateness as a revert."""
-        self.assertGreaterEqual(len(DELETED_PATHS), 39)
+        self.assertGreaterEqual(len(DELETED_PATHS), 41)
 
 
 if __name__ == "__main__":

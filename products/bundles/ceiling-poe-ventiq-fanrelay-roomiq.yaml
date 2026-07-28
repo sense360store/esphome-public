@@ -206,8 +206,8 @@ substitutions:
   s360_module_presence: "Included"
 
   # === FanRelay binding ===
-  # The relay GPIO output is owned by the parent Core abstract package
-  # `packages/hardware/sense360_core_ceiling.yaml`, which declares the
+  # The relay GPIO output is owned by the parent Core board package
+  # `packages/boards/s360-100-core-ceiling.yaml`, which declares the
   # `main_relay` `switch.gpio` on `pin: ${relay_pin}` and binds
   # `relay_pin: GPIO3` (schematic-correct Relay net per S360-100-R4 IO3
   # after `CORE-ABSTRACT-BUS-001A` / PR #558). The FanRelay package
@@ -237,7 +237,7 @@ packages:
   base_time: !include ../../packages/base/time.yaml
 
   # === Sense360 Core (Ceiling, S360-100-R4) ===
-  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
   power_config: !include ../../packages/boards/s360-410-poe-psu.yaml

@@ -56,7 +56,10 @@ RADAR_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-radar.yaml"
 UART_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-uart.yaml"
 MERGED_BOARD = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq.yaml"
 REMOTE_PRESENCE = REPO_ROOT / "packages" / "remote" / "ceiling-roomiq-presence.yaml"
-CORE_CEILING = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
+# SENSE360-CANONICALISATION-001 PR 07 Core flip: the ceiling Core content
+# lives in the SKU-aligned board package (moved verbatim from
+# packages/hardware/sense360_core_ceiling.yaml).
+CORE_CEILING = REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml"
 HEADER = REPO_ROOT / "include" / "sense360" / "presence_fusion.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_presence_fusion.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-presence-framework.md"

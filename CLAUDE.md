@@ -259,10 +259,12 @@ declaration layer that governs what ships lives in `config/`.
   yet flipped into the board layer — the thin alias layer was removed by
   SENSE360-CANONICALISATION-001 PR 07 and must not return;
   `tests/test_zero_alias.py` is the ledger),
-  `packages/features/` (behaviour profiles / automations). The S360-100 Core
-  mount paths are the inverse today: the board overlay still wraps the legacy
-  `packages/hardware/sense360_core_*.yaml` source until Core's
-  source-of-truth flip lands.
+  `packages/features/` (behaviour profiles / automations). The Core
+  source-of-truth flip landed in SENSE360-CANONICALISATION-001 PR 07:
+  `packages/boards/s360-100-core-ceiling.yaml` holds the S360-100 ceiling
+  Core content directly, and the legacy `hardware/sense360_core_ceiling.yaml`
+  path is deleted (the voice / PoE / generic legacy variants remain only as
+  implementations of catalogued legacy-compatible products).
 - **`config/`** — the **catalog source of truth** (machine-readable
   declarations; JSON, validated by `scripts/` + `tests/`):
   [`product-catalog.json`](config/product-catalog.json) (product lifecycle /

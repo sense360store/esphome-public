@@ -68,10 +68,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # Core abstract packages whose 001C substitutions / blocks were rebound
 # by CORE-ABSTRACT-BUS-001C (#557). Each must drop the generic
 # ``status_led_pin`` and ``expansion_gpio1..4`` substitutions and adopt
-# the schematic-named replacements.
+# the schematic-named replacements. The ceiling entry is the SKU-aligned
+# board package since the SENSE360-CANONICALISATION-001 PR 07 Core
+# source-of-truth flip (content moved verbatim; assertions unchanged).
 AFFECTED_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
+    REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
 ]
@@ -83,7 +85,7 @@ AFFECTED_CORE_PACKAGES = [
 # adopt ``GPIO3`` (schematic Relay net per S360-100-R4 IO3).
 RELAY_REBIND_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
+    REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
 ]
@@ -108,8 +110,12 @@ SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.y
 FAN_PWM_SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_pwm_sx1509.yaml"
 FAN_RELAY_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_relay.yaml"
 FAN_GP8403_PACKAGE_PATH = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
+# SENSE360-CANONICALISATION-001 PR 07 (Core source-of-truth flip): the ceiling
+# Core content moved verbatim from packages/hardware/sense360_core_ceiling.yaml
+# into the SKU-aligned board package; every content assertion travels with it
+# unchanged.
 SENSE360_CORE_CEILING = (
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
+    REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml"
 )
 SENSE360_CORE_MAPPING = (
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml"
@@ -194,8 +200,8 @@ class PirSensorPinTests(unittest.TestCase):
             value,
             "GPIO15",
             "pir_sensor_pin must be GPIO15 (schematic IO15 = PIR per "
-            "S360-100-R4) in sense360_core_ceiling.yaml. Was previously "
-            "GPIO47 (= ALS_INT, schematic-conflicting).",
+            "S360-100-R4) in boards/s360-100-core-ceiling.yaml. Was "
+            "previously GPIO47 (= ALS_INT, schematic-conflicting).",
         )
 
 
@@ -621,10 +627,10 @@ class RelayPinRebindTests(unittest.TestCase):
 
 
 class MainRelaySwitchBindingTests(unittest.TestCase):
-    """``main_relay`` in sense360_core_ceiling.yaml resolves to ${relay_pin}.
+    """``main_relay`` in the ceiling Core board resolves to ${relay_pin}.
 
     Asserts the ``switch.platform: gpio`` block declaring ``id:
-    main_relay`` in sense360_core_ceiling.yaml has ``pin:
+    main_relay`` in boards/s360-100-core-ceiling.yaml has ``pin:
     ${relay_pin}`` so the generated-config diff for Release-One
     moves ``main_relay`` from ``GPIO4`` to ``GPIO3`` cleanly with the
     relay_pin substitution.
@@ -645,13 +651,13 @@ class MainRelaySwitchBindingTests(unittest.TestCase):
             match,
             "Expected a switch.platform: gpio block with id: main_relay "
             "followed by a pin: declaration in "
-            "sense360_core_ceiling.yaml.",
+            "boards/s360-100-core-ceiling.yaml.",
         )
         pin_value = match.group("pin").strip("\"'")
         self.assertEqual(
             pin_value,
             "${relay_pin}",
-            "main_relay in sense360_core_ceiling.yaml must bind "
+            "main_relay in boards/s360-100-core-ceiling.yaml must bind "
             "pin: ${relay_pin} so the schematic-correct Relay net "
             "(GPIO3 per CORE-ABSTRACT-BUS-001A) is consumed by "
             "downstream products through substitution.",
@@ -669,7 +675,7 @@ class MainRelaySwitchBindingTests(unittest.TestCase):
 # S360-100-R4, pulled up by R22/R21 10 kΩ).
 SHARED_I2C_BUS_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
+    REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
 ]

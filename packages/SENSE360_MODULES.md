@@ -49,20 +49,20 @@ self-contained package that owns the board's chip / pin map / connector nets:
 
 | Board SKU | Friendly name | Authoritative board package | Legacy alias paths (preserved) |
 |-----------|---------------|-----------------------------|--------------------------------|
-| `S360-100` | Sense360 Core | `packages/boards/s360-100-core.yaml` (+ mount/power/voice overlays) | `hardware/sense360_core*.yaml` |
+| `S360-100` | Sense360 Core | `packages/boards/s360-100-core-ceiling.yaml` (ceiling; PR 07 flip) | `hardware/sense360_core_ceiling.yaml` (deleted); voice / PoE / generic variants remain as legacy-product implementations |
 | `S360-200` | Sense360 RoomIQ | `packages/boards/s360-200-roomiq.yaml` (authoritative **per driver**: `…-climate.yaml` + `…-radar.yaml`, ceiling & wall) | `expansions/comfort_ceiling.yaml`, `comfort_wall.yaml`, `presence_ceiling.yaml`, `presence_wall.yaml` |
 | `S360-210` | Sense360 AirIQ | `packages/boards/s360-210-airiq.yaml` (+ `-wall`, `-ceiling-s3`) | `expansions/airiq_ceiling.yaml`, `airiq_wall.yaml`, `airiq_ceiling_s3.yaml` |
 | `S360-211` | Sense360 VentIQ | `packages/boards/s360-211-ventiq.yaml` (+ `-pro`) | `expansions/airiq_bathroom_base.yaml`, `airiq_bathroom_pro.yaml`, `bathroom.yaml` |
 | `S360-300` | Sense360 LED | `packages/boards/s360-300-led.yaml` (+ mic/voice variant) | `hardware/led_ring_ceiling.yaml`, `led_ring_wall.yaml`, `led_ring_mic_*.yaml` |
 | `S360-410` | Sense360 PoE PSU | `packages/boards/s360-410-poe-psu.yaml` | `hardware/power_poe.yaml` |
 
-**Core flip is still pending.** For `S360-200` / `S360-210` / `S360-211` /
-`S360-300` / `S360-410` the board package is authoritative and the legacy paths
-are the aliases. For `S360-100` Core the base chip/bus lives authoritatively in
-`s360-100-core.yaml`, but the **mount-variant overlays still wrap the legacy
-`hardware/sense360_core_*.yaml` path** (the overlay `!include`s the legacy file
-— the inverse direction); the legacy Core mount path stays the source of truth
-until Core's flip lands in a later slice.
+**Core flip landed (SENSE360-CANONICALISATION-001 PR 07).** Every family in
+the table above is authoritative in its board package. For `S360-100` Core the
+ceiling content moved verbatim into `s360-100-core-ceiling.yaml`; the legacy
+`hardware/sense360_core_ceiling.yaml` path and the never-wired
+`boards/s360-100-core.yaml` prototype are deleted, and the remaining
+`hardware/sense360_core*.yaml` files (generic / PoE / voice) survive only as
+implementations of catalogued legacy-compatible products.
 
 **Alias-retention policy (`docs/arch-board-bundle-plan.md` §3.3).** When a board
 package becomes authoritative, the legacy functional path is **retained as a

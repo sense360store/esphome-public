@@ -66,7 +66,7 @@ packages:
   base_time: !include ../packages/base/time.yaml
 
   # === Core Hardware (Ceiling Board) ===
-  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../packages/boards/s360-100-core-ceiling.yaml
 
   # === LED Ring ===
   led_ring: !include ../packages/boards/s360-300-led.yaml

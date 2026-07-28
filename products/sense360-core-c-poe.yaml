@@ -76,7 +76,7 @@ packages:
   base_time: !include ../packages/base/time.yaml
 
   # === Core Hardware ===
-  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../packages/boards/s360-100-core-ceiling.yaml
 
   # === Power Configuration ===
   power_config: !include ../packages/boards/s360-410-poe-psu.yaml

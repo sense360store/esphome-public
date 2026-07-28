@@ -29,7 +29,6 @@
        packages/features/device_health.yaml
        packages/features/presence_framework.yaml
        packages/features/roomiq_framework.yaml
-       packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-airiq-roomiq.yaml
        products/sense360-ceiling-poe-airiq-roomiq.yaml
        products/webflash/ceiling-poe-airiq-roomiq.yaml

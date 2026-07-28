@@ -257,7 +257,7 @@ documented in [`release-one.md` (archived)](archive-index.md)):
 
 | Slot | Package |
 |------|---------|
-| Core (mount) | [`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml) |
+| Core (mount) | ``packages/hardware/sense360_core_ceiling.yaml`` |
 | Power (POE) | ``packages/hardware/power_poe.yaml`` |
 | Air Quality (VentIQ) | ``packages/expansions/airiq_bathroom_base.yaml`` |
 | Room Sense (RoomIQ comfort) | ``packages/expansions/comfort_ceiling.yaml`` |

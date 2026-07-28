@@ -307,10 +307,12 @@ class PwmProductPackageCompositionTests(unittest.TestCase):
             )
 
     def test_includes_core_ceiling_package(self) -> None:
+        # SENSE360-CANONICALISATION-001 PR 07 Core flip: the ceiling Core
+        # content lives in the SKU-aligned board package.
         self.assertIn(
-            "packages/hardware/sense360_core_ceiling.yaml",
+            "packages/boards/s360-100-core-ceiling.yaml",
             self.text,
-            "FanPWM product YAML must !include the Core ceiling abstract "
+            "FanPWM product YAML must !include the Core ceiling board "
             "package so the SX1509 expander binds to the shared core_i2c bus.",
         )
 
