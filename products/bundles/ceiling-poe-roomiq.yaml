@@ -71,7 +71,10 @@ substitutions:
   # `Ceiling-POE-RoomIQ`.
   device_name: s360-ceil-poe-roomiq
   friendly_name: Sense360 Ceiling RoomIQ
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "0.0.0-blocked-s360-410"
   timezone: "America/New_York"
 

@@ -93,6 +93,21 @@ Total paths: 169.
   its pinning test is untouched. Entity tables regenerated
   (include-source lists only; no entity change). Full suite green
   (2456 tests) and all validators pass.
+- **2026-07-28, slice 5 — device_sku canonicalisation.** The `device_sku`
+  substitution (feeding the customer-visible "Product SKU" diagnostic)
+  carried the pre-catalog legacy identifiers `S360-CORE-C` /
+  `S360-CORE-C-POE` / `S360-CORE-C-USB` — a second, non-canonical
+  configuration-layer identifier on no catalog axis (PR 06 contract §8
+  input). All 27 declarations across `products/` rebound to the canonical
+  board SKU `S360-100` (every flashable device is a Core; power / mount
+  facts stay published through the canonical config string). The entity
+  surface is unchanged — same sensor, same id, canonical value; this is
+  a deliberate published-value change that ships only with a future
+  owner-cut release. New guard `tests/test_device_sku_canonical.py` pins
+  every `device_sku` to a config/hardware-catalog.json SKU and pins the
+  retired scheme deleted. The legacy `S360-CORE-C*` rows in
+  `docs/product-matrix.md` are pre-catalog documentation; that doc's
+  rewrite is PR 16 scope. Suite green (2459 tests); validators pass.
 - **Correction recorded:** `packages/expansions/fan_pwm.yaml` was initially
   misclassified `delete-and-repoint`. It composes the sx1509 binding layer
   AND declares the four fan speed controllers, so it is authoritative, not

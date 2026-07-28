@@ -91,7 +91,10 @@ substitutions:
   # `Ceiling-POE-AirIQ-RoomIQ`.
   device_name: s360-ceil-poe-airiq-roomiq
   friendly_name: Sense360 Ceiling AirIQ RoomIQ
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   # Blocked on the shared S360-410 schematic-verification gate; this is NOT a
   # release version and must not be read as one (see PRODUCT-POE-410-001).
   device_version: "0.0.0-blocked-s360-410"
