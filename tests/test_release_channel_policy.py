@@ -44,6 +44,10 @@ class PolicyStructureTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.policy = _load(POLICY_PATH)
+        cls.builds_by_cs = {
+            b["config_string"]: b
+            for b in _load(REPO_ROOT / "config" / "webflash-builds.json")["builds"]
+        }
 
     def test_policy_file_exists_and_is_identified(self):
         self.assertEqual(self.policy["policy_id"], "RELEASE-PREVIEW-ALL-PRODUCTS-001")
@@ -131,7 +135,15 @@ class PolicyStructureTests(unittest.TestCase):
             config, _version, suffix = match.groups()
             self.assertEqual(config, row["config_string"])
             self.assertIn(suffix, allowed)
-            self.assertEqual(suffix, mapping[row["intended_channel"]])
+            # ESP-007 (owner decision of 2026-07-28,
+            # SENSE360-CANONICALISATION-001): a config with a
+            # webflash-builds row takes that row's channel suffix; the
+            # intended-channel mapping is the default for rows without one.
+            build_row = self.builds_by_cs.get(row["config_string"])
+            if build_row is not None:
+                self.assertEqual(suffix, build_row["channel"])
+            else:
+                self.assertEqual(suffix, mapping[row["intended_channel"]])
 
 
 class PreviewWithoutHardwareProofTests(unittest.TestCase):
@@ -217,7 +229,9 @@ class TriacTests(unittest.TestCase):
             )
         adv_copy = self.policy["warning_copy"]["advanced-preview"]
         self.assertIn("MAINS", adv_copy.upper())
-        self.assertTrue(self.policy["guardrails"]["triac_preview_requires_advanced_warning"])
+        self.assertTrue(
+            self.policy["guardrails"]["triac_preview_requires_advanced_warning"]
+        )
 
 
 class FanPreviewTests(unittest.TestCase):
@@ -324,7 +338,9 @@ class WebflashMatrixTests(unittest.TestCase):
             if b["config_string"] == "Ceiling-POE-VentIQ-RoomIQ-LED"
         }
         self.assertIn("Ceiling-POE-VentIQ-RoomIQ-LED", led_builds)
-        self.assertEqual(led_builds["Ceiling-POE-VentIQ-RoomIQ-LED"]["channel"], "preview")
+        self.assertEqual(
+            led_builds["Ceiling-POE-VentIQ-RoomIQ-LED"]["channel"], "preview"
+        )
 
 
 class NoFakeEvidenceTests(unittest.TestCase):
@@ -356,7 +372,9 @@ class NoFakeEvidenceTests(unittest.TestCase):
 
     def test_preview_tiers_cannot_claim_bench_evidence(self):
         for name in ("preview", "advanced-preview"):
-            self.assertFalse(self.policy["channel_tiers"][name]["may_claim_bench_evidence"])
+            self.assertFalse(
+                self.policy["channel_tiers"][name]["may_claim_bench_evidence"]
+            )
 
     def test_no_preview_row_is_marked_production_or_required(self):
         for row in self.policy["preview_release_matrix"]:

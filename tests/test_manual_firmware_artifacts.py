@@ -56,6 +56,14 @@ FAN_YAMLS = {
 # HW-RELEASE-001: the fan candidates' catalog build channel, per lane. FanRelay
 # is mains-adjacent, so experimental only; FanPWM / FanDAC are SELV previews.
 # NONE may ever be "stable".
+# Per-config declared artifact version. The FanRelay pair moved to v1.0.1
+# under the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001):
+# their published v1.0.0-preview artifacts are immutable, so the next
+# declared artifact must be a NEW version — never a second name for v1.0.0.
+FAN_BUILD_VERSION = {
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ": "1.0.1",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ": "1.0.1",
+}
 CANDIDATE_CATALOG_CHANNEL = {
     "fanrelay": "experimental",
     "fanpwm": "preview",
@@ -156,9 +164,10 @@ class CrossReferenceTests(unittest.TestCase):
             with self.subTest(candidate=cand["id"]):
                 entry = self.catalog_by_yaml[cand["product_yaml"]]
                 channel = CANDIDATE_CATALOG_CHANNEL[cand["id"]]
+                version = FAN_BUILD_VERSION.get(entry["config_string"], "1.0.0")
                 self.assertEqual(
                     entry.get("artifact_name"),
-                    f"Sense360-{entry['config_string']}-v1.0.0-{channel}.bin",
+                    f"Sense360-{entry['config_string']}-v{version}-{channel}.bin",
                 )
                 self.assertNotIn("-stable.bin", entry["artifact_name"])
 
@@ -309,9 +318,10 @@ class ValidatorRejectsMutationsTests(unittest.TestCase):
                 self.assertNotEqual(entry.get("channel"), "stable")
         mutated = copy.deepcopy(self.catalog)
         for entry in mutated["products"]:
-            if entry.get("product_yaml") == self.config["candidates"][0][
-                "product_yaml"
-            ]:
+            if (
+                entry.get("product_yaml")
+                == self.config["candidates"][0]["product_yaml"]
+            ):
                 entry["channel"] = "stable"
         errors = validate(self.config, self.targets, mutated)
         self.assertTrue(

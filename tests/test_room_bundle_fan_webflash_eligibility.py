@@ -66,6 +66,14 @@ BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 SHOP_PATH = REPO_ROOT / "config" / "shop-commercial-source-of-truth.json"
 
 DECISION_ID = "ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001"
+# Per-config declared artifact version. The FanRelay pair moved to v1.0.1
+# under the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001):
+# their published v1.0.0-preview artifacts are immutable, so the next
+# declared artifact must be a NEW version — never a second name for v1.0.0.
+FAN_BUILD_VERSION = {
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ": "1.0.1",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ": "1.0.1",
+}
 RELEASE_TAG = "v1.0.0-preview"
 DOWNSTREAM_IMPORT = "WF-IMPORT-FAN-BUNDLES-001"
 
@@ -312,7 +320,7 @@ class FivePreviewOnlyPostureTests(unittest.TestCase):
                 self.assertEqual(entry["hardware_status"], HW_RELEASE_HARDWARE_STATUS)
                 self.assertEqual(
                     entry["artifact_name"],
-                    f"Sense360-{cs}-v1.0.0-{channel}.bin",
+                    f"Sense360-{cs}-v{FAN_BUILD_VERSION.get(cs, '1.0.0')}-{channel}.bin",
                 )
                 wrapper = entry["webflash_wrapper"]
                 self.assertEqual(wrapper, f"products/webflash/{cs.lower()}.yaml")

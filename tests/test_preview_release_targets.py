@@ -155,12 +155,24 @@ class ChannelAndArtifactTests(unittest.TestCase):
             with self.subTest(target=t["target_id"]):
                 self.assertIn(t["build_channel"], allowed)
 
-    def test_advanced_preview_builds_on_preview_channel(self) -> None:
+    def test_build_channel_follows_the_build_ledger_then_the_tier_mapping(self) -> None:
+        # ESP-007: config/webflash-builds.json is the sole release-eligibility
+        # source of truth, so a target whose config has a build row takes that
+        # row's channel; the per-tier mapping is the default for targets with
+        # no build row. Owner decision of 2026-07-28
+        # (SENSE360-CANONICALISATION-001): this replaced the strict tier
+        # mapping so a declared artifact name can never disagree with the
+        # build ledger again (the FanRelay / FanTRIAC rows are experimental).
         mapping = self.manifest["build_channel_mapping"]
         self.assertEqual(mapping["advanced-preview"], "preview")
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
         for t in self.targets:
             with self.subTest(target=t["target_id"]):
-                self.assertEqual(t["build_channel"], mapping[t["channel_tier"]])
+                build_row = builds.get(t["config_string"])
+                if build_row is not None:
+                    self.assertEqual(t["build_channel"], build_row["channel"])
+                else:
+                    self.assertEqual(t["build_channel"], mapping[t["channel_tier"]])
 
     def test_artifact_name_matches_config_and_channel(self) -> None:
         for t in self.targets:

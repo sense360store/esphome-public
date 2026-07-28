@@ -10,7 +10,6 @@ import unittest
 from pathlib import Path
 from typing import Any, Dict
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 NOTES_PATH = REPO_ROOT / "docs" / "release-notes" / "preview" / "v1.0.0-preview.md"
 VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
@@ -62,9 +61,16 @@ HISTORICAL_ROOM_PREVIEW_CONFIGS = {
 }
 
 EXPECTED_FAN_MANUAL_PREVIEW_CONFIGS = {
-    "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
     "Ceiling-POE-FanPWM",
     "Ceiling-POE-FanDAC",
+}
+# Configs whose HISTORICAL v1.0.0-preview manual-lane publication the notes
+# document, but whose live ledger row has since legitimately moved on:
+# VentIQ-FanRelay's forward declaration is v1.0.1-experimental under the
+# owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001); its published
+# v1.0.0-preview artifact and this notes text are immutable history.
+HISTORICAL_FAN_MANUAL_PREVIEW_CONFIGS = {
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
 }
 
 TRIAC_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
@@ -194,7 +200,9 @@ class CombinedArtifactCoverageTests(unittest.TestCase):
             _fan_manual_preview_configs_from_ledger(),
             EXPECTED_FAN_MANUAL_PREVIEW_CONFIGS,
         )
-        for config in EXPECTED_FAN_MANUAL_PREVIEW_CONFIGS:
+        for config in (
+            EXPECTED_FAN_MANUAL_PREVIEW_CONFIGS | HISTORICAL_FAN_MANUAL_PREVIEW_CONFIGS
+        ):
             with self.subTest(config=config):
                 self.assertIn(config, self.text)
 
@@ -219,7 +227,9 @@ class CombinedWarningCopyTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, self.norm)
 
-    def test_no_affirmative_stable_recommended_default_customer_ready_language(self) -> None:
+    def test_no_affirmative_stable_recommended_default_customer_ready_language(
+        self,
+    ) -> None:
         for phrase in FORBIDDEN_AFFIRMATIVE_PHRASES:
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, self.norm)

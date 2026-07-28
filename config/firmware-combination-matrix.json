@@ -207,7 +207,7 @@
       "led": "none",
       "status": "webflash-preview",
       "product_yaml": "products/webflash/ceiling-poe-airiq-fanrelay-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "webflash_wrapper": "products/webflash/ceiling-poe-airiq-fanrelay-roomiq.yaml",
       "notes": "In config/webflash-builds.json on the experimental channel."
     },
@@ -932,7 +932,7 @@
       "led": "none",
       "status": "webflash-preview",
       "product_yaml": "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
       "notes": "In config/webflash-builds.json on the experimental channel."
     },

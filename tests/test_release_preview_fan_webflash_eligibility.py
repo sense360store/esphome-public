@@ -55,6 +55,14 @@ STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 # HW-RELEASE-001 channel teeth: the only catalog / builds channel each fan
 # candidate may occupy. FanRelay is mains-adjacent → experimental only;
 # FanPWM / FanDAC → preview. NEVER "stable" for any fan config.
+# Per-config declared artifact version. The FanRelay pair moved to v1.0.1
+# under the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001):
+# their published v1.0.0-preview artifacts are immutable, so the next
+# declared artifact must be a NEW version — never a second name for v1.0.0.
+FAN_BUILD_VERSION = {
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ": "1.0.1",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ": "1.0.1",
+}
 FAN_BUILD_CHANNEL = {
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ": "experimental",
     "Ceiling-POE-FanPWM": "preview",
@@ -215,9 +223,10 @@ class StableBlockersRemainTests(unittest.TestCase):
                     f"{cs!r}: fan candidates' catalog channel is never stable",
                 )
                 self.assertEqual(entry["hardware_status"], HW_RELEASE_HARDWARE_STATUS)
+                version = FAN_BUILD_VERSION.get(cs, "1.0.0")
                 self.assertEqual(
                     entry["artifact_name"],
-                    f"Sense360-{cs}-v1.0.0-{channel}.bin",
+                    f"Sense360-{cs}-v{version}-{channel}.bin",
                 )
                 self.assertTrue(
                     (REPO_ROOT / entry["webflash_wrapper"]).is_file(),

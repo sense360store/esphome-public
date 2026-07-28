@@ -328,8 +328,8 @@
       "canonical_yaml": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
       "catalog_status": "preview",
       "channel": "experimental",
-      "version": "1.0.0",
-      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "version": "1.0.1",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "room_bundle_skus": [],
       "declared_in": [
         "compile-only-targets",
@@ -766,8 +766,8 @@
       "canonical_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
       "catalog_status": "preview",
       "channel": "experimental",
-      "version": "1.0.0",
-      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "version": "1.0.1",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "room_bundle_skus": [],
       "declared_in": [
         "compile-only-targets",
