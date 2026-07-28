@@ -88,6 +88,12 @@ DELETED_PATHS = {
     "packages/boards/s360-100-core.yaml": "never-wired prototype base; superseded by the flip, PR 08 owns the idea",
     # PR 07 packages/remote resolution (owner evidence test).
     "packages/remote/blower-framework.yaml": "unpublished remainder of packages/remote/",
+    # PR 08 S3-lineage wholesale retirement (recorded by the PR 07 binding
+    # row: "The S3 lineage retires wholesale with PR 08"). Zero live
+    # composers; the CORE-ABSTRACT-BUS-001 out-of-scope guards it existed
+    # for retired with it.
+    "packages/hardware/sense360_core_ceiling_s3.yaml": "S3-lineage Core, retired wholesale (PR 08)",
+    "packages/boards/s360-210-airiq-ceiling-s3.yaml": "S3-lineage AirIQ overlay, retired wholesale (PR 08)",
 }
 
 SCAN_DIRS = ("products", "packages")
@@ -125,7 +131,7 @@ class ZeroAliasLedgerTests(unittest.TestCase):
 
     def test_the_ledger_is_not_silently_shrunk(self):
         """Removing an entry here needs the same deliberateness as a revert."""
-        self.assertGreaterEqual(len(DELETED_PATHS), 41)
+        self.assertGreaterEqual(len(DELETED_PATHS), 43)
 
 
 if __name__ == "__main__":

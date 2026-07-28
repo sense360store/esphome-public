@@ -26,8 +26,8 @@
     "packages/expansions"
   ],
   "totals": {
-    "packages": 31,
-    "bound": 26,
+    "packages": 29,
+    "bound": 24,
     "unbound": 5
   },
   "bindings": [
@@ -72,12 +72,6 @@
       "board_sku": null,
       "basis": "composer",
       "reason": "Composes the three authoritative ceiling RoomIQ halves; holds no driver content of its own."
-    },
-    {
-      "package": "packages/boards/s360-210-airiq-ceiling-s3.yaml",
-      "board_sku": "S360-210",
-      "basis": "authoritative-board-firmware",
-      "reason": "AirIQ S3-lineage overlay; adds board-specific bus deltas on top of the canonical AirIQ board."
     },
     {
       "package": "packages/boards/s360-210-airiq-no-sfa40.yaml",
@@ -192,12 +186,6 @@
       "board_sku": "S360-100",
       "basis": "authoritative-board-firmware",
       "reason": "Core board firmware, legacy functional path still holding content."
-    },
-    {
-      "package": "packages/hardware/sense360_core_ceiling_s3.yaml",
-      "board_sku": "S360-100",
-      "basis": "authoritative-board-firmware",
-      "reason": "Pre-R4 S3-lineage Core firmware, kept with reason: read directly by the CORE-ABSTRACT-BUS-001 guards in tests/test_core_abstract_bus.py as the S3 out-of-scope reference, paired with the retained s360-210-airiq-ceiling-s3 board. The S3 lineage retires wholesale with PR 08."
     },
     {
       "package": "packages/hardware/sense360_core_mapping.yaml",
