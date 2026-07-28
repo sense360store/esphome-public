@@ -55,6 +55,13 @@
       "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 11 (docs/architecture/sense360-airiq-ventiq-component-plan.md). Glue over the canonical AirIQ engine singleton in components/sense360/ - the same instance the blower framework reads for ventilation demand and the VentIQ engine embeds for pollutant truth. No model logic, no raw hardware I/O.",
       "disposition_owner": "SENSE360-CANONICALISATION-001 PR-11 (Migrate AirIQ and VentIQ)",
       "delivery": "base"
+    },
+    "sense360_ventiq": {
+      "role": "domain-component",
+      "origin": "sense360-original",
+      "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 11 (docs/architecture/sense360-airiq-ventiq-component-plan.md). Glue over the canonical VentIQ ventilation engine singleton in components/sense360/ (which embeds the canonical AirIQ engine for pollutant truth). No model logic, no raw hardware I/O; S360-211 stays its own board and component.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-11 (Migrate AirIQ and VentIQ)",
+      "delivery": "base"
     }
   }
 }

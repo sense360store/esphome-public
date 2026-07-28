@@ -50,12 +50,27 @@ with the same playbook, one component per framework.
 ## Slices
 
 1. `sense360_airiq` component + `airiq_framework.yaml` rewrite +
-   equivalence proof + guard retargeting.
+   equivalence proof + guard retargeting. **Executed 2026-07-28.**
 2. `sense360_ventiq` component + `ventiq_framework.yaml` rewrite +
-   equivalence proof + guard retargeting.
-3. Mutual-exclusion guard; inherited-driver evidence pass (`sfa40`,
-   `mics_stm8`); docs and execution notes; final suite / validator pass;
-   PR. Hosted compile lane gates each slice.
+   equivalence proof + guard retargeting. **Executed 2026-07-28.**
+   Execution notes: the manual-action buttons stay YAML engine-action
+   lambdas on their preserved legacy entities, re-evaluating through the
+   bridge; the three wired customer numbers and the shower-detection
+   switch stay persisted template entities bound by id; component
+   delivery removed the ventiq/airiq header co-location concern entirely
+   (the whole component directory ships, so the sibling include always
+   resolves).
+3. Mutual-exclusion guard; inherited-driver evidence pass; docs and
+   execution notes; final suite / validator pass; PR. **Executed
+   2026-07-28.** The guard (`tests/test_airiq_ventiq_exclusion.py`) pins
+   the exclusion against the generated contract's `board_composition`
+   AND the raw bundle sources. Driver evidence: `sfa40` is live
+   (`platform: sfa40` in `packages/boards/s360-210-airiq.yaml`) and
+   `mics_stm8` is live (its hub block in the same board package) — both
+   retained with their manifest provenance unchanged; OD-SOT-008 stays
+   open and owner-reserved; nothing qualified as an obsolete inherited
+   driver under the evidence test. The hosted compile lane is the
+   remaining proof gate.
 
 ## Honesty limits
 
