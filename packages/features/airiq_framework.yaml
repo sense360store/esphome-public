@@ -183,26 +183,67 @@ substitutions:
   airiq_mqtt_username: ""
   airiq_mqtt_password: ""
 
-# The air-quality engine is compiled from the shared header (single
-# implementation; see tests/unit/test_airiq_engine.cpp). Path is relative
-# to the products/ config dir — the same pattern as
-# packages/features/roomiq_framework.yaml.
+# ----------------------------------------------------------------------------
+# The AirIQ domain component (sense360_airiq, PR 11) — owns everything the
+# retired evaluate lambda, interval, input copy sensors and on_boot engine
+# hook owned: input feeding from the fitted base sensors, expected-sensor /
+# freshness / threshold configuration, the 10 s tick and the publish
+# switchboard (fresh engine values on input, NAN on stale). The engine
+# headers are delivered by the auto-loaded sense360 foundation component
+# (no local esphome: includes: needed). The PM path stays externally fed by
+# the opt-in SPS30 overlay through the bridge script below.
+# ----------------------------------------------------------------------------
+sense360_airiq:
+  id: s360_airiq_component
+  co2_source: ${airiq_co2_source_id}
+  voc_source: ${airiq_voc_source_id}
+  nox_source: ${airiq_nox_source_id}
+  hcho_source: ${airiq_hcho_source_id}
+  # Owned by the Core Framework (CORE-FRAMEWORK-001); fed, never
+  # re-declared. The legacy compatibility entity below is likewise fed by
+  # id with the same canonical headline (documented semantic upgrade).
+  module_status_id: s360_module_status_airiq
+  legacy_air_quality_id: air_quality_state
+  expected_co2: ${airiq_expected_co2}
+  expected_voc: ${airiq_expected_voc}
+  expected_nox: ${airiq_expected_nox}
+  expected_pm: ${airiq_expected_pm}
+  expected_hcho: ${airiq_expected_hcho}
+  expected_o3: ${airiq_expected_o3}
+  co2_warmup: ${airiq_co2_warmup_ms}ms
+  co2_stale: ${airiq_co2_stale_ms}ms
+  voc_warmup: ${airiq_voc_warmup_ms}ms
+  voc_stale: ${airiq_voc_stale_ms}ms
+  nox_warmup: ${airiq_nox_warmup_ms}ms
+  nox_stale: ${airiq_nox_stale_ms}ms
+  pm_warmup: ${airiq_pm_warmup_ms}ms
+  pm_stale: ${airiq_pm_stale_ms}ms
+  co2_fair: ${airiq_co2_fair_ppm}
+  co2_poor: ${airiq_co2_poor_ppm}
+  co2_very_poor: ${airiq_co2_very_poor_ppm}
+  co2_hysteresis: ${airiq_co2_hysteresis_ppm}
+  voc_fair: ${airiq_voc_fair_index}
+  voc_poor: ${airiq_voc_poor_index}
+  voc_very_poor: ${airiq_voc_very_poor_index}
+  voc_hysteresis: ${airiq_voc_hysteresis_index}
+  nox_fair: ${airiq_nox_fair_index}
+  nox_poor: ${airiq_nox_poor_index}
+  nox_very_poor: ${airiq_nox_very_poor_index}
+  nox_hysteresis: ${airiq_nox_hysteresis_index}
+  pm25_fair: ${airiq_pm25_fair_ugm3}
+  pm25_poor: ${airiq_pm25_poor_ugm3}
+  pm25_very_poor: ${airiq_pm25_very_poor_ugm3}
+  pm25_hysteresis: ${airiq_pm25_hysteresis_ugm3}
+
 esphome:
-  includes:
-    - ../components/sense360/airiq_engine.h
   on_boot:
     # Compile-time strings (expected-sensor membership and the honesty
     # companion): never polled, so they are published once at boot
-    # (STATIC-DIAGNOSTIC-PUBLISH-001). Runs before the engine hook below.
+    # (STATIC-DIAGNOSTIC-PUBLISH-001).
     - priority: 500
       then:
         - component.update: s360_airiq_expected_sensors
         - component.update: s360_airiq_sensor_verification
-    - priority: 250
-      then:
-        - lambda: |-
-            sense360::airiq::global_engine().begin(millis());
-        - script.execute: s360_airiq_evaluate
 
 # Legacy MQTT compatibility block (superseded profile surface, preserved).
 # Override `mqtt: null` in your device config to remove it entirely.
@@ -215,227 +256,26 @@ mqtt:
   topic_prefix: ${air_quality_topic}
 
 # ----------------------------------------------------------------------------
-# Evaluation — periodic tick plus immediate re-evaluation on every real
-# sensor update. One script owns every input/output exchange with the
-# engine, so automations cannot race.
+# External-feeder re-evaluation bridge. The opt-in SPS30 overlay
+# (packages/boards/s360-210-airiq-sps30.yaml) feeds the engine's PM
+# channels directly and executes this script (its documented layering
+# contract, unchanged by PR 11); it bridges into the component's single
+# evaluate owner. Live glue, not a compatibility stub.
 # ----------------------------------------------------------------------------
 script:
   - id: s360_airiq_evaluate
     then:
       - lambda: |-
-          using namespace sense360::airiq;
-          auto &engine = global_engine();
-          const uint32_t now = millis();
-
-          // Composition (expected-sensor membership; NO Base/Pro axis).
-          engine.set_expected(POLLUTANT_CO2, ${airiq_expected_co2});
-          engine.set_expected(POLLUTANT_VOC, ${airiq_expected_voc});
-          engine.set_expected(POLLUTANT_NOX, ${airiq_expected_nox});
-          engine.set_expected(POLLUTANT_PM25, ${airiq_expected_pm});
-          engine.set_expected(POLLUTANT_HCHO, ${airiq_expected_hcho});
-          engine.set_expected(POLLUTANT_O3, ${airiq_expected_o3});
-
-          // Per-sensor freshness windows (substitutions; provisional).
-          engine.set_warmup_ms(POLLUTANT_CO2, ${airiq_co2_warmup_ms});
-          engine.set_stale_ms(POLLUTANT_CO2, ${airiq_co2_stale_ms});
-          engine.set_warmup_ms(POLLUTANT_VOC, ${airiq_voc_warmup_ms});
-          engine.set_stale_ms(POLLUTANT_VOC, ${airiq_voc_stale_ms});
-          engine.set_warmup_ms(POLLUTANT_NOX, ${airiq_nox_warmup_ms});
-          engine.set_stale_ms(POLLUTANT_NOX, ${airiq_nox_stale_ms});
-          engine.set_warmup_ms(POLLUTANT_PM25, ${airiq_pm_warmup_ms});
-          engine.set_stale_ms(POLLUTANT_PM25, ${airiq_pm_stale_ms});
-
-          // Provisional severity thresholds (centralised contract).
-          engine.set_thresholds(POLLUTANT_CO2, ${airiq_co2_fair_ppm},
-                                ${airiq_co2_poor_ppm},
-                                ${airiq_co2_very_poor_ppm});
-          engine.set_hysteresis(POLLUTANT_CO2, ${airiq_co2_hysteresis_ppm});
-          engine.set_thresholds(POLLUTANT_VOC, ${airiq_voc_fair_index},
-                                ${airiq_voc_poor_index},
-                                ${airiq_voc_very_poor_index});
-          engine.set_hysteresis(POLLUTANT_VOC, ${airiq_voc_hysteresis_index});
-          engine.set_thresholds(POLLUTANT_NOX, ${airiq_nox_fair_index},
-                                ${airiq_nox_poor_index},
-                                ${airiq_nox_very_poor_index});
-          engine.set_hysteresis(POLLUTANT_NOX, ${airiq_nox_hysteresis_index});
-          engine.set_thresholds(POLLUTANT_PM25, ${airiq_pm25_fair_ugm3},
-                                ${airiq_pm25_poor_ugm3},
-                                ${airiq_pm25_very_poor_ugm3});
-          engine.set_hysteresis(POLLUTANT_PM25,
-                                ${airiq_pm25_hysteresis_ugm3});
-
-          engine.evaluate(now);
-
-          // Honest numeric outputs: when a channel is no longer fresh its
-          // canonical entity goes unknown — a stale reading is never left
-          // standing as if it were live.
-          if (!engine.pollutant_fresh(POLLUTANT_CO2) &&
-              !std::isnan(id(s360_co2).state)) {
-            id(s360_co2).publish_state(NAN);
-          }
-          if (!engine.pollutant_fresh(POLLUTANT_VOC) &&
-              !std::isnan(id(s360_voc).state)) {
-            id(s360_voc).publish_state(NAN);
-          }
-          if (!engine.pollutant_fresh(POLLUTANT_NOX) &&
-              !std::isnan(id(s360_nox).state)) {
-            id(s360_nox).publish_state(NAN);
-          }
-          if (!engine.pollutant_fresh(POLLUTANT_HCHO) &&
-              !std::isnan(id(s360_hcho).state)) {
-            id(s360_hcho).publish_state(NAN);
-          }
-          if (!engine.pollutant_fresh(POLLUTANT_PM25)) {
-            if (!std::isnan(id(s360_pm2_5).state)) {
-              id(s360_pm2_5).publish_state(NAN);
-            }
-            if (!std::isnan(id(s360_pm1).state)) {
-              id(s360_pm1).publish_state(NAN);
-            }
-            if (!std::isnan(id(s360_pm4).state)) {
-              id(s360_pm4).publish_state(NAN);
-            }
-            if (!std::isnan(id(s360_pm10).state)) {
-              id(s360_pm10).publish_state(NAN);
-            }
-          }
-          // Customer state outputs (publish on change only).
-          {
-            std::string value = air_quality_to_string(engine.air_quality());
-            if (id(s360_air_quality).state != value) {
-              id(s360_air_quality).publish_state(value);
-            }
-            // Legacy compatibility entity (was a hardcoded "unknown"
-            // placeholder; documented semantic upgrade to the canonical
-            // headline vocabulary).
-            if (id(air_quality_state).state != value) {
-              id(air_quality_state).publish_state(value);
-            }
-          }
-          {
-            std::string value =
-                recommendation_to_string(engine.recommendation());
-            if (id(s360_recommendation).state != value) {
-              id(s360_recommendation).publish_state(value);
-            }
-          }
-
-          // Module health — real freshness evidence driving the
-          // Core-Framework reserved runtime vocabulary (the third wired
-          // module after Presence and RoomIQ).
-          {
-            std::string health = health_to_string(engine.health());
-            if (id(s360_module_status_airiq).state != health) {
-              id(s360_module_status_airiq).publish_state(health);
-            }
-          }
-
-          // Diagnostics (publish on change only).
-          {
-            char buffer[192];
-            snprintf(buffer, sizeof(buffer),
-                     "co2=%s voc=%s nox=%s hcho=%s pm2.5=%s",
-                     severity_to_string(engine.severity(POLLUTANT_CO2)),
-                     severity_to_string(engine.severity(POLLUTANT_VOC)),
-                     severity_to_string(engine.severity(POLLUTANT_NOX)),
-                     severity_to_string(engine.severity(POLLUTANT_HCHO)),
-                     severity_to_string(engine.severity(POLLUTANT_PM25)));
-            std::string detail = buffer;
-            if (id(s360_airiq_state_detail).state != detail) {
-              id(s360_airiq_state_detail).publish_state(detail);
-            }
-          }
-          {
-            char buffer[160];
-            if (engine.worst_pollutant() < POLLUTANT_COUNT) {
-              snprintf(buffer, sizeof(buffer),
-                       "worst pollutant: %s (%s) -> %s",
-                       pollutant_to_string(engine.worst_pollutant()),
-                       severity_to_string(
-                           engine.severity(engine.worst_pollutant())),
-                       recommendation_to_string(engine.recommendation()));
-            } else {
-              snprintf(buffer, sizeof(buffer), "no pollutant above Good -> %s",
-                       recommendation_to_string(engine.recommendation()));
-            }
-            std::string reason = buffer;
-            if (id(s360_airiq_recommendation_reason).state != reason) {
-              id(s360_airiq_recommendation_reason).publish_state(reason);
-            }
-          }
-
-interval:
-  - interval: 10s
-    then:
-      - script.execute: s360_airiq_evaluate
+          id(s360_airiq_component).evaluate();
 
 # ----------------------------------------------------------------------------
 # Sensor inputs (real update callbacks — the freshness signal) and the
 # canonical customer sensors.
 # ----------------------------------------------------------------------------
 sensor:
-  # --- input samples (internal) ---------------------------------------------
-  - platform: copy
-    source_id: ${airiq_co2_source_id}
-    id: s360_airiq_co2_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            sense360::airiq::global_engine().input_co2(millis(), x);
-        - script.execute: s360_airiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_co2).publish_state(
-                  sense360::airiq::global_engine().co2());
-            }
-
-  - platform: copy
-    source_id: ${airiq_voc_source_id}
-    id: s360_airiq_voc_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            sense360::airiq::global_engine().input_voc(millis(), x);
-        - script.execute: s360_airiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_voc).publish_state(
-                  sense360::airiq::global_engine().voc());
-            }
-
-  - platform: copy
-    source_id: ${airiq_nox_source_id}
-    id: s360_airiq_nox_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            sense360::airiq::global_engine().input_nox(millis(), x);
-        - script.execute: s360_airiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_nox).publish_state(
-                  sense360::airiq::global_engine().nox());
-            }
-
-  # Formaldehyde (SFA40, PCB-mounted U2 @ 0x5D) — a fitted base sensor, so
-  # its update callback is the freshness signal exactly like CO2/VOC/NOx.
-  - platform: copy
-    source_id: ${airiq_hcho_source_id}
-    id: s360_airiq_hcho_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            sense360::airiq::global_engine().input_hcho(millis(), x);
-        - script.execute: s360_airiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_hcho).publish_state(
-                  sense360::airiq::global_engine().hcho());
-            }
+  # The former internal input copy sensors are gone (PR 11): the component
+  # subscribes to the raw source sensors' real update callbacks directly —
+  # the same freshness signal, one hop earlier.
 
   # NOTE: the PM (SPS30) engine inputs and the SPS30 clean button live in
   # the opt-in overlay packages/boards/s360-210-airiq-sps30.yaml. The
@@ -452,7 +292,8 @@ sensor:
   # Published from the engine on every valid update (and set unknown when
   # a channel goes stale). These are THE platform pollutant values: every
   # downstream consumer uses these, never the raw board sensors.
-  - platform: template
+  - platform: sense360_airiq
+    type: co2
     id: s360_co2
     name: "CO2"
     unit_of_measurement: "ppm"
@@ -463,7 +304,8 @@ sensor:
 
   # A RELATIVE index (SGP41), deliberately unitless — never a
   # concentration. Higher = more VOC activity vs the sensor's baseline.
-  - platform: template
+  - platform: sense360_airiq
+    type: voc
     id: s360_voc
     name: "VOC"
     state_class: measurement
@@ -472,7 +314,8 @@ sensor:
 
   # A RELATIVE index (SGP41), deliberately unitless — never a
   # concentration.
-  - platform: template
+  - platform: sense360_airiq
+    type: nox
     id: s360_nox
     name: "NOx"
     state_class: measurement
@@ -483,7 +326,8 @@ sensor:
   # SFA40 measurement (PCB-mounted U2). Reports unavailable during the
   # sensor's own not-ready window (first minute after power-up) and until a
   # valid post-warm-up sample arrives; never a frozen value.
-  - platform: template
+  - platform: sense360_airiq
+    type: hcho
     id: s360_hcho
     name: "Formaldehyde"
     unit_of_measurement: "ppb"
@@ -498,7 +342,8 @@ sensor:
   # (airiq_expected_pm: "true" + `!extend` to clear disabled_by_default).
   # Without the overlay they stay disabled and unavailable — never a
   # firmware-invented commercial claim.
-  - platform: template
+  - platform: sense360_airiq
+    type: pm2_5
     id: s360_pm2_5
     name: "PM2.5"
     unit_of_measurement: "µg/m³"
@@ -507,7 +352,8 @@ sensor:
     accuracy_decimals: 1
     icon: mdi:blur
     disabled_by_default: true
-  - platform: template
+  - platform: sense360_airiq
+    type: pm1
     id: s360_pm1
     name: "PM1"
     unit_of_measurement: "µg/m³"
@@ -517,7 +363,8 @@ sensor:
     icon: mdi:blur
     disabled_by_default: true
 
-  - platform: template
+  - platform: sense360_airiq
+    type: pm4
     id: s360_pm4
     name: "PM4"
     unit_of_measurement: "µg/m³"
@@ -526,7 +373,8 @@ sensor:
     icon: mdi:blur
     disabled_by_default: true
 
-  - platform: template
+  - platform: sense360_airiq
+    type: pm10
     id: s360_pm10
     name: "PM10"
     unit_of_measurement: "µg/m³"
@@ -587,40 +435,40 @@ text_sensor:
   # averaged away; stale data never counts as good). Values: Initialising
   # / Good / Fair / Poor / Very poor / Unavailable. Deliberately NOT
   # called an AQI: no recognised AQI standard is implemented.
-  - platform: template
+  - platform: sense360_airiq
+    type: air_quality
     id: s360_air_quality
     name: "Air Quality"
     icon: mdi:air-purifier
-    update_interval: never
 
   # ONE deterministic, explainable, local recommendation. Values: Sensor
   # initialising / No action needed / Ventilate soon / Ventilate now /
   # Check pollution source / Unavailable. Conservative by design: outdoor
   # air quality is unknown, so particulates drive a source check, never an
   # unconditional ventilation instruction — and no health advice is given.
-  - platform: template
+  - platform: sense360_airiq
+    type: recommendation
     id: s360_recommendation
     name: "Recommendation"
     icon: mdi:lightbulb-outline
-    update_interval: never
 
   # --- diagnostics (diagnostic + disabled by default) --------------------------
   # Why the current states are what they are (support / tuning aid).
-  - platform: template
+  - platform: sense360_airiq
+    type: state_detail
     id: s360_airiq_state_detail
     name: "AirIQ State Detail"
     icon: mdi:text-search
     entity_category: diagnostic
     disabled_by_default: true
-    update_interval: never
 
-  - platform: template
+  - platform: sense360_airiq
+    type: recommendation_reason
     id: s360_airiq_recommendation_reason
     name: "AirIQ Recommendation Reason"
     icon: mdi:head-question-outline
     entity_category: diagnostic
     disabled_by_default: true
-    update_interval: never
 
   # Which sensors this composition expects (configuration-driven; an
   # optional absent sensor never degrades module health).

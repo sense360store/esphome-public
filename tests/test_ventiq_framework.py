@@ -503,12 +503,15 @@ class CustomerEntityContractTests(unittest.TestCase):
         # Pre-framework these controls were placebo (no logic read them —
         # a recorded customer-experience defect). They are preserved with
         # exact ids and now genuinely applied via the evaluate script.
-        script_blob = json.dumps(self.framework.get("script") or [])
+        # Since SENSE360-CANONICALISATION-001 PR 11 the wiring lives in the
+        # sense360_ventiq component: the controls are bound by id in the
+        # component block and their values are read in the C++ evaluate.
+        component_blob = json.dumps(self.framework.get("sense360_ventiq") or {})
         for number_id in WIRED_LEGACY_NUMBER_IDS:
             entity = self.entity(number_id)
             self.assertEqual(entity["_platform"], "number")
             self.assertTrue(entity.get("restore_value"))
-            self.assertIn(number_id, script_blob, f"{number_id} not wired")
+            self.assertIn(number_id, component_blob, f"{number_id} not wired")
 
     def test_legacy_buttons_preserved_and_wired(self) -> None:
         for button_id in WIRED_LEGACY_BUTTON_IDS:
@@ -639,28 +642,44 @@ class FrameworkMechanicsTests(unittest.TestCase):
         self.assertIn("sense360::ventiq", self.raw)
 
     def test_framework_ships_both_engine_headers(self) -> None:
-        # ESPHome copies only the files listed under `esphome: includes:`
-        # into the build tree; ventiq_engine.h transitively includes the
-        # canonical airiq_engine.h, and VentIQ compositions never compose
-        # the AirIQ framework package — so BOTH headers must be listed or
-        # `esphome compile` fails (config validation alone cannot catch
-        # this; proven by the first hosted compile round of this PR).
-        includes = (self.framework.get("esphome") or {}).get("includes") or []
-        self.assertIn("../components/sense360/airiq_engine.h", includes)
-        self.assertIn("../components/sense360/ventiq_engine.h", includes)
+        # Since SENSE360-CANONICALISATION-001 PR 11 both engine headers are
+        # delivered by the sense360 foundation component (auto-loaded by
+        # sense360_ventiq) — the whole component directory ships, so the
+        # ventiq_engine.h -> airiq_engine.h sibling include always resolves
+        # (the co-location failure class the former includes list guarded
+        # against cannot occur under component delivery). The YAML contract
+        # is the component composition; the glue compiles the shared header
+        # from the component tree.
+        self.assertIn("sense360_ventiq:", self.raw)
+        cpp = (REPO_ROOT / "components" / "sense360_ventiq"
+               / "sense360_ventiq.h").read_text()
+        self.assertIn("esphome/components/sense360/ventiq_engine.h", cpp)
 
     def test_freshness_comes_from_update_callbacks(self) -> None:
-        self.assertIn("on_value", self.raw)
-        self.assertIn("input_humidity", self.raw)
-        self.assertIn("input_voc", self.raw)
-        self.assertIn("input_nox", self.raw)
+        # The feeding moved into the sense360_ventiq component glue (PR 11);
+        # the YAML's part of the contract is binding the four sources.
+        for binding in ("humidity_source:", "temperature_source:",
+                        "voc_source:", "nox_source:"):
+            self.assertIn(binding, self.raw, binding)
+        cpp = (REPO_ROOT / "components" / "sense360_ventiq"
+               / "sense360_ventiq.cpp").read_text()
+        self.assertIn("add_on_state_callback", cpp)
+        for hook in ("input_humidity", "input_temperature", "input_voc", "input_nox"):
+            self.assertIn(hook, cpp, hook)
 
     def test_stale_values_are_never_left_standing(self) -> None:
-        self.assertIn("publish_state(NAN)", self.raw)
+        # The NAN-on-stale switchboard moved into the component glue (PR 11).
+        cpp = (REPO_ROOT / "components" / "sense360_ventiq"
+               / "sense360_ventiq.cpp").read_text()
+        self.assertIn("publish_state(NAN)", cpp)
 
     def test_module_status_driven_with_reserved_vocabulary(self) -> None:
-        self.assertIn("s360_module_status_ventiq", self.raw)
-        self.assertIn("health_to_string", self.raw)
+        # The publish moved into the component glue (PR 11); the YAML binds
+        # the Core-Framework-owned entity to the component by id.
+        self.assertIn("module_status_id: s360_module_status_ventiq", self.raw)
+        cpp = (REPO_ROOT / "components" / "sense360_ventiq"
+               / "sense360_ventiq.cpp").read_text()
+        self.assertIn("health_to_string", cpp)
 
     def test_no_fabricated_fault_producer(self) -> None:
         self.assertNotIn("set_fault(true)", self.raw.replace(" ", ""))
