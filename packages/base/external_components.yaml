@@ -10,22 +10,13 @@
 # ============================================================================
 
 external_components:
-  # LD2412/LD2450/LD24xx Radar Components
-  # ============================================================================
-  # All radar components are bundled in this repo's components/ directory.
-  # Using git source (not local) so it works for both:
-  #   - CI builds from the repo
-  #   - Users consuming this as a remote package
-  #
-  # NOTE: ld2412 modified for ESPHome 2025.3.0 compatibility
-  # NOTE: ld2450 sourced from ESPHome 2025.3.0 release
-  # ============================================================================
-  - source:
-      type: git
-      url: https://github.com/sense360store/esphome-public
-      ref: main
-    components: [ld2412, ld2450, ld24xx]
-    refresh: 1d
+  # LD2412/LD2450/LD24xx radar drivers (SENSE360-CANONICALISATION-001 PR 10):
+  # the vendored copies were retired under the no-fork rule - the pinned
+  # ESPHome (>= 2026.4.5, requirements-dev.txt) ships built-in ld2412 /
+  # ld2450 / ld24xx components, and every live composition validates against
+  # them. No declaration is needed here: built-ins resolve natively for
+  # repository builds AND remote consumers. Release tags keep the vendored
+  # trees for tag-pinned consumers on older ESPHome versions.
 
   # Sense360 platform components (SENSE360-CANONICALISATION-001 PR 08/09):
   # the foundation component (shared engines + identity schema) and the
