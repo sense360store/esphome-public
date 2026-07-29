@@ -20,6 +20,24 @@ Everything is exposed to Home Assistant as ordinary entities — the
 [full list](#home-assistant-entities) below is generated directly from the
 firmware source, so it always matches what the device actually provides.
 
+## Product status
+
+The four facts below are separate axes: none of them ever implies
+another (installable firmware never means a bundle is buyable, and
+neither means hardware certification).
+
+- **Commercial availability** — Sense360 bundles are **not currently
+  sold**. Product names and commercial availability are managed in
+  the Sense360 product catalogue, not by this documentation.
+- **Firmware lifecycle** — production firmware on the **stable**
+  channel: the supported customer firmware for this configuration.
+- **Installer availability** — installable from the browser flasher on
+  the **stable** channel.
+- **Hardware evidence** — each board in this configuration carries
+  its own evidence record (schematic and bench status) in the
+  [technical reference](../reference.md). Installable firmware is
+  never hardware, safety, or compliance proof.
+
 ## Hardware in this configuration
 
 - Sense360 Core (ceiling hub, ESP32-S3)

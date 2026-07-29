@@ -46,29 +46,38 @@ and hardware evidence (`schematic_status`, bench records).
 
 ## Slices
 
-1. **Audit.** Inventory the rendered site nav and the `docs/` tree:
-   which pages are customer product content, which are technical board
-   content; every obsolete term occurrence (legacy board names outside
-   legacy-reference columns, Base/Pro and Model/Variant language, the
-   `Celling` typo class, retired internal IDs in customer-visible pages);
-   every duplicated table (the same facts maintained by hand in more
-   than one rendered place) with its single-source disposition. Findings
-   table recorded here.
-2. **Regenerate and retitle.** Customer product pages keyed by room
-   names with board names as technical contents beneath (mirroring the
-   WebFlash Step 1 model); technical hardware pages keyed by board
-   friendly names + SKUs; duplicated tables replaced by the one
-   generated or declared source each fact already has; obsolete terms
-   corrected or clearly marked legacy-reference-only.
-3. **Four-axis separation.** Each customer product page carries four
-   distinct, labelled sections — commercial status (mirrored SOT fact,
-   never authored here; today nothing is available or buyable), firmware
-   lifecycle, WebFlash exposure, hardware evidence — each traced to its
-   declaration; a guard pins the axes' presence and prevents cross-axis
-   claims (for example a stable channel never implying buyability).
+1. **Audit.** Executed 2026-07-29. Findings:
+
+   | Item | Finding | Disposition |
+   |---|---|---|
+   | Site nav customer/technical split | Already correct: the nav is room-led ("Bedroom Bundle (RoomIQ)" etc., D-G2 curated) and engineer docs stay out of it behind the single technical-reference page. | No change. |
+   | Room names for customer products | Already satisfied: every product page title leads with the room bundle name and lists board names beneath as technical contents. | No change; pinned by the new guard. |
+   | Base/Pro, Model/Variant language | Zero occurrences on rendered customer pages. | Verified clean. |
+   | Legacy board names, retired internal IDs on customer pages | Zero occurrences in rendered prose (one internal ID in a CSS comment, not rendered). | Verified clean. |
+   | `Celling` typo class | 14 occurrences, all legitimate: rule statements ("never Celling"), evidence-literal KiCad folder paths quoted verbatim, the taxonomy audit record, and this plan. Zero live typos. | Verified clean; evidence literals stay verbatim. |
+   | Duplicated tables | One class found: the `docs/product-taxonomy.md` board table restates SKU + friendly-name facts owned by `config/hardware-catalog.json` (its config-token axis is a projection the catalog does not carry, so physical merging would lose it). | Machine-guarded instead of merged: the new guard pins its SKU and friendly-name columns to the JSON catalog, so hand-duplication can no longer drift. |
+   | Four-axis separation | Missing: pages carried a channel badge and note but no labelled separation of the four fact axes. | Implemented in slices 2–3. |
+
+2. **Regenerate and retitle.** Executed 2026-07-29 as verification, not
+   rewriting: the room-over-board structure already holds on every page
+   and the generated entity tables are fresh, so no page was retitled and
+   no table moved; the taxonomy board table gained the machine guard
+   above instead of a merge.
+3. **Four-axis separation.** Executed 2026-07-29. Every served product
+   page now carries a labelled "Product status" section with the four
+   axes and an explicit independence statement: commercial availability
+   (bundles are not currently sold; names and availability are managed in
+   the Sense360 product catalogue — no internal IDs in customer copy),
+   firmware lifecycle and installer availability (channel words pinned to
+   `config/product-catalog.json` per config string by
+   `tests/test_product_guide_status_axes.py`), and hardware evidence (a
+   pointer to the per-board evidence records, never a restated status —
+   avoiding a new duplication class). The guard also bans commerce
+   language on every product page, so a stable channel can never read as
+   buyability.
 4. Docs, execution notes here, generator freshness + full suite +
    validator pass, PR. The strict mkdocs build gate proves the site
-   still renders.
+   still renders. Executed 2026-07-29; results in the PR body.
 
 ## Honesty limits
 
