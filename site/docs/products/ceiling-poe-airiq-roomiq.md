@@ -28,6 +28,26 @@ and comfort.
     list of what you get today; air-quality entities will appear there
     when a firmware update exposes them.
 
+## Product status
+
+The four facts below are separate axes: none of them ever implies
+another (installable firmware never means a bundle is buyable, and
+neither means hardware certification).
+
+- **Commercial availability** — Sense360 bundles are **not currently
+  sold**. Product names and commercial availability are managed in
+  the Sense360 product catalogue, not by this documentation.
+- **Firmware lifecycle** — **preview** firmware: a pre-release build
+  that works but is still being refined; not the supported stable
+  baseline.
+- **Installer availability** — installable from the browser flasher on
+  the **preview** channel; the flasher asks you to acknowledge the
+  preview channel before installing.
+- **Hardware evidence** — each board in this configuration carries
+  its own evidence record (schematic and bench status) in the
+  [technical reference](../reference.md). Installable firmware is
+  never hardware, safety, or compliance proof.
+
 ## Hardware in this configuration
 
 - Sense360 Core (ceiling hub, ESP32-S3)
