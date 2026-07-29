@@ -7,12 +7,14 @@
 # restore contract, layered on the S360-300 WS2812B halo ring.
 #
 # A Home Assistant ESPHome user pulls THIS single file through a git package
-# to add the LED behaviour framework to a device. The shared C++ engines
-# (components/sense360/led_controller.h and roomiq_engine.h) are delivered
-# automatically via the `sense360` external component — no `/config/include`
-# setup and no manual header download, and NO `type: local` package (which
-# would break remote consumers). Exactly one copy of each engine header is
-# compiled — the same file the native C++ unit tests exercise.
+# to add the LED behaviour framework to a device. The framework runs on the
+# `sense360_led` domain component (SENSE360-CANONICALISATION-001 PR 12), and
+# the shared C++ engines (components/sense360/led_controller.h and
+# roomiq_engine.h) are delivered automatically via the `sense360` external
+# component — no `/config/include` setup and no manual header download, and
+# NO `type: local` package (which would break remote consumers). Exactly one
+# copy of each engine header is compiled — the same file the native C++ unit
+# tests exercise.
 #
 # This wrapper composes the BEHAVIOUR framework only. Compose it alongside:
 #   * the LED board (packages/boards/s360-300-led.yaml — owns the Room Light
@@ -58,16 +60,13 @@ external_components:
       url: ${sense360_remote_url}
       ref: ${sense360_remote_ref}
       path: components
-    components: [sense360]
+    components: [sense360, sense360_led]
     refresh: 1d
 
-# Load the shared-engine delivery component (its to_code #includes the headers).
+# Load the shared-engine delivery component (its to_code #includes the
+# headers the framework's remaining YAML lambdas use). The sense360_led
+# domain component itself is declared by the framework package below.
 sense360:
 
 packages:
   led_framework: !include ../features/led_framework.yaml
-
-# Remove the framework's repository-local include paths; the headers are now
-# delivered by the `sense360` external component above.
-esphome:
-  includes: !remove

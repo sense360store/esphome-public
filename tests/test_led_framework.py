@@ -51,6 +51,10 @@ FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "led_framework.yaml"
 PRESENCE_BRIDGE = REPO_ROOT / "packages" / "features" / "led_presence_bridge.yaml"
 REMOTE_WRAPPER = REPO_ROOT / "packages" / "remote" / "led-framework.yaml"
 HEADER = REPO_ROOT / "components" / "sense360" / "led_controller.h"
+# The LED domain component (SENSE360-CANONICALISATION-001 PR 12) — the glue
+# that used to live in the framework YAML's evaluate script.
+COMPONENT_DIR = REPO_ROOT / "components" / "sense360_led"
+COMPONENT_CPP = COMPONENT_DIR / "sense360_led.cpp"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_led_controller.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-led-framework.md"
 CHECKLIST = REPO_ROOT / "docs" / "hardware" / "led-framework-bench-checklist.md"
@@ -377,7 +381,15 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertIn("cannot", value)
 
     def test_framework_uses_the_shared_header(self) -> None:
-        self.assertIn("components/sense360/led_controller.h", self.raw)
+        # The single behaviour implementation stays the shared engine header;
+        # since SENSE360-CANONICALISATION-001 PR 12 the sense360_led domain
+        # component compiles it (component delivery — the former
+        # `esphome: includes:` mechanism and its co-location hazard are gone).
+        self.assertIn("sense360_led:", self.raw)
+        self.assertNotIn("esphome/includes", self.raw.replace(" ", ""))
+        self.assertNotIn("../components/sense360/led_controller.h", self.raw)
+        hub_header = (COMPONENT_DIR / "sense360_led.h").read_text()
+        self.assertIn("esphome/components/sense360/led_controller.h", hub_header)
 
     def test_framework_consumes_fused_occupancy_not_raw_sensors(self) -> None:
         # LED-04: the merged unified Occupancy contract is the input — never
@@ -385,27 +397,33 @@ class CustomerEntityContractTests(unittest.TestCase):
         for forbidden in ("s360_pir_motion", "s360_sen0609_presence", "ld2450_"):
             self.assertNotIn(forbidden, self.raw)
 
-    def test_framework_reads_occupancy_from_globals_not_presence_id(self) -> None:
-        # LED-FRAMEWORK-002: the framework reads occupancy from its own globals
-        # so a Presence-less device still composes. It must NOT contain a
-        # code-level id(s360_occupancy) reference (that lives ONLY in the
-        # optional Presence bridge); the reference here would fail to resolve
-        # on a Core+AirIQ+LED device.
-        self.assertIn("s360_led_occupied", self.raw)
-        self.assertIn("s360_led_occupancy_valid", self.raw)
+    def test_framework_never_references_the_presence_id(self) -> None:
+        # LED-FRAMEWORK-002: occupancy reaches the engine ONLY through the
+        # optional Presence bridge's direct controller feed (PR 12 retired
+        # the former RAM-only occupancy copy globals), so a Presence-less
+        # device still composes. The framework and the component must NOT
+        # contain a code-level id(s360_occupancy) reference (it would fail
+        # to resolve on a Core+AirIQ+LED device), and the component reads no
+        # occupancy entity — the engine stores what the bridge feeds it.
         self.assertNotIn("id(s360_occupancy)", self.raw)
+        cpp = COMPONENT_CPP.read_text()
+        self.assertNotIn("s360_occupancy", cpp)
+        self.assertIn("input_occupancy", PRESENCE_BRIDGE.read_text())
 
     def test_darkness_comes_from_the_canonical_roomiq_service(self) -> None:
         # ROOMIQ-FRAMEWORK-001: the darkness decision (threshold,
         # hysteresis, lux staleness) is the canonical RoomIQ engine's
-        # service. LED passes its customer threshold into that service and
-        # consumes the decision — it never re-implements lux threshold
-        # logic and never reads the raw board lux sensor.
-        self.assertIn("sense360::roomiq", self.raw)
-        self.assertIn("set_darkness_threshold", self.raw)
-        self.assertIn("input_darkness", self.raw)
-        self.assertNotIn("input_lux", self.raw)
-        self.assertNotIn("comfort_ceiling_illuminance", self.raw)
+        # service. The component (the glue owner since PR 12) passes the
+        # customer threshold into that service and consumes the decision —
+        # it never re-implements lux threshold logic and never reads the
+        # raw board lux sensor.
+        cpp = COMPONENT_CPP.read_text()
+        self.assertIn("sense360::roomiq", cpp)
+        self.assertIn("set_darkness_threshold", cpp)
+        self.assertIn("input_darkness", cpp)
+        for source in (cpp, self.raw):
+            self.assertNotIn("input_lux", source)
+            self.assertNotIn("comfort_ceiling_illuminance", source)
 
     def test_no_duplicate_darkness_engine_in_led_controller(self) -> None:
         # Regression guard: exactly one lux-threshold implementation exists
@@ -552,11 +570,13 @@ class OptionalInputCapabilityTests(unittest.TestCase):
         self.assertEqual(str(subs.get("led_has_presence")), "false")
 
     def test_flags_are_passed_to_the_engine_as_capabilities(self) -> None:
-        # The flags substitute into the engine as compile-time bool literals,
-        # so no reference to a missing RoomIQ/Presence id is ever compiled.
-        self.assertIn(
-            "set_capabilities(${led_has_roomiq}, ${led_has_presence})", self.raw
-        )
+        # The flags flow into the component block as booleans (so no
+        # reference to a missing RoomIQ/Presence id is ever compiled) and the
+        # component applies them to the engine's capability model.
+        self.assertIn("has_roomiq: ${led_has_roomiq}", self.raw)
+        self.assertIn("has_presence: ${led_has_presence}", self.raw)
+        cpp = COMPONENT_CPP.read_text()
+        self.assertIn("set_capabilities(this->has_roomiq_, this->has_presence_)", cpp)
 
     def test_no_fake_placeholder_occupancy_or_lux_entities(self) -> None:
         # The framework must NOT fabricate a placeholder occupancy/lux sensor
@@ -591,7 +611,7 @@ class OptionalInputCapabilityTests(unittest.TestCase):
         self.assertIsNotNone(entity, "missing s360_led_night_behaviour_status")
         self.assertEqual(entity.get("entity_category"), "diagnostic")
         self.assertTrue(entity.get("disabled_by_default"))
-        self.assertIn("behaviour_status()", self.raw)
+        self.assertIn("behaviour_status()", COMPONENT_CPP.read_text())
 
     def test_night_behaviour_select_keeps_full_option_list(self) -> None:
         # ESPHome cannot make the option list conditional without a
@@ -618,23 +638,32 @@ class PresenceBridgeTests(unittest.TestCase):
     def test_bridge_exists(self) -> None:
         self.assertTrue(PRESENCE_BRIDGE.is_file(), f"missing {PRESENCE_BRIDGE}")
 
-    def test_bridge_copies_fused_occupancy_into_framework_globals(self) -> None:
-        # It references the fused Occupancy contract + module status and writes
-        # ONLY the framework's occupancy globals — a pure contract copy.
+    def test_bridge_feeds_fused_occupancy_into_the_controller(self) -> None:
+        # It references the fused Occupancy contract + module status and
+        # feeds ONLY the controller's occupancy input — a pure contract feed
+        # (PR 12: same fused signal, one hop earlier; the former RAM-only
+        # copy globals are retired and must not return).
         self.assertIn("id(s360_occupancy)", self.raw)
         self.assertIn("s360_module_status_presence", self.raw)
-        self.assertIn("s360_led_occupied", self.raw)
-        self.assertIn("s360_led_occupancy_valid", self.raw)
+        self.assertIn("input_occupancy", self.raw)
+        self.assertNotIn("s360_led_occupied", self.raw)
+        self.assertNotIn("s360_led_occupancy_valid", self.raw)
 
     def test_bridge_uses_only_the_fused_contract_not_raw_sensors(self) -> None:
         for forbidden in ("s360_pir_motion", "s360_sen0609_presence", "ld2450_"):
             self.assertNotIn(forbidden, self.raw)
 
     def test_bridge_defines_no_sensor_entity(self) -> None:
-        # It is glue, not a placeholder sensor factory.
+        # It is glue, not a placeholder sensor factory: every entity-block
+        # entry is an `!extend` patch on a contract entity declared
+        # elsewhere (no `platform:`, no `name:` — it declares nothing).
         doc = load_yaml(PRESENCE_BRIDGE)
-        for platform in ("binary_sensor", "sensor", "text_sensor"):
-            self.assertNotIn(platform, doc, f"bridge must not define {platform}")
+        self.assertNotIn("sensor", doc, "bridge must not define sensor")
+        for platform in ("binary_sensor", "text_sensor"):
+            for entry in doc.get(platform) or []:
+                self.assertNotIn("platform", entry, f"{platform} entry declares")
+                self.assertNotIn("name", entry, f"{platform} entry declares")
+        self.assertIn("!extend", self.raw)
 
 
 class RemoteWrapperTests(unittest.TestCase):
@@ -652,14 +681,16 @@ class RemoteWrapperTests(unittest.TestCase):
         ext = self.doc.get("external_components")
         self.assertTrue(ext, "wrapper must declare external_components")
         self.assertIn("sense360", ext[0]["components"])
+        # The domain component ships from the same git source (PR 12).
+        self.assertIn("sense360_led", ext[0]["components"])
         # Git-delivered component (NOT type: local, which regressed remote
         # consumers), narrowed to components/.
         self.assertEqual(ext[0]["source"]["type"], "git")
         self.assertEqual(ext[0]["source"]["path"], "components")
         self.assertIn("sense360", self.doc)
-        # Removes the framework's repository-local include — headers come from
-        # the git-delivered component instead.
-        self.assertIn("includes: !remove", self.raw)
+        # The framework no longer carries a repository-local include, so the
+        # former `includes: !remove` workaround is gone with it.
+        self.assertNotIn("includes: !remove", self.raw)
 
     def test_wrapper_composes_framework_only_not_the_board(self) -> None:
         # The consumer pulls the board separately; the wrapper must not
@@ -675,12 +706,13 @@ class RemoteWrapperTests(unittest.TestCase):
         self.assertEqual(str(subs.get("led_has_roomiq")), "false")
         self.assertEqual(str(subs.get("led_has_presence")), "false")
 
-    def test_frameworks_keep_repo_local_include(self) -> None:
-        # Repo-local bundle builds are unchanged: the framework file keeps its
-        # local include (the wrapper removes it only for remote consumers).
-        self.assertIn(
-            "../components/sense360/led_controller.h", FRAMEWORK_PACKAGE.read_text()
-        )
+    def test_framework_has_no_local_include_left(self) -> None:
+        # PR 12 replaced the LED framework's `esphome: includes:` mechanism
+        # with component delivery — the last local include (and its
+        # co-location hazard class) is gone and must not return.
+        framework_raw = FRAMEWORK_PACKAGE.read_text()
+        self.assertNotIn("../components/sense360/", framework_raw)
+        self.assertIn("sense360_led:", framework_raw)
 
 
 class Led002BundleWiringTests(unittest.TestCase):

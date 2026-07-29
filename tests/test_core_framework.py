@@ -296,7 +296,15 @@ class CompositionWalker:
     def _record(self, platform: str, entry: Dict[str, Any], path: Path) -> None:
         entity_id = entry.get("id")
         if isinstance(entity_id, str):
-            self.ids.setdefault(entity_id, []).append(path)
+            # An `!extend` patch (flattened to a plain id by the tag
+            # constructor) references an entity declared elsewhere — it is
+            # not a second declaration. Patches carry neither `platform` nor
+            # `name` (e.g. the LED presence bridge's on_state feed hooks,
+            # SENSE360-CANONICALISATION-001 PR 12); every real entity entry
+            # carries `platform`, and the nested debug entries carry `name`.
+            is_extend_patch = "platform" not in entry and "name" not in entry
+            if not is_extend_patch:
+                self.ids.setdefault(entity_id, []).append(path)
         if entry.get("internal") is True:
             return
         name = entry.get("name")
