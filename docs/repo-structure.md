@@ -136,8 +136,6 @@ packages/boards/s360-200-roomiq-radar.yaml
 packages/boards/s360-200-roomiq-radar-wall.yaml
 packages/expansions/presence_ld2412.yaml
 packages/expansions/presence_ld2450.yaml
-packages/features/presence_advanced_ld2412.yaml
-packages/hardware/presence_ld2412.yaml
 packages/hardware/presence_ld2450.yaml
 ```
 

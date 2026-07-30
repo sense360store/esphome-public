@@ -100,29 +100,18 @@ All features are available in two versions:
 - Shows: Simple recommendations ("Open Window" / "Air is Good")
 - No PPM, µg/m³, or other technical units
 
-### Advanced Profiles (For Power Users)
-- **All technical sensors and measurements**
-- **Customizable thresholds** for every parameter
-- **Calibration controls** and diagnostics
-- **Detailed data** for analysis and automation
-- Perfect for technical users, HVAC integration, or commercial applications
+### Advanced tier (retired)
 
-#### Presence Detection - Advanced (`features/presence_advanced_profile.yaml`)
-- Multi-zone tracking (up to 3 zones)
-- Individual target tracking (up to 3 simultaneous targets)
-- Distance measurements in cm
-- Adjustable sensitivity modes (Quiet Room / Normal / High Traffic)
-- Customizable timeout settings
-- Full diagnostic sensors
-
-#### Air Quality - Advanced (`features/airiq_advanced_profile.yaml`)
-- Individual sensors: CO₂ (ppm), PM1.0, PM2.5, PM4.0, PM10 (µg/m³)
-- VOC & NOx Index (0-500 scale)
-- Temperature, Humidity, Atmospheric Pressure, Light Level
-- Customizable thresholds for every sensor
-- Sensor calibration controls
-- 24-hour trend analysis
-- HVAC integration helpers
+The former Advanced profile tier (`airiq_advanced.yaml`,
+`airiq_advanced_profile.yaml`, `airiq_basic.yaml`, `presence_basic.yaml`,
+`presence_basic_profile_ld2412.yaml`) was retired taxonomy: nothing composed
+those packages from any product, bundle, webflash, compile-only, or remote
+entrypoint, and the framework packages (`airiq_framework.yaml`,
+`presence_framework.yaml`, `roomiq_framework.yaml`) supersede them for
+technical sensors, thresholds, and diagnostics. The files were removed under
+REPO-CONSOLIDATION-001 (recoverable via `docs/archive-index.md`); the AirIQ
+framework guard (`tests/test_airiq_framework.py`) still forbids composing the
+retired threshold packages with the framework.
 
 ## Usage
 
@@ -183,7 +172,7 @@ packages:
       - packages/hardware/led_ring_ceiling.yaml   # Sense360 LED — not in Release-One
       # Sensor modules
       - packages/expansions/airiq_ceiling.yaml    # AirIQ — Release-One uses VentIQ
-      - packages/features/airiq_advanced_profile.yaml
+      - packages/features/airiq_basic_profile.yaml
       - packages/expansions/presence_ceiling.yaml
       - packages/features/presence_basic_profile.yaml
 ```
