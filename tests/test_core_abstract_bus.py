@@ -715,9 +715,10 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     # `packages/expansions/comfort_ceiling.yaml` (now a thin alias) into the
     # SKU-aligned RoomIQ board half; the consumer-default assertion travels with
     # the content. RoomIQ is authoritative per driver, so the climate half is
-    # its own board file. The shared radar primitives
-    # `presence_ld2450.yaml` / `presence_ld2412.yaml` are UART (not I2C) base
-    # drivers and carry no `*_i2c_id` default, so they do not appear here.
+    # its own board file. The former shared radar primitives
+    # (`presence_ld2450.yaml`, removed by PR 07; `presence_ld2412.yaml`,
+    # removed by REPO-CONSOLIDATION-001) were UART (not I2C) base drivers
+    # and carried no `*_i2c_id` default, so they never appeared here.
     (
         REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml",
         "comfort_ceiling_i2c_id",

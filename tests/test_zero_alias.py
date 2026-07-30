@@ -94,6 +94,22 @@ DELETED_PATHS = {
     # for retired with it.
     "packages/hardware/sense360_core_ceiling_s3.yaml": "S3-lineage Core, retired wholesale (PR 08)",
     "packages/boards/s360-210-airiq-ceiling-s3.yaml": "S3-lineage AirIQ overlay, retired wholesale (PR 08)",
+    # REPO-CONSOLIDATION-001 addendum (owner evidence test of 2026-07-29,
+    # executed by PR #864): unreachable retired Basic/Advanced taxonomy and
+    # the uncomposable hardware/ LD2412 copy, deleted with archive-index
+    # provenance rows. Ledger rows added by the follow-up consolidation PR.
+    "packages/features/airiq_basic.yaml": "unreachable retired basic-tier entities, no composer",
+    "packages/features/airiq_advanced.yaml": "unreachable retired advanced-tier entities, no composer",
+    "packages/features/airiq_advanced_profile.yaml": "unreachable retired advanced profile, no composer",
+    "packages/features/presence_basic.yaml": "unreachable retired basic-tier entities, no composer",
+    "packages/features/presence_basic_profile_ld2412.yaml": "unreachable retired LD2412 basic profile, no composer",
+    "packages/hardware/presence_ld2412.yaml": "uncomposable LD2412 copy (undefined substitutions); expansions copy was retained",
+    # REPO-CONSOLIDATION-001 follow-up: the expansions/ LD2412 copy was
+    # retained by PR #864 for the documented remote-include path; PR #865
+    # retired that path (docs/remote-package-consumption.md archived), so
+    # the driver resolves to zero copies per the owner instruction's
+    # expected disposition (zero composers verified, binding row removed).
+    "packages/expansions/presence_ld2412.yaml": "LD2412 driver, zero composers after the remote-include path retired",
 }
 
 SCAN_DIRS = ("products", "packages")

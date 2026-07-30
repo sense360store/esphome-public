@@ -38,9 +38,10 @@ This directory contains modular ESPHome configuration packages organized by cate
 packages/
 ├── boards/            # SKU-aligned board packages (AUTHORITATIVE source of truth)
 ├── base/              # Core system components (wifi, api, ota, time, …)
-├── features/          # Feature profiles (basic & advanced) + ceiling_halo_leds
-├── hardware/          # Legacy core/LED/power paths — now aliases of packages/boards/
-└── expansions/        # Sensor module drivers — legacy names now aliases of packages/boards/
+├── features/          # Behaviour profiles + frameworks + ceiling_halo_leds
+├── hardware/          # Legacy Core variants + power packages (implementations of
+│                      # catalogued legacy-compatible products; aliases deleted, PR 07)
+└── expansions/        # Fan drivers + GPIO expander (sensor aliases deleted, PR 07)
 ```
 
 ### `packages/boards/` — the authoritative board layer
@@ -61,10 +62,12 @@ The legacy `packages/hardware/*` and `packages/expansions/*` functional names
 for these families were **thin `!include` aliases** of their board package
 until SENSE360-CANONICALISATION-001 PR 07 deleted them (zero-alias;
 `tests/test_zero_alias.py` is the ledger, release tags keep every historical
-path for tag-pinned users). The surviving generic base drivers
-`expansions/presence_ld2412.yaml` and `features/ceiling_halo_leds.yaml` stay
-**authoritative and un-folded** — cross-referenced from the board layer,
-not aliased. The mains driver boards
+path for tag-pinned users). The one surviving generic base driver is
+`features/ceiling_halo_leds.yaml`, **authoritative and un-folded** —
+cross-referenced from the board layer, not aliased.
+(`expansions/presence_ld2412.yaml` was removed by REPO-CONSOLIDATION-001:
+zero composers after the package-level remote-include path retired with
+`docs/remote-package-consumption.md`.) The mains driver boards
 (`S360-310/320/400`) and the SELV fan-driver SKUs (`S360-311/312`) remain
 expansion packages behind their evidence/compliance gates and are not in the
 board layer yet. Full layout and rationale:
@@ -215,7 +218,8 @@ Located in `packages/expansions/`:
 ### Presence (legacy → WebFlash `RoomIQ`, mmWave half)
 - `presence_ceiling.yaml` - Ceiling mount (LD2450)
 - `presence_wall.yaml` - Wall mount (LD2450)
-- `presence_ld2412.yaml` - LD2412 variant
+- `presence_ld2412.yaml` - LD2412 variant (expansions/ copy removed by
+  REPO-CONSOLIDATION-001 — zero composers; release tags keep it)
 
 ### Bathroom (legacy → WebFlash `VentIQ`)
 - `airiq_bathroom_base.yaml` - VentIQ Base

@@ -55,11 +55,11 @@
 # ----------------------------------------------------------------------------
 # Cross-referenced base drivers kept AUTHORITATIVE (NOT aliased)
 # ----------------------------------------------------------------------------
-# The shared radar PRIMITIVES `packages/expansions/presence_ld2450.yaml` and
-# `presence_ld2412.yaml` are documented base drivers (packages/SENSE360_MODULES.md)
-# with no board package holding their content; they stay authoritative and are
-# NOT folded, mirroring how `airiq.yaml` (RENAME-002) and `ceiling_halo_leds.yaml`
-# (RENAME-001) stayed authoritative. The Phase-2 naming aliases `roomiq.yaml` /
+# The former shared radar primitives (`presence_ld2450.yaml`, then
+# `presence_ld2412.yaml`) are gone: PR 07 zero-alias absorbed the LD2450
+# content into this board family, and REPO-CONSOLIDATION-001 removed the
+# LD2412 driver (zero composers). The one surviving cross-referenced base
+# driver is `ceiling_halo_leds.yaml` (RENAME-001), still authoritative. The Phase-2 naming aliases `roomiq.yaml` /
 # `roomiq_radar.yaml` keep their pinned bare-basename `!include` of
 # `comfort_ceiling.yaml` / `presence_ceiling.yaml` (now themselves board
 # aliases) so tests/test_roomiq_alias_packages.py stays green and the chains

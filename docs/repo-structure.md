@@ -108,42 +108,37 @@ YAML under `products/`**, so no product YAML is ever truly "unreferenced":
 
 ```
 components/
-├── ld2412/   __init__.py, binary_sensor.py, sensor.py, text_sensor.py, ld2412.{cpp,h},
-│             button/, number/, select/, switch/   (HLK-LD2412 24GHz mmWave radar)
-├── ld2450/   __init__.py, binary_sensor.py, sensor.py, text_sensor.py, ld2450.{cpp,h},
-│             button/, number/, select/, switch/   (HLK-LD2450 24GHz mmWave radar)
-└── ld24xx/   __init__.py, ld24xx.h                (shared LD24xx base)
+├── mics_stm8/          MICS-4514 gas sensor behind its STM8 bridge (vendored driver)
+├── sfa40/              SFA40 formaldehyde sensor (vendored driver)
+├── sense360/           foundation component: shared logic engines, runtime contract,
+│                       identity schema (SENSE360-CANONICALISATION-001 PR 08)
+├── sense360_airiq/     AirIQ domain component
+├── sense360_led/       LED domain component
+├── sense360_presence/  presence domain component
+├── sense360_roomiq/    RoomIQ domain component
+└── sense360_ventiq/    VentIQ domain component
 ```
 
-62 files across 3 ESPHome external components. **This directory is a hard build
-dependency and part of the public remote-package surface.** Proof it is active:
+Every entry is declared with provenance in
+`config/external-components.json` (guard:
+`tests/test_external_components.py`). The former vendored radar trio
+(`ld2412` / `ld2450` / `ld24xx`) was retired under SENSE360-CANONICALISATION-001
+PR 10: the pinned ESPHome ships built-in drivers, every live composition
+validates against them, and release tags keep the vendored trees for
+tag-pinned consumers. The only radar platform instantiation left in the
+package layer is the built-in `ld2450:` block in
+`packages/boards/s360-200-roomiq-radar.yaml`.
+
+**This directory is a hard build dependency.** Proof it is active:
 
 | Reference | Path | Why it matters |
 | --- | --- | --- |
-| Declared as remote source | `packages/base/external_components.yaml` (`type: git`, `url: …/esphome-public`, `ref: main`, `components: [ld2412, ld2450, ld24xx]`) | External consumers pinned to a tag fetch these components from this repo. Deleting/renaming = breaking change. |
-| CI local-path override (build) | `.github/workflows/firmware-build-release.yml` rewrites to `path: ../components` | Release builds compile against the local `components/` tree. |
-| CI local-path override (manual) | `.github/workflows/manual-firmware-artifacts.yml` | Manual-artifact builds use the local `components/` tree. |
-| CI branch-ref rewrite (validate) | `.github/workflows/ci-validate-configs.yml` (`sed s|ref: main|ref: $BRANCH_NAME|`) | Per-product compile validation uses the branch's `components/`. |
-| Test harness | `tests/generate_test_configs.py` inlines `path: ../../components` | Generated test configs compile against `components/`. |
-| Release tooling | `scripts/plan_room_release_notes.py` reads the external_components git ref | Release notes pin the components ref. |
-| Component **usage** | `ld2412:` / `ld2450:` platform blocks in 7 package files | Removing `components/` would make these packages fail to compile. |
-
-Packages that instantiate the radar component platforms (so they require
-`components/` at compile time):
-
-```
-packages/boards/s360-200-roomiq-radar.yaml
-packages/boards/s360-200-roomiq-radar-wall.yaml
-packages/expansions/presence_ld2412.yaml
-packages/expansions/presence_ld2450.yaml
-packages/hardware/presence_ld2450.yaml
-```
-
-These packages compose into RoomIQ / presence boards, which compose into
-products via the include chain above. `.github/workflows/ci-validate-configs.yml`
-also declares a `components/**` path filter, and
-`config/product-catalog.json` / `config/feature-entity-matrix.json` enumerate
-the `ld2412` / `ld2450` entities.
+| Declared as local source | `packages/base/external_components.yaml` (`type: local`, `path: ../components`, `components: [sense360, sense360_roomiq, sense360_presence, sense360_airiq, sense360_ventiq, sense360_led]`) | Every repository build lane compiles a branch's own component code. Remote consumers get these components from the git-sourced declarations in the `packages/remote/` wrappers. |
+| CI local-path handling (build) | `.github/workflows/firmware-build-release.yml` | Release builds compile against the local `components/` tree. |
+| CI local-path handling (manual) | `.github/workflows/manual-firmware-artifacts.yml` | Manual-artifact builds use the local `components/` tree. |
+| CI branch-ref handling (validate) | `.github/workflows/ci-validate-configs.yml` | Per-product compile validation uses the branch's `components/`. |
+| Release tooling | `scripts/plan_room_release_notes.py` reads the external_components declarations | Release notes pin the components provenance. |
+| Component **usage** | `sense360*` platform blocks in the framework feature packages and board packages | Removing `components/` would make every framework-bearing product fail to compile. |
 
 > The only `components/` "hit" in `config/` that is **not** a reference to this
 > tree is an `https://esphome.io/components/output/gp8403` documentation URL in a
