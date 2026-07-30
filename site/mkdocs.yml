@@ -70,9 +70,21 @@ markdown_extensions:
         - site/generated
       check_paths: true
 
+# SENSE360-CUSTOMER-DOCS-001 Phase 1: the customer IA is room-led — the
+# first customer decision is the room, never a module composition or a
+# config string. Bedroom/Kitchen room pages exist under docs/rooms/ but
+# are DELIBERATELY not in this nav until the owner changes bundle
+# visibility (drift gate: tests/test_customer_docs_site.py pins the
+# exclusion). The firmware product guides remain as the technical guide
+# surface pending the room-IA reconciliation.
 nav:
   - Home: index.md
-  - Product guides:
+  - Your room:
+      - Bathroom: rooms/bathroom.md
+  - Zone Studio: zone-studio.md
+  - Help: help/index.md
+  - Advanced: advanced/index.md
+  - Firmware guides:
       - Overview: products/index.md
       - Bedroom Bundle (RoomIQ): products/ceiling-poe-roomiq.md
       - Kitchen Bundle (AirIQ + RoomIQ): products/ceiling-poe-airiq-roomiq.md

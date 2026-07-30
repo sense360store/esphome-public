@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "role": "Synchronized SOT commercial-surface MIRROR for the customer docs site (SENSE360-CUSTOMER-DOCS-001). Not commercial authority: bundle names, contents, lifecycle status, visibility and buyability are owned by sense360store/SOT (bundles.yaml). Refresh with scripts/refresh_customer_docs_mirrors.py; never hand-author it as independent truth.",
+  "provenance": {
+    "source_repo": "sense360store/SOT",
+    "source_sha": "14cd956eaf81eea775cf6a59512d8e3ad322713a",
+    "source_commit_date": "2026-07-30",
+    "source_files": [
+      "bundles.yaml"
+    ],
+    "generator": "scripts/refresh_customer_docs_mirrors.py"
+  },
+  "commercial_posture": {
+    "any_bundle_available": false,
+    "note": "Derived from SOT lifecycle status alone (status == 'available'). While false, customer docs must not render buy/price/shop copy for any bundle."
+  },
+  "bundles": [
+    {
+      "id": "bathroom-poe",
+      "name": "Sense360 Bathroom Bundle — PoE",
+      "status": "planned",
+      "visibility": "internal",
+      "tier": "launch",
+      "physical_bundle_sku": "S360-KIT-BATH-P",
+      "recommended_rooms": [
+        "bathroom",
+        "shower room",
+        "laundry room",
+        "utility room"
+      ],
+      "webflash_config": "Ceiling-POE-VentIQ-RoomIQ",
+      "commercially_available": false
+    },
+    {
+      "id": "air-quality-starter",
+      "name": "Air Quality Starter Bundle",
+      "status": "paused",
+      "visibility": "internal",
+      "tier": "starter",
+      "physical_bundle_sku": "S360-KIT-AQS-LEGACY",
+      "recommended_rooms": [
+        "kitchen",
+        "living room",
+        "home office",
+        "nursery",
+        "workshop",
+        "bedroom"
+      ],
+      "commercially_available": false
+    },
+    {
+      "id": "bedroom-poe",
+      "name": "Sense360 Bedroom Bundle — PoE",
+      "status": "planned",
+      "visibility": "internal",
+      "tier": "core-range",
+      "physical_bundle_sku": "S360-KIT-BEDROOM-P",
+      "recommended_rooms": [
+        "bedroom",
+        "living room",
+        "home office",
+        "nursery"
+      ],
+      "webflash_config": "Ceiling-POE-RoomIQ",
+      "commercially_available": false
+    },
+    {
+      "id": "kitchen-poe",
+      "name": "Sense360 Kitchen Bundle — PoE",
+      "status": "planned",
+      "visibility": "internal",
+      "tier": "core-range",
+      "physical_bundle_sku": "S360-KIT-KITCHEN-P",
+      "recommended_rooms": [
+        "kitchen",
+        "living room",
+        "home office",
+        "nursery",
+        "workshop"
+      ],
+      "webflash_config": "Ceiling-POE-AirIQ-RoomIQ",
+      "commercially_available": false
+    },
+    {
+      "id": "hallway-landing-poe",
+      "name": "Sense360 Hallway / Landing Bundle — PoE",
+      "status": "concept",
+      "visibility": "internal",
+      "tier": "core-range",
+      "physical_bundle_sku": "S360-KIT-CORRIDOR-P",
+      "recommended_rooms": [
+        "hallway",
+        "landing",
+        "stairs",
+        "entrance",
+        "corridor",
+        "living room"
+      ],
+      "webflash_config": "Ceiling-POE-RoomIQ-LED",
+      "commercially_available": false
+    },
+    {
+      "id": "pure-smart",
+      "name": "Pure Smart Bundle",
+      "status": "planned",
+      "visibility": "internal",
+      "tier": "pure-range",
+      "physical_bundle_sku": "S360-KIT-PURE-SMART",
+      "recommended_rooms": [
+        "living room",
+        "bedroom",
+        "home office",
+        "workshop"
+      ],
+      "commercially_available": false
+    }
+  ]
+}
