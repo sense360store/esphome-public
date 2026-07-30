@@ -40,7 +40,7 @@
       "webflash_importable": false,
       "stable_blocker": "Mains-safety / installation-approval / creepage / clearance evidence + competent-person sign-off + GPIO3 strap-pin boot characterisation.",
       "caveat": "mains / safety / competent-person sign-off still required; not kit / default / recommended",
-      "release_note_draft": "docs/release-notes/manual-preview/ceiling-poe-ventiq-fanrelay-roomiq.md"
+      "release_note_draft": "docs/release-notes/manual-preview/README.md"
     },
     {
       "id": "fanpwm",
@@ -54,7 +54,7 @@
       "webflash_importable": false,
       "stable_blocker": "Measured current / thermal evidence (S360-311-CURRENT-THERMAL-001); RPM / TachIO not claimed.",
       "caveat": "no RPM / TachIO claim; measured current / thermal still required",
-      "release_note_draft": "docs/release-notes/manual-preview/ceiling-poe-fanpwm.md"
+      "release_note_draft": "docs/release-notes/manual-preview/README.md"
     },
     {
       "id": "fandac",
@@ -68,7 +68,7 @@
       "webflash_importable": false,
       "stable_blocker": "Cloudlift S12 / J3 harness + product-bench evidence; S360-312 schematic / BOM.",
       "caveat": "not Cloudlift-ready; J3 / Cloudlift evidence still required; no compliance claim",
-      "release_note_draft": "docs/release-notes/manual-preview/ceiling-poe-fandac.md"
+      "release_note_draft": "docs/release-notes/manual-preview/README.md"
     }
   ]
 }

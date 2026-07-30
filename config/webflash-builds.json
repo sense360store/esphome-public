@@ -171,7 +171,7 @@
       "webflash_exposure_class": "acknowledgement-gated-advanced",
       "warning_copy_key": "experimental",
       "release_note_warning": "EXPERIMENTAL — SELF-BUILD MAINS HARDWARE. This firmware targets an open-source mains-voltage board design that Sense360 does not sell, supply, or place on the market in any form. If you build this board you are the manufacturer of your own device and act entirely at your own risk. Functional bench completion is NOT a safety, EMC, or compliance certification. Mains wiring must only be performed by a competent person. Incorrect installation can cause fire, electric shock, or death.",
-      "release_note_draft": "docs/release-notes/experimental/ceiling-poe-ventiq-fantriac-roomiq.md",
+      "release_note_draft": "docs/release-notes/experimental/README.md",
       "release_state": "metadata-ready-unpublished",
       "stable_blocker": "Stable / full release stays gated: a stable customer release would be a placing-on-the-market act, which reopens COMPLIANCE-001 and requires an external safety + EMC assessment BEFORE that act (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md section 4). Never promoted to stable by this row.",
       "version": "1.0.0",
