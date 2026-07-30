@@ -31,7 +31,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Per-board hardware evidence | `docs/hardware/**` (pinmaps, schematics, artifacts — **preserved, not consolidated**) |
 | Blocker burn-down detail | [`docs/blocker-burndown.md` (archived)](archive-index.md) |
 | Detailed PR working queue | [`UPCOMING_PR.md` (retired)](archive-index.md) · standing gates: [`docs/standing-invariants.md`](standing-invariants.md) |
-| Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
+| Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md` (archived)](archive-index.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
 | Consolidated first-release / expansion gate checklist | [`docs/first-release-gates.md`](first-release-gates.md) (PRE-HW-PREP-FIRST-RELEASE-GATES-001) |
 | Operator dry-run checklist for the first stable release | [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) (FIRST-RELEASE-DRYRUN-CHECKLIST-001) |
 | Whole-system architecture (two-repo pipeline + CI map) | [`docs/system-architecture.md`](system-architecture.md) · [`docs/ci-pipeline.md`](ci-pipeline.md) |
@@ -143,7 +143,7 @@ truth: [`docs/security/release-firmware-credential-posture.md`](security/release
 No repository workflow supports editing an already-published release body,
 so correcting the four release bodies is an **owner action** (exact
 replacement wording and step-by-step instructions:
-[`docs/rebuild-clean-credentials-001.md` §Release-body correction](rebuild-clean-credentials-001.md#release-body-correction-recon-upstream-cred-claims-001)).
+[`docs/security/rebuild-clean-credentials-001.md` §Release-body correction](security/rebuild-clean-credentials-001.md#release-body-correction-recon-upstream-cred-claims-001)).
 The `WF-H1-REIMPORT-CLEAN-001` WebFlash execution (W1–W3) has landed
 (WebFlash PRs [#582](https://github.com/sense360store/WebFlash/pull/582),
 [#584](https://github.com/sense360store/WebFlash/pull/584)–[#587](https://github.com/sense360store/WebFlash/pull/587),

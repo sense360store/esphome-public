@@ -3,7 +3,7 @@
 This index records every file removed from the public tree under the
 `DOCS-DISPOSITION-001` programme, plus every KEEP-SLIM file whose embedded
 process trail was removed in place (see
-[`docs/docs-disposition-manifest.md`](docs-disposition-manifest.md), the sole
+`docs/docs-disposition-manifest.md` (itself archived below), the sole
 disposition authority). Nothing was rewritten before deletion: each file's
 full content — for KEEP-SLIM rows, the full pre-slim content including the
 removed audit trail — remains recoverable from the indexed SHA
@@ -90,3 +90,14 @@ later from these SHAs (owner decision 6).
 | `docs/shop-commercial-source-of-truth.md` | `3a108c05e94fdffdbc375c0b3ca54513eea99125` | MOVE-PRIVATE (owner decision 3) | 2026-07-05 |
 | `tests/test_shop_commercial_source_of_truth.py` | `3a108c05e94fdffdbc375c0b3ca54513eea99125` | MOVE-PRIVATE companion (guard test retired with its doc, owner decision 3) | 2026-07-05 |
 | `UPCOMING_PR.md` | `413ad6c029cfeb258aba12c4e26969a6c8d4691b` | ARCHIVE (queue retired at Step 7; live queue snapshot preserved in the Step 7 PR description; standing invariants moved verbatim to `docs/standing-invariants.md`) | 2026-07-05 |
+| `docs/sense360-canonicalisation-001-pr05-triage.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: superseded process residue; content enforced by merged gates, PR history is the archive) | 2026-07-30 |
+| `docs/sense360-canonicalisation-001-pr07-inventory.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: superseded process residue) | 2026-07-30 |
+| `docs/architecture/sense360-docs-regeneration-plan.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: completed regeneration plan) | 2026-07-30 |
+| `docs/product-guides-001.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: completed process doc; the docs site it delivered is live under `site/`) | 2026-07-30 |
+| `docs/product-kits-consistency-001.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: completed audit; consistency enforced by config/ guards) | 2026-07-30 |
+| `docs/repo-customer-ready-001.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: completed process doc; its S5 link gate lives in `.github/workflows/docs-link-check.yml`) | 2026-07-30 |
+| `docs/product-taxonomy-audit.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: completed audit; live taxonomy stays in `docs/product-taxonomy.md`, guarded by tests) | 2026-07-30 |
+| `docs/release-matrix-webflash-alignment.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: stub removed; original content already archived above at `1dfbc0b1`) | 2026-07-30 |
+| `docs/docs-disposition-manifest.md` | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: disposition executed; this index carries the provenance rows) | 2026-07-30 |
+| `docs/security/rebuild-clean-credentials-001.md` (pre-2026-07-30 earlier plan document) | `7170eaf274643d445844ddc769f9d8664615707e` | ARCHIVE (DOCS-CLEANUP-2026-07: duplicate-name resolution; the newer plan-of-record + execution log, formerly `docs/rebuild-clean-credentials-001.md`, now holds this path) | 2026-07-30 |
+| `docs/rebuild-clean-credentials-001.md` | `7170eaf274643d445844ddc769f9d8664615707e` | MOVED (DOCS-CLEANUP-2026-07: relocated to `docs/security/rebuild-clean-credentials-001.md` as the canonical copy) | 2026-07-30 |
