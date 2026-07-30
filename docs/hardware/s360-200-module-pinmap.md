@@ -53,7 +53,7 @@ images, and assets are organized under per-type subfolders
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-200-R4 / sch_pdf / S360-200-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf). |
+| `S360-200-R4 / sch_pdf / S360-200-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-200-R4.pdf`](../../hardware-artifacts/schematics/S360-200-R4.pdf). |
 | `S360-200-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-200-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-200-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
@@ -65,7 +65,7 @@ images, and assets are organized under per-type subfolders
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf) (committed in-repo; mirrored in Drive `sch_pdf`) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-200-R4.pdf`](../../hardware-artifacts/schematics/S360-200-R4.pdf) (committed in-repo; mirrored in Drive `sch_pdf`) | schematic-backed |
 | KiCad source | Not committed in-repo (Drive evidence per HW-007) | TBD |
 | Gerber / drill files | Drive `gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `step_file` (retained-but-not-committed) | TBD |
@@ -92,7 +92,7 @@ table for `J10` is in
 [`s360-100-core-connector-pin-map.md` § J10 — RoomIQ module connector (12-pin)](s360-100-core-connector-pin-map.md#j10--roomiq-module-connector-12-pin).
 The Core-side capture follows the Core schematic; the module-side
 capture below follows the
-[`S360-200-R4.pdf`](schematics/S360-200-R4.pdf) sheet.
+[`S360-200-R4.pdf`](../../hardware-artifacts/schematics/S360-200-R4.pdf) sheet.
 
 | Pin number | Module-side signal | Core net | ESP32 GPIO | Module-side signal type | Voltage / domain | Status |
 |---|---|---|---|---|---|---|
@@ -148,7 +148,7 @@ capture below follows the
 - [`s360-100-core-connector-pin-map.md`](s360-100-core-connector-pin-map.md) — canonical Core-to-module connector pin map (S360-100-CONNECTOR-PINMAP-001).
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
 - [`s360-200-r4-roomiq.md`](s360-200-r4-roomiq.md) — RoomIQ board-side hardware reference (companion audit doc).
-- [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-200-R4.pdf`](../../hardware-artifacts/schematics/S360-200-R4.pdf) — committed module-side schematic PDF.
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) — PoE room bundle SKU matrix.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table.
 

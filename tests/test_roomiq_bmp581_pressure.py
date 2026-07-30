@@ -4,7 +4,7 @@
 Pins the fitted Bosch BMP581 barometric-pressure driver on the S360-200-R4
 RoomIQ climate board against the verified schematic + BOM + runtime evidence:
 
-  * schematic (docs/hardware/schematics/S360-200-R4.pdf, "Pressure Sensor
+  * schematic (hardware-artifacts/schematics/S360-200-R4.pdf, "Pressure Sensor
     BMP581"): U4 is a BMP581 in I2C mode on the SHARED I2C bus (I2C_SCL /
     I2C_SDA — the same nets as U1/U2), address strapped by JP1;
   * BOM (docs/hardware/artifacts/S360-200-R4.md, U4): MFR# BMP581 (Bosch) —

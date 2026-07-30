@@ -27,7 +27,7 @@ tracked as `VENTIQ-FRAMEWORK-BENCH-001`).
 ## 1. Hardware authority — what the S360-211 actually is
 
 Established by direct audit of the primary sources: the **verified R4
-schematic** `docs/hardware/schematics/S360-211-R4.pdf`
+schematic** `hardware-artifacts/schematics/S360-211-R4.pdf`
 (`schematic_status: verified` in
 [`config/hardware-catalog.json`](../../config/hardware-catalog.json)),
 [`docs/hardware-catalog.md`](../hardware-catalog.md),

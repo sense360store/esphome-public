@@ -126,8 +126,27 @@ def _normalise(text: str) -> str:
     return re.sub(r"\s+", " ", joined).lower()
 
 
-def _draft_path(config_string: str) -> Path:
-    return DRAFT_DIR / f"{config_string.lower()}.md"
+DRAFT_INDEX = DRAFT_DIR / "README.md"
+
+
+def _draft_body(config_string: str) -> str:
+    """The config's draft body inside the channel index page.
+
+    REPO-CONSOLIDATION-001 (owner decision of 2026-07-30) collapsed the
+    per-config draft files of the advanced/experimental lanes into one
+    index page per channel; each former draft body is preserved verbatim
+    between ``<!-- draft:<Config-String>:start/end -->`` markers, and
+    these guards assert against that slice.
+    """
+    text = DRAFT_INDEX.read_text(encoding="utf-8")
+    start = f"<!-- draft:{config_string}:start -->"
+    end = f"<!-- draft:{config_string}:end -->"
+    if start not in text or end not in text:
+        raise AssertionError(
+            f"channel index {DRAFT_INDEX} is missing the marked draft "
+            f"section for {config_string}"
+        )
+    return text.split(start, 1)[1].split(end, 1)[0]
 
 
 def _rows_by_cs() -> Dict[str, Dict[str, Any]]:
@@ -415,39 +434,36 @@ class ReleaseNoteDraftsTests(unittest.TestCase):
     """Item 9: release-note drafts validate and carry the required warning copy."""
 
     def test_each_draft_exists_and_validates_on_preview(self) -> None:
+        self.assertTrue(DRAFT_INDEX.is_file(), f"missing index: {DRAFT_INDEX}")
         for cs in ALL_CONFIGS:
             with self.subTest(config_string=cs):
-                path = _draft_path(cs)
-                self.assertTrue(path.is_file(), f"missing draft: {path}")
-                errors = _NOTES.validate_body(
-                    path.read_text(encoding="utf-8"), channel="preview"
-                )
+                errors = _NOTES.validate_body(_draft_body(cs), channel="preview")
                 self.assertEqual(errors, [], f"{cs}: {errors}")
 
     def test_each_draft_has_the_four_required_h2_sections(self) -> None:
         required = {"Changelog", "Known Issues", "Features", "Hardware Requirements"}
         for cs in ALL_CONFIGS:
             with self.subTest(config_string=cs):
-                body = _draft_path(cs).read_text(encoding="utf-8")
+                body = _draft_body(cs)
                 sections = _NOTES._parse_sections(body)
                 self.assertTrue(required.issubset(sections.keys()))
 
     def test_common_warning_phrases_present(self) -> None:
         for cs in ALL_CONFIGS:
-            norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+            norm = _normalise(_draft_body(cs))
             for phrase in COMMON_PHRASES:
                 with self.subTest(config_string=cs, phrase=phrase):
                     self.assertIn(phrase, norm, f"{cs}: missing {phrase!r}")
 
     def test_fan_drafts_cite_firmware_build_proof(self) -> None:
         for cs in FAN_CONFIGS:
-            norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+            norm = _normalise(_draft_body(cs))
             for phrase in FAN_PHRASES:
                 with self.subTest(config_string=cs, phrase=phrase):
                     self.assertIn(phrase, norm, f"{cs}: missing {phrase!r}")
 
     def test_triac_draft_states_mains_risk_and_compile_only(self) -> None:
-        norm = _normalise(_draft_path(TRIAC_CONFIG).read_text(encoding="utf-8"))
+        norm = _normalise(_draft_body(TRIAC_CONFIG))
         for phrase in TRIAC_PHRASES:
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, norm, f"TRIAC: missing {phrase!r}")
@@ -460,7 +476,7 @@ class ReleaseNoteDraftsTests(unittest.TestCase):
 
     def test_no_affirmative_stable_recommended_default_claim(self) -> None:
         for cs in ALL_CONFIGS:
-            norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+            norm = _normalise(_draft_body(cs))
             for bad in FORBIDDEN_AFFIRMATIVE:
                 with self.subTest(config_string=cs, phrase=bad):
                     self.assertNotIn(bad, norm, f"{cs}: must not claim {bad!r}")
@@ -468,7 +484,7 @@ class ReleaseNoteDraftsTests(unittest.TestCase):
     def test_draft_self_artifact_is_preview_and_one_stable_crossref(self) -> None:
         for cs in ALL_CONFIGS:
             with self.subTest(config_string=cs):
-                norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+                norm = _normalise(_draft_body(cs))
                 # The committed drafts are the HISTORICAL v1.0.0-preview
                 # drafting records. The FanRelay / FanTRIAC rows' forward
                 # declarations moved to the experimental channel (owner
@@ -530,10 +546,14 @@ class NoFullReleaseGateWeakenedTests(unittest.TestCase):
         bins = list(DRAFT_DIR.rglob("*.bin")) if DRAFT_DIR.is_dir() else []
         self.assertEqual(bins, [])
 
-    def test_draft_dir_holds_only_the_four_drafts_and_readme(self) -> None:
+    def test_draft_dir_holds_only_the_channel_index(self) -> None:
+        # REPO-CONSOLIDATION-001: one index page per advanced/experimental
+        # channel; every former per-config draft lives inside it, marked.
         present = sorted(p.name for p in DRAFT_DIR.glob("*.md"))
-        expected = sorted(["README.md"] + [f"{cs.lower()}.md" for cs in ALL_CONFIGS])
-        self.assertEqual(present, expected)
+        self.assertEqual(present, ["README.md"])
+        text = DRAFT_INDEX.read_text(encoding="utf-8")
+        for cs in ALL_CONFIGS:
+            self.assertIn(f"<!-- draft:{cs}:start -->", text)
 
     def test_ledger_adds_no_webflash_builds_row(self) -> None:
         self.assertEqual(_load(LEDGER_PATH)["totals"]["webflash_builds_rows_added"], 0)

@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "role": "Synchronized WebFlash installer-preset SNAPSHOT for the customer docs site (SENSE360-CUSTOMER-DOCS-001). Not preset authority: room presets are owned by sense360store/WebFlash (scripts/data/kits.json); a preset is an installer firmware preset, never a commercial listing. Docs may name only presets present here. Refresh with scripts/refresh_customer_docs_mirrors.py; never hand-author.",
+  "provenance": {
+    "source_repo": "sense360store/WebFlash",
+    "source_sha": "c3376fd1b08d9795e1de65bc787bc6e9b851752d",
+    "source_commit_date": "2026-07-29",
+    "source_files": [
+      "scripts/data/kits.json"
+    ],
+    "generator": "scripts/refresh_customer_docs_mirrors.py"
+  },
+  "presets": [
+    {
+      "sku": "S360-KIT-BATH-P",
+      "display_name": "Sense360 Bathroom Bundle — PoE",
+      "room_label": "Bathroom",
+      "recommended_rooms": [
+        "bathroom",
+        "shower room",
+        "laundry room",
+        "utility room"
+      ],
+      "description": "Humidity, presence and ventilation-focused sensing.",
+      "presentation": "firmware-preset",
+      "commercial_bundle_id": "bathroom-poe",
+      "recommended": true,
+      "components": [
+        {
+          "sku": "S360-100",
+          "label": "Sense360 Core"
+        },
+        {
+          "sku": "S360-200",
+          "label": "Sense360 RoomIQ"
+        },
+        {
+          "sku": "S360-211",
+          "label": "Sense360 VentIQ"
+        },
+        {
+          "sku": "S360-410",
+          "label": "Sense360 PoE PSU"
+        }
+      ]
+    },
+    {
+      "sku": "S360-KIT-BEDROOM-P",
+      "display_name": "Sense360 Bedroom Bundle — PoE",
+      "room_label": "Bedroom",
+      "recommended_rooms": [
+        "bedroom",
+        "living room",
+        "home office",
+        "nursery"
+      ],
+      "description": "Presence, temperature, humidity and light sensing.",
+      "presentation": "firmware-preset",
+      "commercial_bundle_id": "bedroom-poe",
+      "recommended": false,
+      "components": [
+        {
+          "sku": "S360-100",
+          "label": "Sense360 Core"
+        },
+        {
+          "sku": "S360-200",
+          "label": "Sense360 RoomIQ"
+        },
+        {
+          "sku": "S360-410",
+          "label": "Sense360 PoE PSU"
+        }
+      ]
+    }
+  ]
+}

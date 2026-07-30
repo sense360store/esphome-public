@@ -71,7 +71,7 @@ organized under per-type subfolders (`sch_pdf` / `Bom` / `cpl` /
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-310-R4 / sch_pdf / S360-310-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf). |
+| `S360-310-R4 / sch_pdf / S360-310-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-310-R4.pdf`](../../hardware-artifacts/schematics/S360-310-R4.pdf). |
 | `S360-310-R4 / Bom` | BOM artifacts | Retained-but-not-committed. |
 | `S360-310-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-310-R4 / Gerbers` | Gerbers | Retained-but-not-committed. |
@@ -83,7 +83,7 @@ organized under per-type subfolders (`sch_pdf` / `Bom` / `cpl` /
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf) (committed) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-310-R4.pdf`](../../hardware-artifacts/schematics/S360-310-R4.pdf) (committed) | schematic-backed |
 | KiCad source | Not committed in-repo | TBD |
 | Gerber / drill files | Drive `Gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `stepfile` (retained-but-not-committed) | TBD |
@@ -153,7 +153,7 @@ load-side connector only. It does **not**:
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference (records `IO3 → Relay`).
 - [`s360-310-r4-relay.md`](s360-310-r4-relay.md) — Relay board-side audit (HW-PINMAP-310 / HW-PINMAP-310-FOLLOWUP).
 - [`s360-310-relay-pinmap-reconcile.md` (archived)](../archive-index.md) — Relay GPIO cross-layer reconcile record (S360-310-RELAY-PINMAP-RECONCILE-001).
-- [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-310-R4.pdf`](../../hardware-artifacts/schematics/S360-310-R4.pdf) — committed module-side schematic PDF.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) — COMPLIANCE-001 mains-voltage compliance tracker.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (PACKAGE-RELAY-001).
 

@@ -64,7 +64,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-400-R4 / sch_pdf / S360-400-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf). |
+| `S360-400-R4 / sch_pdf / S360-400-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-400-R4.pdf`](../../hardware-artifacts/schematics/S360-400-R4.pdf). |
 | `S360-400-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-400-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-400-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
@@ -76,7 +76,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf) (committed) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-400-R4.pdf`](../../hardware-artifacts/schematics/S360-400-R4.pdf) (committed) | schematic-backed |
 | KiCad source | Not committed in-repo | TBD |
 | Gerber / drill files | Drive `gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `step_file` (retained-but-not-committed) | TBD |
@@ -157,7 +157,7 @@ evidence.
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
 - [`s360-400-r4-power.md`](s360-400-r4-power.md) — 240v PSU board-side audit (HW-PINMAP-400 / HW-PINMAP-400-FOLLOWUP).
 - [`s360-410-module-pinmap.md`](s360-410-module-pinmap.md) — PoE PSU module-side pinmap (shared Core `J2` inlet semantics).
-- [`schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-400-R4.pdf`](../../hardware-artifacts/schematics/S360-400-R4.pdf) — committed module-side schematic PDF.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) — COMPLIANCE-001 mains-voltage compliance tracker.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (PACKAGE-POWER-400-001).
 

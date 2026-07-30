@@ -96,7 +96,7 @@ abstract-bus resolution, none of which this reference performs.
 
 The sole evidence source for the pin map below is the committed
 module-side schematic PDF
-[`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf)
+[`hardware-artifacts/schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf)
 (HW-ASSETS-003; SHA256
 `c910b3364be1d58fc44d12b5a189dade47efddf6cae158a86577ec7501e48006`;
 91,543 bytes; KiCad 10.0.3 export; single sheet `S360-311-R4.kicad_sch`,
@@ -150,7 +150,7 @@ This reference does **not**:
 - change the mains-voltage compliance status of `S360-320` or `S360-400`
   (owned by COMPLIANCE-001),
 - edit the schematic PDF
-  [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf)
+  [`hardware-artifacts/schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf)
   (byte-identical to the HW-ASSETS-003 commit) or the curated artifact
   index [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md),
 - touch the WebFlash repository (`sense360store/webflash`) — that repo is
@@ -186,7 +186,7 @@ lines 72–81 without modification.
 | `schematic_status` | `cataloged_unverified` (unchanged by this PR) |
 | `schematic_file` | _(not set; unchanged by this PR)_ |
 | Curated artifact index | [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md) (HW-ASSETS-003) |
-| Committed schematic PDF | [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) (HW-ASSETS-003) |
+| Committed schematic PDF | [`hardware-artifacts/schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf) (HW-ASSETS-003) |
 | Per-board reconciliation audit | This document (HW-PINMAP-311; the former standalone `s360-311-r4-pwm.md` was merged here — original indexed in [`docs/archive-index.md`](../archive-index.md)) |
 | FanPWM package YAML (canonical) | [`packages/expansions/fan_pwm_native.yaml`](../../packages/expansions/fan_pwm_native.yaml) (four-channel native ESP32-S3 GPIO; cardinality decided by `PACKAGE-PWM-001`, rebound off SX1509 by `SX1509-RECONCILE-001`) |
 | FanPWM package YAML (legacy / superseded) | [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) and [`packages/expansions/fan_pwm_sx1509.yaml`](../../packages/expansions/fan_pwm_sx1509.yaml) — SX1509-routed path, classified legacy / superseded by `S360-100-NATIVE-FAN-GPIO-MAP-001` |
@@ -195,7 +195,7 @@ lines 72–81 without modification.
 
 | Evidence | Source | Status |
 |---|---|---|
-| Module-side schematic PDF | [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) (HW-ASSETS-003; SHA256 `c910b3364be1d58fc44d12b5a189dade47efddf6cae158a86577ec7501e48006`; 91,543 bytes) | **Committed.** Byte-identical to upload. Single sheet (`S360-311-R4.kicad_sch`, Id 1/1), KiCad 10.0.3 export, A4. The only pin-map source for this reference. |
+| Module-side schematic PDF | [`hardware-artifacts/schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf) (HW-ASSETS-003; SHA256 `c910b3364be1d58fc44d12b5a189dade47efddf6cae158a86577ec7501e48006`; 91,543 bytes) | **Committed.** Byte-identical to upload. Single sheet (`S360-311-R4.kicad_sch`, Id 1/1), KiCad 10.0.3 export, A4. The only pin-map source for this reference. |
 | Curated artifact index | [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md) | **Committed.** Schematic-content capture + retained-but-not-committed inventory. Not edited by this PR. |
 | HW-PINMAP-311 audit | This document (the former standalone `s360-311-r4-pwm.md` was merged here; original indexed in [`docs/archive-index.md`](../archive-index.md)) | **Merged.** The full reconciliation audit record now lives in this reference doc. |
 | Core-side `J6` capture | [`s360-100-r4-core.md` §J6](s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin) | **Committed.** Net list `+5V`, `GND`, `TachIO`, `TachPMW1..4`, `Pul_Cou1..4` (11 nets); 1-to-13 pin order explicitly flagged **verify** against silkscreen. Does **not** list any UART pins. |
@@ -209,7 +209,7 @@ lines 72–81 without modification.
 
 This section restates only what is directly visible in the committed
 schematic PDF
-[`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf).
+[`hardware-artifacts/schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf).
 It does **not** invent electrical characteristics, transistor topology,
 timing guarantees, MOSFET ratings, PWM polarity, or pull-up assumptions
 beyond what is labelled on the sheet.
@@ -639,7 +639,7 @@ inputs `Pul_Cou1..4` (and the shared `TachIO` passthrough and the
 section and the
 [`docs/hardware/s360-100-core-architecture.md` § Pin allocation table](s360-100-core-architecture.md#pin-allocation-table--native-esp32-s3-gpio-termination)
 record from the canonical
-[`schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf) sheet
+[`schematics/S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) sheet
 (SHA256 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`).
 It is **documentation only** and reuses the same allocation evidence;
 this section does **not** flip any `S360-311` status, **not** edit
@@ -667,7 +667,7 @@ this section does **not** flip any `S360-311` status, **not** edit
 - **Schematic side — proven.** The Core-side native GPIO termination
   for each `TachIO` / `Pul_Cou1..4` / `TachPMW1..4` net is printed on
   the canonical
-  [`schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf) sheet
+  [`schematics/S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) sheet
   (the new R4 export delivered under `S360-100-NATIVE-TACH-PULSE-001`
   R4 refresh). None of the native GPIOs above
   (`IO9` / `IO10` / `IO11` / `IO12` / `IO16` / `IO17` / `IO18` /
@@ -729,7 +729,7 @@ previously recorded as `not provided in this upload`:
 | Drive artifact | Format / size | Use in this audit |
 |---|---|---|
 | `bom/12vFan_PWM_PulseCounter.xlsx` | XLSX, 11,112 B | **BOM part-identity cross-check** (below). |
-| `sch_pdf/12vFan_PWM_PulseCounter.pdf` | PDF, 357,151 B | Corroborating schematic export. Title block reads `12vFan_PWM_PulseCounter.kicad_sch`, **KiCad 9.0.2**, blank Rev — the *older project-name* export. The repo-committed [`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) is the renamed `S360-311-R4.kicad_sch` **KiCad 10.0.3** export, also blank Rev. Net / connector / part content matches; neither PDF carries an explicit `R4` rev stamp. |
+| `sch_pdf/12vFan_PWM_PulseCounter.pdf` | PDF, 357,151 B | Corroborating schematic export. Title block reads `12vFan_PWM_PulseCounter.kicad_sch`, **KiCad 9.0.2**, blank Rev — the *older project-name* export. The repo-committed [`schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf) is the renamed `S360-311-R4.kicad_sch` **KiCad 10.0.3** export, also blank Rev. Net / connector / part content matches; neither PDF carries an explicit `R4` rev stamp. |
 | `images/12vFan_PWM_PulseCounter*.png` | 3 × PNG | Board render. Silkscreen reads **`SENSE 360 FAN`** with `J3`, `J5`, `J6`, `pwm1..4`, `pul1..4`, `rx`, `tx`, `Q1..Q4`, `R2/R6/R7`, `gnd`, `5v tx rx gnd`. Confirms board identity and the per-channel labels; does **not** by itself confirm the `J3` / `J6` 1-to-13 pin-1 numbering. |
 | `gerbers/`, `cpl/`, `step_file/`, `Assets/` | Folders | Recorded as existing in Drive; not inspected pin-by-pin; not committed. |
 
@@ -1008,7 +1008,7 @@ measurement, an MT3608 boost-ceiling note, an inrush / locked-rotor
 capture, a thermal observation, or a product-bench sign-off. The
 `S360-311-R4` folder is **board design / manufacturing provenance**, the
 same artifact class as the committed
-[`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf); it closes no
+[`schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf); it closes no
 bench blocker and is recorded for provenance only — **no Drive file is
 committed by this PR and no bench evidence is fabricated.**
 
@@ -1349,7 +1349,7 @@ STEP, KiCad sources, renders incl. `PWM.png`); the canonically-named
 `S360-311-R4_positions.csv` (CPL), `S360-311-R4.pdf` (schematic),
 `S360-311-R4_BOM.xlsx`, and the board renders; and the unchanged
 `Sense360_R4_Tracker` (2026-05-18). This is the same artifact class as the
-committed [`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf), is
+committed [`schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf), is
 recorded for provenance only, closes no measurement blocker, and **no
 Drive file is committed by this PR and no measurement evidence is
 fabricated.** `S360-311-CURRENT-THERMAL-001` stays **gated** until the
@@ -1731,7 +1731,7 @@ This PR does **not** edit:
 - the curated artifact index
   [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md) —
   its content is consumed by this audit, not rewritten by it.
-- [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) —
+- [`hardware-artifacts/schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf) —
   the schematic PDF stays byte-identical to the HW-ASSETS-003
   commit.
 
@@ -1784,7 +1784,7 @@ This PR does **not**:
 - [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md) —
   HW-ASSETS-003 curated artifact index; the schematic-side source of
   truth.
-- [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf)
+- [`hardware-artifacts/schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf)
   — committed module-side schematic PDF (HW-ASSETS-003); the sole pin-map
   source for this reference.
 - [`docs/hardware/s360-100-r4-core.md`](s360-100-r4-core.md) — Core

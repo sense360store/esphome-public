@@ -73,7 +73,7 @@
 # ----------------------------------------------------------------------------
 # Hardware-authority note (VENTIQ-FRAMEWORK-001 audit — behaviour unchanged)
 # ----------------------------------------------------------------------------
-# The verified schematic docs/hardware/schematics/S360-211-R4.pdf (single
+# The verified schematic hardware-artifacts/schematics/S360-211-R4.pdf (single
 # sheet, Id 1/1; `schematic_status: verified` in config/hardware-catalog.json)
 # shows exactly ONE on-board sensor: the SGP41 (U3). It shows NO SHT4x and
 # NO BMP390 anywhere, and no S360-211 BOM artifact record is committed

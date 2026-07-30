@@ -4,7 +4,7 @@
 
 **Status: documentation-only architectural clarification + evidence
 refresh.** This document promotes the newly delivered
-[`S360-100-R4.pdf`](schematics/S360-100-R4.pdf) (SHA256
+[`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) (SHA256
 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
 837,443 bytes, KiCad E.D.A. 10.0.3, single sheet `1/1`) as the
 **current canonical S360-100 Core schematic evidence source**, and
@@ -63,7 +63,7 @@ schematic to those records and to the bundle / release layer.
 | Buck converter | `U1` `RT8059GJ5`, 5 V → 3.3 V (`L1` 2.2 µH, `R5` / `R6` feedback) |
 | LED data buffer | `U2` `74LVC1G07SE-7` open-drain buffer / level shifter (`LED_DATA` → `LED_DATA_3V3`) |
 | USB power-path switch | `Q2` `Si2319CDS` p-channel MOSFET |
-| Canonical schematic | [`docs/hardware/schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf) (SHA256 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`) |
+| Canonical schematic | [`hardware-artifacts/schematics/S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) (SHA256 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`) |
 | `schematic_status` (catalog) | `verified` — unchanged by this document |
 
 This row mirrors the entries in
@@ -104,7 +104,7 @@ The table below maps each Sense360 Core connector on the new R4
 schematic to its dedicated module SKU, the signal family the
 connector carries, the intended use, and the native-MCU constraint
 (if any). Every row is taken from the
-[committed `S360-100-R4.pdf`](schematics/S360-100-R4.pdf) and is
+[committed `S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) and is
 captioned with the schematic's "*Formerly used as …*" legacy label
 where one exists, because the R4 KiCad sheet still carries the
 legacy module-name annotations next to the connectors.
@@ -165,7 +165,7 @@ The new R4 schematic prints the per-fan tach / pulse-counter / PWM
 nets directly on ESP32-S3 module pins (with the ESP32-S3 module pin
 numbers shown to the right of each net). The table below records the
 **schematic-printed** native-GPIO terminations from the new
-[`S360-100-R4.pdf`](schematics/S360-100-R4.pdf) sheet. None of these
+[`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) sheet. None of these
 GPIO terminations is **bench-verified** by this PR — the
 [`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md)
 `schematic-evidence-pending` and `bench-evidence-pending` gates stay
@@ -311,7 +311,7 @@ This document and the tests added with it must not:
   GPIO termination of `TachPMW1..4` / `Pul_Cou1..4` / `TachIO`,
   classifies the SX1509-routed fan path as legacy / superseded, and
   carries the FanPWM firmware-binding pending status.
-- [`docs/hardware/schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf)
+- [`hardware-artifacts/schematics/S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf)
   — current canonical S360-100 Core schematic (SHA256
   `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
   837,443 bytes).

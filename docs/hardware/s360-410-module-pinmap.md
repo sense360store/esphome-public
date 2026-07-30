@@ -57,7 +57,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-410-R4 / sch_pdf / S360-410-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf) (975,137 bytes; SHA256 `4a8b7a3b2a89006a9332eaa486743f687aaedc4b6bb807c6b25670f742ac2414`). |
+| `S360-410-R4 / sch_pdf / S360-410-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-410-R4.pdf`](../../hardware-artifacts/schematics/S360-410-R4.pdf) (975,137 bytes; SHA256 `4a8b7a3b2a89006a9332eaa486743f687aaedc4b6bb807c6b25670f742ac2414`). |
 | `S360-410-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-410-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-410-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
@@ -69,7 +69,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf) (committed) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-410-R4.pdf`](../../hardware-artifacts/schematics/S360-410-R4.pdf) (committed) | schematic-backed |
 | KiCad source | Not committed in-repo | TBD |
 | Gerber / drill files | Drive `gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `step_file` (retained-but-not-committed) | TBD |
@@ -170,7 +170,7 @@ voltage UK / EU scope. Mains-voltage COMPLIANCE-001 applies to
 - [`s360-410-r4-poe.md`](s360-410-r4-poe.md) — PoE PSU board-side audit (HW-PINMAP-410 / HW-PINMAP-410-FOLLOWUP).
 - [`artifacts/S360-410-R4.md`](artifacts/S360-410-R4.md) — curated artifact index (HW-ASSETS-410).
 - [`s360-400-module-pinmap.md`](s360-400-module-pinmap.md) — 240V PSU module-side pinmap (shared Core `J2` inlet semantics).
-- [`schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-410-R4.pdf`](../../hardware-artifacts/schematics/S360-410-R4.pdf) — committed module-side schematic PDF.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (`PACKAGE-POE-410-001`).
 - [`docs/package-poe-410-001-audit.md` (archived)](../archive-index.md) — `PACKAGE-POE-410-001` audit.
 

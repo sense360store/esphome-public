@@ -64,20 +64,20 @@ release configs.
 ## Verified schematics currently available
 
 The following boards have schematic PDFs pinned to this repository under
-[`hardware/schematics/`](hardware/schematics/), a standalone pin /
+[`hardware/schematics/`](../hardware-artifacts/schematics/), a standalone pin /
 connector reference doc under `docs/hardware/`, and
 `schematic_status: verified` with a `schematic_file` path in
 [`../config/hardware-catalog.json`](../config/hardware-catalog.json):
 
-- `S360-100-R4` — Sense360 Core ([PDF](hardware/schematics/S360-100-R4.pdf),
+- `S360-100-R4` — Sense360 Core ([PDF](../hardware-artifacts/schematics/S360-100-R4.pdf),
   [doc](hardware/s360-100-r4-core.md))
-- `S360-200-R4` — Sense360 RoomIQ ([PDF](hardware/schematics/S360-200-R4.pdf),
+- `S360-200-R4` — Sense360 RoomIQ ([PDF](../hardware-artifacts/schematics/S360-200-R4.pdf),
   [doc](hardware/s360-200-r4-roomiq.md))
-- `S360-210-R4` — Sense360 AirIQ ([PDF](hardware/schematics/S360-210-R4.pdf),
+- `S360-210-R4` — Sense360 AirIQ ([PDF](../hardware-artifacts/schematics/S360-210-R4.pdf),
   [doc](hardware/s360-210-r4-airiq.md))
-- `S360-211-R4` — Sense360 VentIQ ([PDF](hardware/schematics/S360-211-R4.pdf),
+- `S360-211-R4` — Sense360 VentIQ ([PDF](../hardware-artifacts/schematics/S360-211-R4.pdf),
   [doc](hardware/s360-211-r4-ventiq.md))
-- `S360-300-R4` — Sense360 LED ([PDF](hardware/schematics/S360-300-R4.pdf),
+- `S360-300-R4` — Sense360 LED ([PDF](../hardware-artifacts/schematics/S360-300-R4.pdf),
   [doc](hardware/s360-300-r4-led.md))
 
 The remaining catalog rows — `S360-310` Sense360 Relay, `S360-311` Sense360
@@ -94,7 +94,7 @@ module-side schematics have not been pinned to this repo yet.
 > [`../config/hardware-catalog.json`](../config/hardware-catalog.json) with
 > that committed evidence: `S360-100`, `S360-200`, `S360-210`, `S360-211`,
 > and `S360-300` are now `schematic_status: verified` with their
-> `schematic_file` pointing under `docs/hardware/schematics/`. **Verified
+> `schematic_file` pointing under `hardware-artifacts/schematics/`. **Verified
 > schematic evidence is not a shippability claim.** HW-008 does not promote
 > any module into Release-One, does not unblock FanTRIAC (HW-005), does not
 > add `LED` to the Release-One config string `Ceiling-POE-VentIQ-RoomIQ`,

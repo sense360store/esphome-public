@@ -48,7 +48,7 @@ It is **documentation only**. It does **not**:
   already shipping in a Release-One artifact;
 - fabricate connector types, pin orders, signal assignments, or GPIO
   allocations — every value below is either taken verbatim from the
-  current canonical [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf)
+  current canonical [`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf)
   schematic (SHA256
   `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
   837,443 bytes, KiCad E.D.A. 10.0.3, single sheet `1/1`) and the
@@ -78,7 +78,7 @@ move between them:
   [`s360-100-r4-core.md` § S360-100-BENCH-001 status](s360-100-r4-core.md#s360-100-bench-001-status).
 - **`schematic-backed`** — the net, connector role, and (where
   applicable) ESP32-S3 GPIO assignment are taken verbatim from the
-  current canonical [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf)
+  current canonical [`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf)
   schematic. Bench / silkscreen verification is still owed; this is
   the dominant status of this document.
 - **`TBD`** — the value is not proven by the current canonical
@@ -147,7 +147,7 @@ table below:
    ESP32-S3 `InternalGPIOPin`. The schematic-printed terminations are
    `TachIO`→`IO16`, `Pul_Cou1`→`IO17`, `Pul_Cou2`→`IO18`,
    `Pul_Cou3`→`IO46`, `Pul_Cou4`→`IO9` (canonical
-   [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf), R4 refresh).
+   [`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf), R4 refresh).
 2. **FanPWM control (`TachPMW1..4`) is now on native ESP32-S3 GPIO.**
    The refreshed R4 schematic prints `TachPMW1`→`IO10`,
    `TachPMW2`→`IO11`, `TachPMW3`→`IO12`, `TachPMW4`→`IO39`. The
@@ -385,8 +385,8 @@ as **TBD** — see [Open questions](#open-questions--verification-needed)
 > (`GPIO14`), TRIAC gate drive** (drives the `U1` MOC3023M opto-triac) and
 > **`TRI_GPIO2` = `IO13` (`GPIO13`), zero-cross sense** (reads the `OK1`
 > EL814 collector). The net→pin assignment is taken from
-> [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf); the gate-vs-zero-cross
-> roles are taken from [`S360-320-R4.pdf`](schematics/S360-320-R4.pdf)
+> [`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf); the gate-vs-zero-cross
+> roles are taken from [`S360-320-R4.pdf`](../../hardware-artifacts/schematics/S360-320-R4.pdf)
 > (`TRI_GPIO1` drives the MOC3023M gate opto-driver; `TRI_GPIO2` is the
 > EL814 zero-cross phototransistor collector, `R4` 10 kΩ pull-up). The
 > FanTRIAC composition
@@ -597,7 +597,7 @@ This document and the tests added with it must not:
 - [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](s360-100-native-tach-pulse-strategy.md) —
   canonical architectural rule: native ESP32-S3 GPIO required for
   tach / pulse-counter inputs.
-- [`docs/hardware/schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf) —
+- [`hardware-artifacts/schematics/S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) —
   current canonical S360-100 Core schematic (SHA256
   `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
   837,443 bytes, KiCad E.D.A. 10.0.3, single sheet `1/1`).

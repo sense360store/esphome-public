@@ -10,7 +10,7 @@ canonical S360-100 Core architecture index. The doc records:
    **``S360-100`` Core + room modules + ``S360-410`` PoE PSU**.
 
 2. The current canonical S360-100 Core schematic evidence is
-   ``docs/hardware/schematics/S360-100-R4.pdf`` (SHA256
+   ``hardware-artifacts/schematics/S360-100-R4.pdf`` (SHA256
    ``4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16``,
    837,443 bytes, KiCad E.D.A. 10.0.3, single sheet ``1/1``). The PDF
    file must exist on disk and match those bytes.
@@ -59,7 +59,9 @@ ARTIFACT_INDEX_DOC = REPO_ROOT / "docs" / "hardware" / "artifacts" / "S360-100-R
 # under DOCS-DISPOSITION-001 (see docs/archive-index.md) and dropped out of
 # the cross-link contract below.
 
-SCHEMATIC_PDF = REPO_ROOT / "docs" / "hardware" / "schematics" / "S360-100-R4.pdf"
+SCHEMATIC_PDF = (
+    REPO_ROOT / "hardware-artifacts" / "schematics" / "S360-100-R4.pdf"
+)
 HARDWARE_CATALOG_JSON = REPO_ROOT / "config" / "hardware-catalog.json"
 PRODUCT_CATALOG_JSON = REPO_ROOT / "config" / "product-catalog.json"
 WEBFLASH_BUILDS_JSON = REPO_ROOT / "config" / "webflash-builds.json"
@@ -153,7 +155,7 @@ class CanonicalSchematicEvidenceTests(unittest.TestCase):
         self.assertIsNotNone(s100, "S360-100 row must exist in hardware catalog.")
         self.assertEqual(
             s100.get("schematic_file"),
-            "docs/hardware/schematics/S360-100-R4.pdf",
+            "hardware-artifacts/schematics/S360-100-R4.pdf",
             "S360-100 schematic_file must continue to point at the "
             "refreshed canonical PDF path.",
         )

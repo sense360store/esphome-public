@@ -18,7 +18,7 @@ SHA in [`docs/archive-index.md`](../archive-index.md)).
 This doc consolidates two evidence sources:
 
 1. The committed module-side schematic PDF at
-   [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf)
+   [`hardware-artifacts/schematics/S360-312-R4.pdf`](../../hardware-artifacts/schematics/S360-312-R4.pdf)
    (HW-ASSETS-003; SHA256
    `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`;
    122,230 bytes).
@@ -155,7 +155,7 @@ lines 82–91 without modification.
 | `schematic_status` | `cataloged_unverified` (unchanged by this PR) |
 | `schematic_file` | _(not set; unchanged by this PR)_ |
 | Curated artifact index | [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md) |
-| Committed schematic PDF | [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf) |
+| Committed schematic PDF | [`hardware-artifacts/schematics/S360-312-R4.pdf`](../../hardware-artifacts/schematics/S360-312-R4.pdf) |
 | Per-board reconciliation audit | This document (HW-PINMAP-312; the former standalone `s360-312-r4-dac.md` was merged here — original indexed in [`docs/archive-index.md`](../archive-index.md)) |
 | FanDAC package YAML | [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (two GP8403 chips / four outputs; package-layer reconciled by `PACKAGE-DAC-001-IMPLEMENT-001`, 2026-05-23) |
 | FanDAC canonical alias | ``packages/expansions/fan_dac.yaml`` (pure-wrapper alias) |
@@ -214,7 +214,7 @@ FanDAC-specific evidence enumerated in
 
 | Evidence | Source | Status |
 |---|---|---|
-| Module-side schematic PDF | [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf) (HW-ASSETS-003; SHA256 `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`; 122,230 bytes) | **Committed.** Byte-identical to upload. Single sheet (`S360-312-R4.kicad_sch`, page 1 / 1). KiCad 10.0.3 export, A4. |
+| Module-side schematic PDF | [`hardware-artifacts/schematics/S360-312-R4.pdf`](../../hardware-artifacts/schematics/S360-312-R4.pdf) (HW-ASSETS-003; SHA256 `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`; 122,230 bytes) | **Committed.** Byte-identical to upload. Single sheet (`S360-312-R4.kicad_sch`, page 1 / 1). KiCad 10.0.3 export, A4. |
 | Module-side BOM spreadsheet | `Fan_GP8403.xlsx` (uploaded; SHA256 `1886ecad5b9dd1a683b8c0ccebb770e5c02894854650b5a5553b19875f7e3a20`; 12,744 bytes; single sheet `Fan_GP8403`; 19 rows incl. header) | **Not committed (raw spreadsheet form).** Content transcribed into [§BOM cross-check](#bom-cross-check) below. Treated under the [Hardware Artifact Policy (archived)](../archive-index.md) retained-but-not-committed rule for raw BOM spreadsheets. |
 | Curated artifact index | [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md) | **Committed.** Schematic-content capture + retained-but-not-committed inventory. |
 | HW-PINMAP-312 audit | This document (the former standalone `s360-312-r4-dac.md` was merged here; original indexed in [`docs/archive-index.md`](../archive-index.md)) | **Merged.** The full reconciliation audit record now lives in this reference doc. |
@@ -1067,7 +1067,7 @@ as canonical fab checksums).
 | `Fan_GP84033.png` (front render) | `1n_YRisJxBaynasJdS027GcseD-QGpHMB` | 143,802 | 2025-08-22 | Front 3D render — `SW1` / `SW2` ON-arrow, `J3` pin-1 ▲ | `3f857ff8389e450c5b8a9c07b6eabe4dee56402eddc719ce582805e6917ca083` |
 | `Fan_GP8403-F_Silkscreen.gto` | `1iXiit8J9DWJe2fSeyBt6yCVcUCV7X0Pq` | 85,222 | 2025-08-22 | Front silkscreen gerber (corroborates silk layer; present, not separately transcribed — text renders as strokes) | _(not hashed this pass)_ |
 | `Fan_GP8403.xlsx` (BOM) | `1Vg7JVJyk-ysDSRJBNpfgDQelbcaE7dPh` | 12,744 | 2025-08-14 | BOM (already transcribed under [§BOM cross-check](#bom-cross-check); SHA256 `1886ecad…` recorded by PR #570) | _(see PR #570)_ |
-| `Fan_GP8403.pdf` (Drive schematic) | `193BM5sV-3lvxBoKp1BRCquzWUkvKsylM` | 445,302 | 2025-08-14 | Drive-side schematic export. Content matches the committed schematic (same `IC1` / `IC2` pinout and nets) but is a **different export** (not byte-identical to the committed [`S360-312-R4.pdf`](schematics/S360-312-R4.pdf), SHA256 `2888f626…`, 122,230 bytes). The committed PDF stays canonical. | _(not hashed this pass)_ |
+| `Fan_GP8403.pdf` (Drive schematic) | `193BM5sV-3lvxBoKp1BRCquzWUkvKsylM` | 445,302 | 2025-08-14 | Drive-side schematic export. Content matches the committed schematic (same `IC1` / `IC2` pinout and nets) but is a **different export** (not byte-identical to the committed [`S360-312-R4.pdf`](../../hardware-artifacts/schematics/S360-312-R4.pdf), SHA256 `2888f626…`, 122,230 bytes). The committed PDF stays canonical. | _(not hashed this pass)_ |
 
 ### GP8403 datasheet evidence
 
@@ -1424,7 +1424,7 @@ release surface (per
 A `design-complete` board stays `cataloged_unverified` until its bench
 session fills the D6 matrix below and a separate JSON-catalog PR makes
 the `cataloged_unverified -> verified` flip (that promotion PR also
-sets `schematic_file: docs/hardware/schematics/S360-312-R4.pdf` in
+sets `schematic_file: hardware-artifacts/schematics/S360-312-R4.pdf` in
 [`config/hardware-catalog.json`](../../config/hardware-catalog.json)).
 
 Checklist against the four `design-complete` conditions
@@ -1543,7 +1543,7 @@ resolves none of it. The `S360-312` board stays
   `FanDAC` config-string token mapping to `S360-312`.
 - [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md)
   — HW-ASSETS-003 curated artifact index.
-- [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf)
+- [`hardware-artifacts/schematics/S360-312-R4.pdf`](../../hardware-artifacts/schematics/S360-312-R4.pdf)
   — committed module-side schematic PDF.
 - [`docs/hardware/s360-100-r4-core.md`](s360-100-r4-core.md) —
   Core schematic-backed reference; §J7 GP8403 fan connector (6-pin);
@@ -1822,7 +1822,7 @@ material is **design / CAD only**:
 - the canonical `S360-312-R4.pdf` schematic (from the PCB design
   owner) — already committed,
   byte-identical, as
-  [`schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf);
+  [`schematics/S360-312-R4.pdf`](../../hardware-artifacts/schematics/S360-312-R4.pdf);
 - the unchanged `Sense360_R4_Tracker` (2026-05-18).
 
 None of these is a `J3` `out0`/`out1` silkscreen photo, a Cloudlift S12

@@ -96,7 +96,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-311-R4 / sch_pdf / S360-311-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf). |
+| `S360-311-R4 / sch_pdf / S360-311-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf). |
 | `S360-311-R4 / bom / S360-311-R4_BOM.xlsx` | BOM (.xlsx) | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-311-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-311-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
@@ -108,7 +108,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) (committed; SHA256 + size recorded in [`artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md)) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf) (committed; SHA256 + size recorded in [`artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md)) | schematic-backed |
 | KiCad source | Not committed in-repo | TBD |
 | Gerber / drill files | Drive `gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `step_file` (retained-but-not-committed) | TBD |
@@ -219,7 +219,7 @@ Per-fan rated current, the MOSFET part number's actual ratings
 - [`s360-100-native-tach-pulse-strategy.md`](s360-100-native-tach-pulse-strategy.md) — architectural rule for tach / pulse-counter native ESP32-S3 GPIO.
 - [`s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) — FanPWM board-side reference; also carries the merged HW-PINMAP-311 audit.
 - [`artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md) — curated artifact index (HW-ASSETS-003).
-- [`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-311-R4.pdf`](../../hardware-artifacts/schematics/S360-311-R4.pdf) — committed module-side schematic PDF.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (PWM-12).
 
 ## Do-not-change guardrails

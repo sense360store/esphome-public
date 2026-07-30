@@ -122,7 +122,7 @@ limitation here.
 
 The pin-allocation table below records the **required constraint** and
 the **schematic-printed** native-GPIO termination on the **current
-canonical** [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf) (SHA256
+canonical** [`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) (SHA256
 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
 837,443 bytes, single sheet `1/1`). The new R4 sheet terminates every
 per-fan tach / pulse-counter line directly at a native ESP32-S3
