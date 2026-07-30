@@ -455,7 +455,6 @@ packages:
       # Select features
       # Presence (choose one)
       - packages/features/presence_basic_profile.yaml           # HLK-LD2450
-      # - packages/features/presence_basic_profile_ld2412.yaml  # HLK-LD2412
       - packages/features/device_health.yaml
       # Omit packages/features/airiq_mini_profile.yaml if air quality is not needed
     refresh: 1d

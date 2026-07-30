@@ -208,7 +208,7 @@ packages:
 
 # LD2412 Radar (for presence detection)
 packages:
-  presence: !include packages/hardware/presence_ld2412.yaml
+  presence: !include packages/expansions/presence_ld2412.yaml
 ```
 
 **Mini Product Configurations:**

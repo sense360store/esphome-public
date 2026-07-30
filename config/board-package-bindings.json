@@ -26,9 +26,9 @@
     "packages/expansions"
   ],
   "totals": {
-    "packages": 29,
+    "packages": 28,
     "bound": 24,
-    "unbound": 5
+    "unbound": 4
   },
   "bindings": [
     {
@@ -174,12 +174,6 @@
       "board_sku": null,
       "basis": "not-board-bearing",
       "reason": "USB-C input configuration on the Core itself. There is no USB PSU board SKU: USB power is a Core input, not a separate module."
-    },
-    {
-      "package": "packages/hardware/presence_ld2412.yaml",
-      "board_sku": null,
-      "basis": "connector-attached-sensor-driver",
-      "reason": "LD2412 radar driver for a connector-attached option; same host-board-only reading."
     },
     {
       "package": "packages/hardware/sense360_core.yaml",
