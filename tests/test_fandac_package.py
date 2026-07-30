@@ -416,9 +416,9 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
         # additionally relocate the GP8403 IC2 to 0x5A (see fan_dac_2_i2c_address)
         # so it does not collide with the air-quality SGP41 at 0x59.
         allowed_rel = {
-            "products/bundles/ceiling-poe-fandac.yaml",
-            "products/bundles/ceiling-poe-ventiq-fandac-roomiq.yaml",
-            "products/bundles/ceiling-poe-airiq-fandac-roomiq.yaml",
+            "products/sense360-ceiling-poe-fandac.yaml",
+            "products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml",
+            "products/sense360-ceiling-poe-airiq-fandac-roomiq.yaml",
         }
         includers: list[str] = []
         for path in PRODUCTS_DIR.rglob("*.yaml"):

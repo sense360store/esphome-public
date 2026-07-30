@@ -245,7 +245,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_gp8403.yaml"
       ],
-      "resolved_yaml_count": 23,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -300,7 +300,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_pwm_native.yaml"
       ],
-      "resolved_yaml_count": 23,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -355,7 +355,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_relay.yaml"
       ],
-      "resolved_yaml_count": 23,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -409,7 +409,7 @@
         "packages/boards/s360-210-airiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 22,
+      "resolved_yaml_count": 21,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -453,7 +453,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_gp8403.yaml"
       ],
-      "resolved_yaml_count": 13,
+      "resolved_yaml_count": 12,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -496,7 +496,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_pwm_native.yaml"
       ],
-      "resolved_yaml_count": 12,
+      "resolved_yaml_count": 11,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -544,7 +544,7 @@
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 18,
+      "resolved_yaml_count": 17,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -596,7 +596,7 @@
         "packages/boards/s360-300-led.yaml",
         "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 23,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -684,7 +684,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_gp8403.yaml"
       ],
-      "resolved_yaml_count": 22,
+      "resolved_yaml_count": 21,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -738,7 +738,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_pwm_native.yaml"
       ],
-      "resolved_yaml_count": 22,
+      "resolved_yaml_count": 21,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -792,7 +792,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_relay.yaml"
       ],
-      "resolved_yaml_count": 22,
+      "resolved_yaml_count": 21,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -846,7 +846,7 @@
         "packages/boards/s360-410-poe-psu.yaml",
         "packages/expansions/fan_triac.yaml"
       ],
-      "resolved_yaml_count": 22,
+      "resolved_yaml_count": 21,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -900,7 +900,7 @@
         "packages/boards/s360-211-ventiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 23,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -954,7 +954,7 @@
         "packages/boards/s360-300-led.yaml",
         "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 26,
+      "resolved_yaml_count": 25,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -999,7 +999,7 @@
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-200-roomiq-uart.yaml"
       ],
-      "resolved_yaml_count": 20,
+      "resolved_yaml_count": 19,
       "unresolved_includes": []
     },
     {
@@ -1040,7 +1040,7 @@
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-211-ventiq.yaml"
       ],
-      "resolved_yaml_count": 23,
+      "resolved_yaml_count": 22,
       "unresolved_includes": []
     }
   ],

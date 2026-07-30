@@ -1,8 +1,9 @@
 # ============================================================================
 # SENSE360 DEVICE FRAMEWORK (CORE-FRAMEWORK-001)
 # ============================================================================
-# Shared firmware / entity foundation composed by every production bundle
-# (products/bundles/*.yaml include it exactly once). Contract source of
+# Shared firmware / entity foundation composed by every framework-bearing
+# canonical composition (products/sense360-*.yaml include it exactly once).
+# Contract source of
 # truth: config/core-framework.json, enforced by tests/test_core_framework.py
 # and documented in docs/architecture/sense360-core-framework.md.
 #

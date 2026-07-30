@@ -1,6 +1,17 @@
 # ============================================================================
 # SENSE360 FAN MODULE - BASIC CONTROL PROFILE
 # ============================================================================
+# KEPT-WITH-RECORDED-REASON (REPO-CONSOLIDATION-001, 2026-07-30). No live
+# composition layers this profile: the fan bundles deliberately omit it
+# (its id(comfort_temperature) binding is unsatisfiable against the RoomIQ
+# comfort_ceiling package — recorded in config/compile-only-targets.json,
+# TRIAC-PINMAP-CORRECT-001 note), and the legacy bathroom product carries
+# only commented-out includes. It is retained because the pending
+# operator-confirm planning rows FEATURE-CONFIRM-310/311/320-FAN-UX-001
+# (config/feature-entity-matrix.json) cite it as the candidate fan-UX
+# implementation awaiting the owner's decision; deleting it would preempt
+# that queued decision. Do NOT layer it on a RoomIQ-bearing composition.
+#
 # User-friendly fan control entities for PWM fan module.
 # Provides simplified controls for end users.
 #

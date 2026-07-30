@@ -715,9 +715,10 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     # `packages/expansions/comfort_ceiling.yaml` (now a thin alias) into the
     # SKU-aligned RoomIQ board half; the consumer-default assertion travels with
     # the content. RoomIQ is authoritative per driver, so the climate half is
-    # its own board file. The shared radar primitives
-    # `presence_ld2450.yaml` / `presence_ld2412.yaml` are UART (not I2C) base
-    # drivers and carry no `*_i2c_id` default, so they do not appear here.
+    # its own board file. The former shared radar primitives
+    # (`presence_ld2450.yaml`, removed by PR 07; `presence_ld2412.yaml`,
+    # removed by REPO-CONSOLIDATION-001) were UART (not I2C) base drivers
+    # and carried no `*_i2c_id` default, so they never appeared here.
     (
         REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml",
         "comfort_ceiling_i2c_id",
@@ -745,7 +746,6 @@ CEILING_HALO_LEDS_PACKAGE = (
     REPO_ROOT / "packages" / "features" / "ceiling_halo_leds.yaml"
 )
 FAN_GP8403_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
-GENERATE_TEST_CONFIGS_SCRIPT = REPO_ROOT / "tests" / "generate_test_configs.py"
 
 # Legacy bus ids retired from every in-scope Core abstract package by
 # CORE-ABSTRACT-BUS-001B. Each must not appear as an active ``- id:``
@@ -1004,20 +1004,12 @@ class SharedI2CBusTests(unittest.TestCase):
             "`i2c_id: ${sx1509_i2c_id}` so the rename flows through.",
         )
 
-    def test_generate_test_configs_does_not_set_expansion_i2c_override(self) -> None:
-        text = GENERATE_TEST_CONFIGS_SCRIPT.read_text()
-        # The pre-001B helper hard-coded `fan_dac_i2c_id: expansion_i2c`
-        # as a per-product override for the ceiling lineage. The default
-        # in fan_gp8403.yaml now resolves to core_i2c directly, so the
-        # override must be removed.
-        self.assertNotIn(
-            "fan_dac_i2c_id: expansion_i2c",
-            text,
-            "tests/generate_test_configs.py must not emit the pre-001B "
-            "`fan_dac_i2c_id: expansion_i2c` override; the fan_gp8403.yaml "
-            "default already resolves to core_i2c after "
-            "CORE-ABSTRACT-BUS-001B.",
-        )
+    # REPO-CONSOLIDATION-001 removed tests/generate_test_configs.py (dead
+    # generator: its module enums emitted `!include` paths exclusively to
+    # packages deleted by SENSE360-CANONICALISATION-001 PR 07/08, so every
+    # generated config was unresolvable; no workflow invoked it). The former
+    # ``test_generate_test_configs_does_not_set_expansion_i2c_override``
+    # guard asserted on that script's text and retired with it.
 
     # PRODUCT-DEP-MINI-001 removed the Mini product range and its Mini-only
     # packages (sense360_core_mini.yaml, mini_onboard_sensors.yaml). The

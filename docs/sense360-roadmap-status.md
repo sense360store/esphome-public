@@ -35,7 +35,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Consolidated first-release / expansion gate checklist | [`docs/first-release-gates.md`](first-release-gates.md) (PRE-HW-PREP-FIRST-RELEASE-GATES-001) |
 | Operator dry-run checklist for the first stable release | [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) (FIRST-RELEASE-DRYRUN-CHECKLIST-001) |
 | Whole-system architecture (two-repo pipeline + CI map) | [`docs/system-architecture.md`](system-architecture.md) · [`docs/ci-pipeline.md`](ci-pipeline.md) |
-| Board / bundle / alias / shim YAML architecture | [`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) · [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
+| Board / product YAML architecture | [`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) · [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--product-layers) |
 
 ---
 
@@ -553,8 +553,10 @@ readiness matrices were later archived under `DOCS-DISPOSITION-001`; see
 ## 11. Board / bundle architecture epic
 
 The firmware YAML has been restructured into a SKU-aligned **board-package**
-layer (`packages/boards/`), a config-string-named **bundle** layer
-(`products/bundles/`), legacy **aliases**, and customer **compat shims**. This
+layer (`packages/boards/`) plus config-string-named **product compositions**
+(`products/sense360-*.yaml`; the interim bundle layer was folded into the
+customer-pinned paths by REPO-CONSOLIDATION-001, and the legacy alias layer
+was deleted by SENSE360-CANONICALISATION-001 PR 07). This
 is an internal-composition refactor; it changes **no** config string, artifact
 name, lifecycle, `schematic_status`, WebFlash build, or release. Per the
 sources-of-truth rule above, the detail is **not duplicated here** — it lives in
@@ -563,7 +565,7 @@ its own canonical docs:
 | Layer of the epic | Source of truth (do not duplicate) |
 |---|---|
 | Target shape, rename/alias policy, ordered PR sequence | [`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) |
-| Whole-pipeline placement + cross-repo contract | [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
+| Whole-pipeline placement + cross-repo contract | [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--product-layers) |
 | Per-workflow CI/gate parity across the refactor | [`docs/ci-pipeline.md`](ci-pipeline.md) |
 | Per-PR queue state for the epic | [`UPCOMING_PR.md` (retired)](archive-index.md) |
 
@@ -590,7 +592,8 @@ consistent Home Assistant naming, device/firmware information, compile-time
 capability reporting, module presence/status, diagnostics policy, and a
 device-health summary — as one reusable package
 ([`packages/base/device_framework.yaml`](../packages/base/device_framework.yaml))
-composed exactly once by every bundle under `products/bundles/`. The
+composed exactly once by every framework-bearing canonical composition
+under `products/sense360-*.yaml`. The
 machine-readable contract is
 [`config/core-framework.json`](../config/core-framework.json); the canonical
 description is

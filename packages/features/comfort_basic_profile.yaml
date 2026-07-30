@@ -4,8 +4,8 @@
 # User-friendly environmental comfort monitoring entities.
 # Provides simplified, actionable information for end users.
 #
-# ROOMIQ-FRAMEWORK-001: this profile is the LEGACY display path. Production
-# bundles (products/bundles/*.yaml) compose the canonical framework
+# ROOMIQ-FRAMEWORK-001: this profile is the LEGACY display path. The
+# canonical compositions (products/sense360-*.yaml) compose the framework
 # packages/features/roomiq_framework.yaml instead — never both (the
 # framework preserves every entity id below as a disabled-by-default
 # compatibility entity). This file remains for pinned legacy include paths

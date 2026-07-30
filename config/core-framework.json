@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "work_item": "CORE-FRAMEWORK-001",
-  "description": "Shared Sense360 firmware / entity framework contract: the stable capability registry, the module-status and device-health value contracts, and the per-config-string compile-time capability declarations that products/bundles/*.yaml implement via s360_* substitutions and packages/base/device_framework.yaml. Docs describe; this file decides. Validated by tests/test_core_framework.py.",
+  "description": "Shared Sense360 firmware / entity framework contract: the stable capability registry, the module-status and device-health value contracts, and the per-config-string compile-time capability declarations that the canonical products/sense360-*.yaml compositions implement via s360_* substitutions and packages/base/device_framework.yaml. Docs describe; this file decides. Validated by tests/test_core_framework.py.",
   "framework_package": "packages/base/device_framework.yaml",
   "documentation": "docs/architecture/sense360-core-framework.md",
   "sources": [
@@ -228,7 +228,7 @@
   },
   "configs": {
     "Ceiling-POE-VentIQ-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-ventiq-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-ventiq-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -245,7 +245,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -264,7 +264,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -283,7 +283,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-VentIQ-FanPWM-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -302,7 +302,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-VentIQ-FanDAC-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-ventiq-fandac-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -321,7 +321,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-AirIQ-FanRelay-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -340,7 +340,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-AirIQ-FanDAC-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-airiq-fandac-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-airiq-fandac-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -359,7 +359,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-AirIQ-FanPWM-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -378,7 +378,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-FanDAC": {
-      "bundle": "products/bundles/ceiling-poe-fandac.yaml",
+      "bundle": "products/sense360-ceiling-poe-fandac.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -391,7 +391,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-FanPWM": {
-      "bundle": "products/bundles/ceiling-poe-fanpwm.yaml",
+      "bundle": "products/sense360-ceiling-poe-fanpwm.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -403,10 +403,10 @@
       "hardware_model": "S360-100",
       "hardware_revision": "R4",
       "framework_included": false,
-      "deferral_reason": "Deferred: products/bundles/ceiling-poe-fanpwm.yaml must compose the IDENTICAL package set as the native full-compile-validated compile-only skeleton products/compile-only/ceiling-poe-fanpwm-native.yaml (S360-311-NATIVE-FANPWM-COMPILE-001, tests/test_pwm_product_readiness.py). Adding the framework package would break that identity and silently invalidate the recorded native full-compile evidence. The framework include lands for this config in a follow-up once the native compile-only lane re-records a framework-bearing composition."
+      "deferral_reason": "Deferred: products/sense360-ceiling-poe-fanpwm.yaml must compose the IDENTICAL package set as the native full-compile-validated compile-only skeleton products/compile-only/ceiling-poe-fanpwm-native.yaml (S360-311-NATIVE-FANPWM-COMPILE-001, tests/test_pwm_product_readiness.py). Adding the framework package would break that identity and silently invalidate the recorded native full-compile evidence. The framework include lands for this config in a follow-up once the native compile-only lane re-records a framework-bearing composition."
     },
     "Ceiling-POE-VentIQ-RoomIQ-LED": {
-      "bundle": "products/bundles/ceiling-poe-ventiq-roomiq-led.yaml",
+      "bundle": "products/sense360-ceiling-poe-ventiq-roomiq-led.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -425,7 +425,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -440,7 +440,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-AirIQ-RoomIQ": {
-      "bundle": "products/bundles/ceiling-poe-airiq-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -457,7 +457,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-POE-RoomIQ-LED": {
-      "bundle": "products/bundles/ceiling-poe-roomiq-led.yaml",
+      "bundle": "products/sense360-ceiling-poe-roomiq-led.yaml",
       "capabilities": [
         "core",
         "power_poe",
@@ -474,7 +474,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-USB-VentIQ-RoomIQ": {
-      "bundle": "products/bundles/ceiling-usb-ventiq-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-usb-ventiq-roomiq.yaml",
       "capabilities": [
         "core",
         "power_usb",
@@ -491,7 +491,7 @@
       "hardware_revision": "R4"
     },
     "Ceiling-USB-RoomIQ": {
-      "bundle": "products/bundles/ceiling-usb-roomiq.yaml",
+      "bundle": "products/sense360-ceiling-usb-roomiq.yaml",
       "capabilities": [
         "core",
         "power_usb",

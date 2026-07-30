@@ -63,10 +63,21 @@ VALIDATE_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "validate.yml"
 CONTRACT = REPO_ROOT / "config" / "core-framework.json"
 MATRIX = REPO_ROOT / "config" / "feature-entity-matrix.json"
 ROADMAP = REPO_ROOT / "docs" / "sense360-roadmap-status.md"
-BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
+def all_bundles() -> List[Path]:
+    """Every canonical composition declared by the framework contract.
 
-FRAMEWORK_INCLUDE = "!include ../../packages/features/led_framework.yaml"
-BOARD_INCLUDE = "!include ../../packages/boards/s360-300-led.yaml"
+    REPO-CONSOLIDATION-001 folded ``products/bundles/`` into the
+    config-string-named ``products/sense360-*.yaml`` paths; the contract's
+    ``bundle`` values are the canonical composition files.
+    """
+    contract = json.loads(CONTRACT.read_text())
+    return sorted(
+        REPO_ROOT / entry["bundle"]
+        for entry in contract.get("configs", {}).values()
+    )
+
+FRAMEWORK_INCLUDE = "!include ../packages/features/led_framework.yaml"
+BOARD_INCLUDE = "!include ../packages/boards/s360-300-led.yaml"
 
 # Approved customer effects (LED-10). "None" is provided natively by the
 # light component; no strobe / rainbow / novelty effect ships by default.
@@ -515,8 +526,8 @@ class BundleWiringTests(unittest.TestCase):
         self.assertEqual(
             bundles,
             {
-                "ceiling-poe-ventiq-roomiq-led.yaml",
-                "ceiling-poe-roomiq-led.yaml",
+                "sense360-ceiling-poe-ventiq-roomiq-led.yaml",
+                "sense360-ceiling-poe-roomiq-led.yaml",
             },
         )
 
@@ -528,7 +539,7 @@ class BundleWiringTests(unittest.TestCase):
 
     def test_non_led_bundles_do_not_compose_led_packages(self) -> None:
         led = {p.resolve() for p in led_bundles()}
-        for bundle in sorted(BUNDLES_DIR.glob("*.yaml")):
+        for bundle in all_bundles():
             if bundle.resolve() in led:
                 continue
             raw = bundle.read_text()

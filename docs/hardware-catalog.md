@@ -44,7 +44,7 @@ functional package names were thin `!include` **aliases** of the board package
 until SENSE360-CANONICALISATION-001 PR 07 removed them (zero-alias;
 `tests/test_zero_alias.py` is the ledger, release tags keep every historical
 path for tag-pinned users). Full layout:
-[`system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+[`system-architecture.md`](system-architecture.md#inside-esphome-public-board--product-layers).
 
 | SKU | Friendly name | Authoritative board package |
 |-----|---------------|-----------------------------|

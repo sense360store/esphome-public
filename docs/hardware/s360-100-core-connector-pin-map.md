@@ -389,8 +389,8 @@ as **TBD** — see [Open questions](#open-questions--verification-needed)
 > roles are taken from [`S360-320-R4.pdf`](schematics/S360-320-R4.pdf)
 > (`TRI_GPIO1` drives the MOC3023M gate opto-driver; `TRI_GPIO2` is the
 > EL814 zero-cross phototransistor collector, `R4` 10 kΩ pull-up). The
-> Release-One bundle
-> [`products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+> FanTRIAC composition
+> [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
 > binds `fan_triac_gate_pin: GPIO14` / `fan_triac_zc_pin: GPIO13`
 > accordingly — this corrected the earlier gate/zero-cross transposition
 > and the placeholder `GPIO5` / `GPIO6` that collided with RoomIQ

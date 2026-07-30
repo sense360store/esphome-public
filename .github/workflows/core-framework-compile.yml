@@ -38,7 +38,9 @@ on:
     paths:
       - "packages/base/device_framework.yaml"
       - "config/core-framework.json"
-      - "products/bundles/**"
+      # REPO-CONSOLIDATION-001: the bundle layer was folded into the
+      # customer-pinned root product paths — trigger on those directly.
+      - "products/sense360-*.yaml"
       - "packages/base/**"
       # PRESENCE-FRAMEWORK-001: the tri-sensor Presence framework lives in
       # the board-adapter / feature / shared-header layers, so changes there

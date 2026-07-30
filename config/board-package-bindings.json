@@ -26,9 +26,9 @@
     "packages/expansions"
   ],
   "totals": {
-    "packages": 28,
+    "packages": 27,
     "bound": 24,
-    "unbound": 4
+    "unbound": 3
   },
   "bindings": [
     {
@@ -150,12 +150,6 @@
       "board_sku": null,
       "basis": "not-board-bearing",
       "reason": "Legacy / superseded SX1509 expander path (SX1509-RECONCILE-001). Retained with reason for the CORE-ABSTRACT-BUS-001C interrupt-pin guard; implements no board."
-    },
-    {
-      "package": "packages/expansions/presence_ld2412.yaml",
-      "board_sku": null,
-      "basis": "connector-attached-sensor-driver",
-      "reason": "LD2412 radar driver for a connector-attached option; host-board-only reading."
     },
     {
       "package": "packages/expansions/sense360_fan_pwm.yaml",

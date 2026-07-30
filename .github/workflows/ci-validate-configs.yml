@@ -210,10 +210,11 @@ jobs:
           # clone is unnecessary inside the checked-out repo and fails
           # non-interactively when the rewritten ref is not fetchable on
           # GitHub. The full sweep also reaches configs under
-          # products/compile-only/ and products/bundles/, so each needs a
-          # secrets.yaml beside it (the quick shipping set lives in products/).
+          # products/compile-only/, so that directory needs a secrets.yaml
+          # beside it too (the shipping set lives in products/; the former
+          # products/bundles/ layer was folded into it, REPO-CONSOLIDATION-001).
           patch-external-components: "true"
-          extra-secrets-dirs: "products/compile-only products/bundles"
+          extra-secrets-dirs: "products/compile-only"
 
       - name: Validate ESPHome config - ${{ matrix.product }}
         run: |

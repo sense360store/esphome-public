@@ -668,19 +668,19 @@ class SubstitutionIsolationTests(unittest.TestCase):
         )
 
     def test_combined_airiq_roomiq_keeps_both_module_skus(self) -> None:
-        product = PRODUCTS_DIR / "bundles" / "ceiling-poe-airiq-roomiq.yaml"
+        product = PRODUCTS_DIR / "sense360-ceiling-poe-airiq-roomiq.yaml"
         self.assertTrue(product.is_file(), product)
         self._assert_board_sku(product, "packages/boards/s360-210-airiq.yaml")
         self._assert_board_sku(product, "packages/boards/s360-200-roomiq-radar.yaml")
 
     def test_combined_ventiq_roomiq_keeps_both_module_skus(self) -> None:
-        product = PRODUCTS_DIR / "bundles" / "ceiling-poe-ventiq-roomiq.yaml"
+        product = PRODUCTS_DIR / "sense360-ceiling-poe-ventiq-roomiq.yaml"
         self.assertTrue(product.is_file(), product)
         self._assert_board_sku(product, "packages/boards/s360-211-ventiq.yaml")
         self._assert_board_sku(product, "packages/boards/s360-200-roomiq-radar.yaml")
 
     def test_led_and_roomiq_composition_keeps_both_skus(self) -> None:
-        product = PRODUCTS_DIR / "bundles" / "ceiling-poe-roomiq-led.yaml"
+        product = PRODUCTS_DIR / "sense360-ceiling-poe-roomiq-led.yaml"
         self.assertTrue(product.is_file(), product)
         self._assert_board_sku(product, "packages/boards/s360-300-led.yaml")
         self._assert_board_sku(product, "packages/boards/s360-200-roomiq-radar.yaml")

@@ -466,11 +466,11 @@ class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
             # The FanRelay composition (the package !include) now lives in the
             # bundle that the product shim pulls in; the bundle is the one
             # extra product-layer YAML expected to carry a FanRelay name.
-            "products/bundles/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+            "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
             # ROOM-BUNDLE-FAN-CONFIGS-001 adds the Kitchen FanRelay room-bundle
             # preview (shim + bundle); compile-pending, not WebFlash-exposed.
             "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
-            "products/bundles/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+            "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
             # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09): the
             # release-gate WebFlash wrappers now exist — thin packages-only
             # re-exports so config/webflash-builds.json can address the

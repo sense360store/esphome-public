@@ -63,7 +63,7 @@ FAN_PWM_SX1509_BINDING = REPO_ROOT / "packages" / "expansions" / "fan_pwm_sx1509
 FAN_PWM_PRODUCT = REPO_ROOT / "products" / "sense360-ceiling-poe-fanpwm.yaml"
 # The product YAML is now a thin compat shim; the legacy/superseded
 # banners live in the bundle that the shim pulls in. Read banners there.
-FAN_PWM_PRODUCT_BUNDLE = REPO_ROOT / "products" / "bundles" / "ceiling-poe-fanpwm.yaml"
+FAN_PWM_PRODUCT_BUNDLE = REPO_ROOT / "products" / "sense360-ceiling-poe-fanpwm.yaml"
 FAN_PWM_COMPILE_ONLY = REPO_ROOT / "products" / "compile-only" / "ceiling-poe-fanpwm.yaml"
 
 PRODUCT_CATALOG_JSON = REPO_ROOT / "config" / "product-catalog.json"

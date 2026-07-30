@@ -15,12 +15,10 @@
 # resolved behaviour is byte-identical. The wall radar half is
 # `s360-200-roomiq-radar-wall.yaml`.
 #
-# NOTE — distinct from the radar PRIMITIVES: the shared base radar drivers
-# `packages/expansions/presence_ld2450.yaml` and `presence_ld2412.yaml` are
-# cross-referenced primitives (documented in packages/SENSE360_MODULES.md, no
-# board package holds their content); they stay AUTHORITATIVE and are NOT
-# aliased, mirroring how `airiq.yaml` / `ceiling_halo_leds.yaml` stayed
-# authoritative in RENAME-001/002.
+# NOTE — the former shared radar primitives are gone: `presence_ld2450.yaml`
+# was absorbed by this board family under PR 07 zero-alias, and
+# `presence_ld2412.yaml` was removed by REPO-CONSOLIDATION-001 (zero
+# composers). This board half owns the ld2450 platform content directly.
 #
 # PRESENCE-FRAMEWORK-001 changes (see
 # docs/architecture/sense360-presence-framework.md):

@@ -19,7 +19,7 @@
 #
 # Canonical YAML (full substitutions, packages, board config):
 #   products/sense360-ceiling-poe-roomiq-led.yaml
-#   (a compat shim over products/bundles/ceiling-poe-roomiq-led.yaml, which
+#   (the canonical composition; the former bundle layer was folded in, which
 #    DOES encode the LED token)
 #
 # WebFlash config string : Ceiling-POE-RoomIQ-LED

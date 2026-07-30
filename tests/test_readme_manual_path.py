@@ -36,6 +36,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 README = REPO_ROOT / "README.md"
+GETTING_STARTED = REPO_ROOT / "docs" / "getting-started.md"
 PRODUCT_CATALOG = REPO_ROOT / "config" / "product-catalog.json"
 WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 REQUIREMENTS_DEV = REPO_ROOT / "requirements-dev.txt"
@@ -118,6 +119,43 @@ class ReadmeManualPathTests(unittest.TestCase):
             self.block,
             "a tag-pinned example must not carry refresh: — a release tag "
             "never changes",
+        )
+
+    def test_getting_started_refs_are_the_stable_release_tag(self) -> None:
+        """docs/getting-started.md pins rot silently without this guard.
+
+        REPO-CONSOLIDATION-001 found the walkthrough still teaching
+        ``ref: v1.0.0`` seven releases after the stable moved on. Every
+        ``ref:`` pin in the living walkthrough must equal the production
+        baseline's current stable tag.
+        """
+        text = GETTING_STARTED.read_text(encoding="utf-8")
+        refs = re.findall(r"`?ref:\s*(v[\w.]+)", text)
+        self.assertTrue(refs, "getting-started.md must show tag-pinned refs")
+        expected = f"v{self.stable['version']}"
+        for ref in refs:
+            self.assertEqual(
+                ref,
+                expected,
+                "docs/getting-started.md must pin the current stable tag "
+                f"{expected} (from config/webflash-builds.json), found {ref}",
+            )
+
+    def test_getting_started_has_no_package_level_remote_includes(self) -> None:
+        """The package-level remote-composition story is retired.
+
+        The one supported advanced path is pinning a full ``products/``
+        YAML at a release tag (REPO-CONSOLIDATION-001 closing pass; the
+        former guide is archived). The walkthrough must not teach a
+        remote ``files:`` list naming ``packages/…`` paths again.
+        """
+        text = GETTING_STARTED.read_text(encoding="utf-8")
+        offenders = re.findall(r"^\s*-\s+(packages/\S+)", text, re.MULTILINE)
+        self.assertEqual(
+            offenders,
+            [],
+            "getting-started.md must not pin packages/ paths in a remote "
+            f"files: example (retired path); found {offenders}",
         )
 
     def test_esphome_badge_matches_the_dev_pin(self) -> None:

@@ -12,10 +12,17 @@
 > bundle / shim / wrapper include chain.
 
 This document was produced by **REPO-STRUCTURE-AUDIT-001**. It is an
-**audit / classification document only** — the PR that introduced it deletes,
-renames, and restructures **nothing**. Its purpose is to prove, before the next
-preview build-fix PR adds files under `products/bundles/`, whether the top-level
-`components/` and `products/` directories are active, legacy, or removable.
+**audit / classification document only**. Its original purpose was to prove
+whether the top-level `components/` and `products/` directories were active,
+legacy, or removable.
+
+> **Superseded in part by REPO-CONSOLIDATION-001 (2026-07-30).** The
+> `products/bundles/` layer this audit classified KEEP was subsequently
+> **folded into the customer-pinned `products/sense360-*.yaml` paths** and
+> deleted, with the resolved compositions proven identical across the fold
+> (the root paths had been thin one-include shims of their bundles).
+> Release tags keep the historical `bundles/` paths. File counts below are
+> the audit-time snapshot, not the current tree.
 
 ## TL;DR — audit result
 
@@ -23,7 +30,7 @@ preview build-fix PR adds files under `products/bundles/`, whether the top-level
 | --- | --- | --- |
 | `components/` | **active** (build dependency + public ESPHome remote-package surface) | **KEEP.** Not legacy, not removable. No follow-up removal opened. |
 | `products/` | **active** (release / build / test / config backbone) | **KEEP.** No obsolete subfolders found. |
-| `products/bundles/` | **active** (canonical composition layer; preview targets resolve here) | **KEEP.** This is where the next functional PR adds files. |
+| `products/bundles/` | **superseded** (REPO-CONSOLIDATION-001) | **FOLDED** into `products/sense360-*.yaml`; directory deleted, tags keep history. |
 | `products/compile-only/` | **active** (compile-only CI validation lane) | **KEEP.** |
 | `products/webflash/` | **active** (WebFlash release namespace) | **KEEP.** |
 | `products/secrets.example.yaml` | **active** (tracked placeholder template; SEC-ESP-SECRET-GUARD-001 replaced the `products/secrets.yaml` symlink). `products/secrets.yaml` is gitignored and created locally / by CI. | **KEEP.** |
@@ -36,12 +43,11 @@ remove and no `REMOVE-LEGACY-COMPONENTS-001` follow-up is warranted.**
 
 ```
 esphome-public/
-├── components/          ESPHome external components (C++/Python): ld2412, ld2450, ld24xx
-├── products/            Buildable product entrypoints (shims) + bundles + lanes
-│   ├── bundles/         Canonical config-string-named compositions (BUNDLE-LAYER-001)
+├── components/          ESPHome external components: sense360 family + mics_stm8 + sfa40
+├── products/            Buildable product entrypoints (canonical compositions) + lanes
 │   ├── compile-only/    Compile-only CI validation skeletons (not release products)
 │   ├── webflash/        Thin WebFlash-namespace wrappers (config/webflash-builds.json targets)
-│   ├── sense360-*.yaml  Customer-pinned compat shims that !include a bundle
+│   ├── sense360-*.yaml  Customer-pinned canonical compositions (bundle layer folded in)
 │   └── secrets.example.yaml  Tracked placeholder template (secrets.yaml is gitignored, created locally/CI)
 ├── packages/            Reusable YAML: base/, boards/, expansions/, features/, hardware/
 ├── config/              JSON sources of truth (catalog, matrices, release targets, policy)
@@ -56,11 +62,10 @@ esphome-public/
 
 ## The build / release include chain
 
-The key to reading the `products/` reference map is the **3-layer include
-chain** introduced by `BUNDLE-LAYER-001`
-([`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) §3.2). A naive
-"grep for the file path in config" understates how active the deeper layers are,
-because each layer reaches the next via `!include`, not a config string:
+The key to reading the `products/` reference map is the include chain
+(`BUNDLE-LAYER-001` introduced a 3-layer form;
+REPO-CONSOLIDATION-001 collapsed it to 2 layers by folding the bundle into
+the customer-pinned path):
 
 ```
 config/webflash-builds.json
@@ -69,31 +74,28 @@ config/webflash-builds.json
 products/webflash/<sku>.yaml            ← thin WebFlash-namespace wrapper
         │  !include ../sense360-<sku>.yaml
         ▼
-products/sense360-<sku>.yaml            ← customer-pinned compat shim (immutable include contract)
-        │  !include bundles/<sku>.yaml
+products/sense360-<sku>.yaml            ← customer-pinned CANONICAL composition
+        │  !include ../packages/boards|features|base/...
         ▼
-products/bundles/<sku>.yaml             ← CANONICAL composition (substitutions, packages, identity)
-        │  !include ../../packages/boards|features|base/...
+packages/base/external_components.yaml  ← declares the sense360 component family (type: local)
         ▼
-packages/base/external_components.yaml  ← declares components: [ld2412, ld2450, ld24xx]
-        ▼
-components/ld2412 · ld2450 · ld24xx      ← ESPHome external components (this repo)
+components/sense360*, mics_stm8, sfa40   ← ESPHome external components (this repo)
 ```
 
 The other `config/*.json` sources address different rungs of the same ladder:
 
 * [`config/preview-release-targets.json`](../config/preview-release-targets.json)
-  → top-level `products/sense360-*.yaml` (9 preview targets; the blocker notes
-  also name the `products/bundles/*` each shim resolves to).
+  → top-level `products/sense360-*.yaml` (every `yaml_path` is a root
+  product path; no bundle paths).
 * [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
   → `products/sense360-*.yaml` + `products/webflash/*.yaml`.
 * [`config/compile-only-targets.json`](../config/compile-only-targets.json)
-  → `products/compile-only/*.yaml`, `products/sense360-*.yaml`, and the two
-  `products/bundles/ceiling-usb-*.yaml` USB variants.
+  → `products/compile-only/*.yaml` and `products/sense360-*.yaml` (the USB
+  variants are root products like the rest).
 * [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json)
   → the three fan `products/sense360-*.yaml` (FanPWM / FanDAC / FanRelay).
 * [`config/product-catalog.json`](../config/product-catalog.json)
-  → documents each shim → bundle relationship.
+  → declares every `product_yaml` (all root `products/sense360-*.yaml`).
 
 On top of the explicit references, **two enumeration mechanisms consume every
 YAML under `products/`**, so no product YAML is ever truly "unreferenced":
@@ -108,42 +110,37 @@ YAML under `products/`**, so no product YAML is ever truly "unreferenced":
 
 ```
 components/
-├── ld2412/   __init__.py, binary_sensor.py, sensor.py, text_sensor.py, ld2412.{cpp,h},
-│             button/, number/, select/, switch/   (HLK-LD2412 24GHz mmWave radar)
-├── ld2450/   __init__.py, binary_sensor.py, sensor.py, text_sensor.py, ld2450.{cpp,h},
-│             button/, number/, select/, switch/   (HLK-LD2450 24GHz mmWave radar)
-└── ld24xx/   __init__.py, ld24xx.h                (shared LD24xx base)
+├── mics_stm8/          MICS-4514 gas sensor behind its STM8 bridge (vendored driver)
+├── sfa40/              SFA40 formaldehyde sensor (vendored driver)
+├── sense360/           foundation component: shared logic engines, runtime contract,
+│                       identity schema (SENSE360-CANONICALISATION-001 PR 08)
+├── sense360_airiq/     AirIQ domain component
+├── sense360_led/       LED domain component
+├── sense360_presence/  presence domain component
+├── sense360_roomiq/    RoomIQ domain component
+└── sense360_ventiq/    VentIQ domain component
 ```
 
-62 files across 3 ESPHome external components. **This directory is a hard build
-dependency and part of the public remote-package surface.** Proof it is active:
+Every entry is declared with provenance in
+`config/external-components.json` (guard:
+`tests/test_external_components.py`). The former vendored radar trio
+(`ld2412` / `ld2450` / `ld24xx`) was retired under SENSE360-CANONICALISATION-001
+PR 10: the pinned ESPHome ships built-in drivers, every live composition
+validates against them, and release tags keep the vendored trees for
+tag-pinned consumers. The only radar platform instantiation left in the
+package layer is the built-in `ld2450:` block in
+`packages/boards/s360-200-roomiq-radar.yaml`.
+
+**This directory is a hard build dependency.** Proof it is active:
 
 | Reference | Path | Why it matters |
 | --- | --- | --- |
-| Declared as remote source | `packages/base/external_components.yaml` (`type: git`, `url: …/esphome-public`, `ref: main`, `components: [ld2412, ld2450, ld24xx]`) | External consumers pinned to a tag fetch these components from this repo. Deleting/renaming = breaking change. |
-| CI local-path override (build) | `.github/workflows/firmware-build-release.yml` rewrites to `path: ../components` | Release builds compile against the local `components/` tree. |
-| CI local-path override (manual) | `.github/workflows/manual-firmware-artifacts.yml` | Manual-artifact builds use the local `components/` tree. |
-| CI branch-ref rewrite (validate) | `.github/workflows/ci-validate-configs.yml` (`sed s|ref: main|ref: $BRANCH_NAME|`) | Per-product compile validation uses the branch's `components/`. |
-| Test harness | `tests/generate_test_configs.py` inlines `path: ../../components` | Generated test configs compile against `components/`. |
-| Release tooling | `scripts/plan_room_release_notes.py` reads the external_components git ref | Release notes pin the components ref. |
-| Component **usage** | `ld2412:` / `ld2450:` platform blocks in 7 package files | Removing `components/` would make these packages fail to compile. |
-
-Packages that instantiate the radar component platforms (so they require
-`components/` at compile time):
-
-```
-packages/boards/s360-200-roomiq-radar.yaml
-packages/boards/s360-200-roomiq-radar-wall.yaml
-packages/expansions/presence_ld2412.yaml
-packages/expansions/presence_ld2450.yaml
-packages/hardware/presence_ld2450.yaml
-```
-
-These packages compose into RoomIQ / presence boards, which compose into
-products via the include chain above. `.github/workflows/ci-validate-configs.yml`
-also declares a `components/**` path filter, and
-`config/product-catalog.json` / `config/feature-entity-matrix.json` enumerate
-the `ld2412` / `ld2450` entities.
+| Declared as local source | `packages/base/external_components.yaml` (`type: local`, `path: ../components`, `components: [sense360, sense360_roomiq, sense360_presence, sense360_airiq, sense360_ventiq, sense360_led]`) | Every repository build lane compiles a branch's own component code. Remote consumers get these components from the git-sourced declarations in the `packages/remote/` wrappers. |
+| CI local-path handling (build) | `.github/workflows/firmware-build-release.yml` | Release builds compile against the local `components/` tree. |
+| CI local-path handling (manual) | `.github/workflows/manual-firmware-artifacts.yml` | Manual-artifact builds use the local `components/` tree. |
+| CI branch-ref handling (validate) | `.github/workflows/ci-validate-configs.yml` | Per-product compile validation uses the branch's `components/`. |
+| Release tooling | `scripts/plan_room_release_notes.py` reads the external_components declarations | Release notes pin the components provenance. |
+| Component **usage** | `sense360*` platform blocks in the framework feature packages and board packages | Removing `components/` would make every framework-bearing product fail to compile. |
 
 > The only `components/` "hit" in `config/` that is **not** a reference to this
 > tree is an `https://esphome.io/components/output/gp8403` documentation URL in a
@@ -161,37 +158,27 @@ the `ld2412` / `ld2450` entities.
 
 | Subpath | Files | Classification | Key references |
 | --- | --- | --- | --- |
-| `products/*.yaml` (top-level `sense360-*`) | 18 | **active** — customer-pinned compat shims; each `!include`s a bundle | preview-release-targets, firmware-combination-matrix, manual-firmware-artifacts, compile-only-targets, product-catalog |
-| `products/bundles/` | 11 | **active** — canonical compositions; **all 11** are `!include`d by their top-level shim | shim include chain; preview-release-targets notes; product-catalog; compile-only-targets (USB) |
+| `products/*.yaml` (top-level `sense360-*`) | audit-time 18 (now 24) | **active** — customer-pinned canonical compositions (REPO-CONSOLIDATION-001 folded the bundle layer in) | preview-release-targets, firmware-combination-matrix, manual-firmware-artifacts, compile-only-targets, product-catalog, core-framework |
+| `products/bundles/` | audit-time 11 | **superseded** — folded into the root `sense360-*.yaml` paths and deleted (REPO-CONSOLIDATION-001); release tags keep the historical paths | (historical) |
 | `products/compile-only/` | 8 | **active** — compile-only CI validation skeletons | compile-only-targets.json; `test_compile_targets.py`; `test_all_yaml_release_matrix.py` |
 | `products/webflash/` | 3 | **active** — WebFlash-namespace wrappers (release targets) | webflash-builds.json (2 live rows); firmware-combination-matrix; webflash tests |
 | `products/secrets.example.yaml` | template | **active** — tracked placeholder template (SEC-ESP-SECRET-GUARD-001; `products/secrets.yaml` is gitignored, created locally/CI) | CI compile step; ESPHome config validation; tests |
 
-### `products/bundles/` — every file is included by a shim
+### `products/bundles/` — folded and deleted (REPO-CONSOLIDATION-001)
 
-```
-ceiling-poe-airiq-roomiq.yaml            ← sense360-ceiling-poe-airiq-roomiq.yaml
-ceiling-poe-fandac.yaml                   ← sense360-ceiling-poe-fandac.yaml
-ceiling-poe-fanpwm.yaml                   ← sense360-ceiling-poe-fanpwm.yaml
-ceiling-poe-roomiq-led.yaml               ← sense360-ceiling-poe-roomiq-led.yaml
-ceiling-poe-roomiq.yaml                   ← sense360-ceiling-poe-roomiq.yaml
-ceiling-poe-ventiq-fanrelay-roomiq.yaml   ← sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml
-ceiling-poe-ventiq-fantriac-roomiq.yaml   ← sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
-ceiling-poe-ventiq-roomiq-led.yaml        ← sense360-ceiling-poe-ventiq-roomiq-led.yaml
-ceiling-poe-ventiq-roomiq.yaml            ← sense360-ceiling-poe-ventiq-roomiq.yaml
-ceiling-usb-roomiq.yaml                   ← sense360-ceiling-usb-roomiq.yaml
-ceiling-usb-ventiq-roomiq.yaml            ← sense360-ceiling-usb-ventiq-roomiq.yaml
-```
-
-Per the expected policy, **`products/` stays** (it contains active product /
-bundle YAMLs) and **`products/bundles/**` stays active** because preview targets
-resolve through it: `config/preview-release-targets.json` references
-`products/bundles/ceiling-poe-airiq-roomiq.yaml`,
-`products/bundles/ceiling-poe-roomiq.yaml`, and
-`products/bundles/ceiling-poe-roomiq-led.yaml` directly in its blocker-resolution
-notes, and the top-level preview-target shims `!include` their bundles. This is
-exactly where the next functional PR is expected to add files, so **none of it is
-removed.**
+The audit-time table above recorded every bundle `!include`d by its
+top-level shim, and the KEEP decision rested on the preview lane resolving
+through the layer. REPO-CONSOLIDATION-001 re-established the evidence on
+the then-current tree: every shipping-decision `config/*.json` addressed
+the ROOT paths (zero structural bundle references outside
+`config/core-framework.json` and `config/room-bundle-fan-variants.json`),
+the release workflow compiled the root file, and each root file was a thin
+one-include shim of its bundle. The bundle bodies were therefore folded
+into the root paths (include paths rebased `../../packages/` →
+`../packages/`), the directory deleted, the two config files repointed,
+and the resolved composition of every webflash wrapper and root product
+proven identical across the fold. Release tags keep every historical
+`bundles/` path for tag-pinned users.
 
 ## Audit method
 

@@ -5,8 +5,9 @@
 # Shows: Room Occupied (Yes/No) and Presence Score (0-100%)
 #
 # NOTE: This profile does NOT define the presence_confidence global.
-# The global is defined by the hardware/expansion module (presence_ceiling.yaml,
-# presence_wall.yaml, presence_ld2450.yaml, or presence_ld2412.yaml).
+# The global is defined by the radar board half
+# (packages/boards/s360-200-roomiq-radar.yaml, which absorbed the legacy
+# presence_* driver content under PR 07 zero-alias).
 # ============================================================================
 
 packages:

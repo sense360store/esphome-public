@@ -16,7 +16,7 @@ documentation map is in the [documentation index](README.md).
 > [sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/). This repo is the manual/custom firmware path
 > linked from WebFlash — use it only if you want to read or modify the YAML.
 >
-> **Production users must pin to a release tag** (e.g. `ref: v1.0.0`). Never use
+> **Production users must pin to a release tag** (e.g. `ref: v1.0.7`). Never use
 > `ref: main` for a device you depend on — `main` is a moving target.
 
 ## Quick Start (Custom / Manual Flash)
@@ -64,10 +64,9 @@ web_password: "your-secure-web-password"
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
+    ref: v1.0.7  # Pin to a release tag — never use 'main' in production
     files:
       - products/sense360-ceiling-poe-ventiq-roomiq.yaml
-    refresh: 1d
 
 substitutions:
   device_name: sense360-bathroom
@@ -86,109 +85,46 @@ substitutions:
 
 | Approach | Best For | Complexity |
 |----------|----------|------------|
-| **Product files** | Standard setups, most users | Simple |
-| **Individual packages** | Custom module combinations | Moderate |
-| **External components only** | From-scratch builds, experts | Advanced |
+| **WebFlash** | Standard setups, most users | Simplest |
+| **Product files (manual path)** | Custom builds, advanced users | Simple |
 
-### Approach 1 — Product files (recommended)
+### Product files — the supported manual path
+
+Pin the complete product YAML at a release tag. This is the one supported
+advanced path; the product file resolves to a complete, standalone config
+(board packages + base infrastructure + behaviour profiles):
 
 ```yaml
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0
+    ref: v1.0.7  # Pin to a release tag — never use 'main' in production
     files:
       - products/sense360-ceiling-poe-ventiq-roomiq.yaml
-    refresh: 1d
 ```
 
-### Approach 2 — Individual packages
+Every catalogued product path lives under `products/sense360-*.yaml`
+(declared in [`config/product-catalog.json`](../config/product-catalog.json)).
+Customers override only the `device_name` / `friendly_name` substitutions.
 
-Compose your own product from base + board/expansion + feature packages. The
-legacy `packages/hardware/*` and `packages/expansions/*` paths below still
-resolve — for the flipped sensor/PSU families they are now thin `!include`
-**aliases** of the SKU-aligned board package under `packages/boards/` (e.g.
-`packages/expansions/comfort_ceiling.yaml` → `packages/boards/s360-200-roomiq-climate.yaml`,
-`packages/expansions/airiq_ceiling.yaml` → `packages/boards/s360-210-airiq.yaml`,
-`packages/hardware/power_poe.yaml` → `packages/boards/s360-410-poe-psu.yaml`).
-You may reference either the legacy alias path or the board package directly;
-both resolve identically. (The `S360-100` Core mount variants are the inverse
-today — the board overlay wraps the still-authoritative legacy
-`packages/hardware/sense360_core_*.yaml` path — until Core's source-of-truth
-flip lands.) See the
-[board / bundle / alias / shim layers](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+### Package-level composition (retired)
 
-```yaml
-packages:
-  sense360_base:
-    url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0
-    files:
-      - packages/base/wifi.yaml
-      - packages/base/api_encrypted.yaml
-      - packages/hardware/sense360_core_ceiling.yaml
-      - packages/hardware/power_poe.yaml
-      - packages/expansions/airiq_bathroom_base.yaml  # VentIQ (legacy alias filename)
-      - packages/expansions/comfort_ceiling.yaml      # RoomIQ comfort
-      - packages/expansions/presence_ceiling.yaml     # RoomIQ presence
-      # FanTRIAC (packages/expansions/fan_triac.yaml +
-      # packages/features/fan_control_profile.yaml) is intentionally
-      # omitted from production Release-One while HW-005 is open. See
-      # docs/release-one-hardware-audit.md#fantriac-mapping-resolution
-      # (archived; see docs/archive-index.md)
-      - packages/features/bathroom_profile.yaml
-      - packages/features/presence_basic_profile.yaml
-    refresh: 1d
-```
-
-### Approach 3 — External components only (expert)
-
-> ⚠️ Pulls only the C++ component drivers. You write all YAML yourself.
-
-```yaml
-external_components:
-  - source:
-      type: git
-      url: https://github.com/sense360store/esphome-public
-      ref: v1.0.0
-    components: [ld2412, ld24xx]
-    refresh: 1d
-```
-
-## Package Reference
-
-| Category | Package | Description |
-|----------|---------|-------------|
-| **Base** | `packages/base/wifi.yaml` | WiFi connectivity |
-| | `packages/base/api_encrypted.yaml` | Home Assistant API |
-| | `packages/base/ota.yaml` | Over-the-air updates |
-| | `packages/base/time.yaml` | Time synchronization |
-| **Hardware** | `packages/hardware/sense360_core_ceiling.yaml` | Ceiling core board |
-| | `packages/hardware/led_ring_ceiling.yaml` | Ceiling LED ring |
-| | `packages/hardware/power_usb.yaml` | USB-C power |
-| | `packages/hardware/power_poe.yaml` | PoE power |
-| | `packages/hardware/power_240v.yaml` | AC mains power |
-| **AirIQ** | `packages/expansions/airiq_ceiling.yaml` | Air-quality sensor pack |
-| **VentIQ** | `packages/expansions/airiq_bathroom_base.yaml` | VentIQ on-board sensors (legacy alias filename) |
-| | `packages/expansions/airiq_bathroom_pro.yaml` | VentIQ + connector attachments (IR temp, SPS30; legacy alias filename) |
-| **RoomIQ** | `packages/expansions/comfort_ceiling.yaml` | Climate + light |
-| | `packages/expansions/presence_ceiling.yaml` | LD2450 presence |
-| **Fan drivers** | `packages/expansions/fan_relay.yaml` | FanRelay (ON/OFF) |
-| | `packages/expansions/fan_pwm.yaml` | FanPWM (25 kHz PWM) |
-| | `packages/expansions/fan_gp8403.yaml` | FanDAC (0–10 V) |
-| | `packages/expansions/fan_triac.yaml` | FanTRIAC (AC dimmer) |
-| **Features** | `packages/features/airiq_basic_profile.yaml` | AirIQ logic |
-| | `packages/features/bathroom_profile.yaml` | VentIQ logic |
-| | `packages/features/presence_basic_profile.yaml` | RoomIQ presence logic |
-| | `packages/features/fan_control_profile.yaml` | Fan automation |
-
-See [product-matrix.md](product-matrix.md) for the complete module
-reference, and [release-one.md (archived)](archive-index.md) for the Release-One
-configuration in detail.
+The former "individual packages" and "external components only" approaches
+— remotely composing `packages/…` files or pulling the component drivers
+alone — were retired (the guide that documented them,
+`docs/remote-package-consumption.md`, is archived; see
+[`archive-index.md`](archive-index.md)). Framework-bearing products cannot
+resolve their component code through package-level remote includes, and the
+radar drivers are ESPHome built-ins on the pinned ESPHome version. Release
+tags keep every historical path, so existing tag-pinned configurations
+continue to resolve. The `packages/` layer remains repository-internal
+composition — see [`packages/README.md`](../packages/README.md) and the
+[system architecture](system-architecture.md).
 
 ## System Requirements
 
-- **ESPHome:** 2025.10.0 or newer
+- **ESPHome:** 2026.4.5 or newer (the `requirements-dev.txt` pin is the
+  source of truth)
 - **Home Assistant:** 2024.1.0 or newer (recommended)
 
 ## See Also

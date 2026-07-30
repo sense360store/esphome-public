@@ -1,41 +1,244 @@
 # ============================================================================
-# SENSE360 LED-BEARING PREVIEW PRODUCT (compat shim) — Ceiling-POE-VentIQ-RoomIQ-LED
+# REPO-CONSOLIDATION-001 (2026-07-30): canonical composition lives HERE.
+# This customer-pinned path (`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`) now carries the
+# full composition directly. The former `products/bundles/ceiling-poe-ventiq-roomiq-led.yaml`
+# layer was folded into this file and deleted: the root path was a thin
+# one-include shim of the bundle, so the resolved config is unchanged
+# (include paths rebased `../../packages/` -> `../packages/`; release tags
+# keep the historical bundles/ path for tag-pinned users). The WebFlash
+# wrapper `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml` still re-exports this path.
 # ============================================================================
-# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §3.2). This product path is
-# retained as a thin compatibility shim: its composition now lives in the
-# config-string-named bundle
-# `products/bundles/ceiling-poe-ventiq-roomiq-led.yaml` and this file does
-# nothing but `!include` that bundle.
+# ============================================================================
+# SENSE360 BUNDLE — Ceiling-POE-VentIQ-RoomIQ-LED (preview)
+# ============================================================================
+# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §2.2, §3.2).
 #
-# Why this path is preserved (never deleted):
-#   * The customer include contract pins this exact path.
-#   * `config/webflash-builds.json` resolves the WebFlash wrapper
-#     `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`, which re-includes
-#     this canonical path. The preview release gate is unchanged.
+# Config-string-named bundle YAML, aligned 1:1 with the catalog config string
+# `Ceiling-POE-VentIQ-RoomIQ-LED`. This bundle is the canonical composition for
+# the LED-bearing preview sibling; this file IS the customer-facing product
+# path (REPO-CONSOLIDATION-001 folded the former bundle layer into it). The
+# WebFlash contract is unchanged: config string and artifact name stay
+# byte-identical.
 #
-# WebFlash config string : Ceiling-POE-VentIQ-RoomIQ-LED   (byte-identical)
+# WebFlash config string : Ceiling-POE-VentIQ-RoomIQ-LED
 # WebFlash artifact name  : Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin
 #
-# This sibling stays a PREVIEW build (non-stable channel). The stable
-# Release-One target remains the LED-less `Ceiling-POE-VentIQ-RoomIQ`.
+# Board assembly (docs/arch-board-bundle-plan.md §2.2):
+#   production board stack + S360-300 LED
+#   = S360-100 Core (ceiling) + S360-410 PoE PSU + S360-211 VentIQ
+#     + S360-200 RoomIQ + S360-300 LED (ceiling halo, WS2812B, GPIO38)
 #
-# Full composition, substitutions, board assembly, and product identification:
-#   products/bundles/ceiling-poe-ventiq-roomiq-led.yaml
+# Each assembled board is composed through the SKU-aligned board package under
+# `packages/boards/`; those packages are thin `!include` wrappers over the same
+# functional source packages this product bound directly before
+# BUNDLE-LAYER-001, so the resolved config is functionally identical (same
+# entities, substitutions, config string, artifact-name identity).
 #
-# Customer usage in their ESPHome config (pin to a release tag):
-#
-#   packages:
-#     sense360_firmware:
-#       url: https://github.com/sense360store/esphome-public
-#       ref: v1.0.0
-#       files:
-#         - products/sense360-ceiling-poe-ventiq-roomiq-led.yaml
-#       refresh: 1d
-#
-#   substitutions:
-#     device_name: sense360-bathroom-led
-#     friendly_name: "Bathroom Sense360 LED"
+# This is the LED-bearing sibling of the production bundle
+# `bundles/ceiling-poe-ventiq-roomiq.yaml`; it adds only the LED board on top
+# of that production stack. It is NOT the stable Release-One target — the
+# stable target stays the LED-less `Ceiling-POE-VentIQ-RoomIQ`. FanTRIAC stays
+# blocked (HW-005) and is intentionally omitted.
 # ============================================================================
 
+substitutions:
+  # === Device Configuration ===
+  # ESPHome hostnames are limited to 31 chars; this is the shortened hostname
+  # only. WebFlash identity (config string, artifact name, text sensors) for
+  # this sibling is `Ceiling-POE-VentIQ-RoomIQ-LED`. The production product
+  # keeps its own `Ceiling-POE-VentIQ-RoomIQ` identity untouched.
+  device_name: s360-ceil-poe-ventiq-rm-led
+  friendly_name: Sense360 Ceiling Bathroom LED
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
+  device_version: "1.0.0"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === WiFi AP fallback ===
+  # Explicit literal so the fallback AP SSID is short, human-readable, and
+  # under ESPHome's 32-character AP SSID limit regardless of how
+  # `device_name` is later edited. Distinct from the production
+  # `S360 VentIQ RoomIQ` so two devices on the same network don't collide
+  # at provisioning time.
+  fallback_ssid: "S360 VentIQ RoomIQ LED"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === VentIQ (bathroom) thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Compile-time capability declaration for the shared device framework
+  # (packages/base/device_framework.yaml). Values must match this config
+  # string's entry in config/core-framework.json — enforced by
+  # tests/test_core_framework.py. These are compile-time composition
+  # facts only; no runtime hardware autodetection is claimed.
+  s360_config_string: "Ceiling-POE-VentIQ-RoomIQ-LED"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,power_poe,ventiq,roomiq,presence,led"
+  s360_capabilities_human: "Core, PoE power, VentIQ, RoomIQ, Presence, LED"
+  s360_module_ventiq: "Included"
+  s360_module_roomiq: "Included"
+  s360_module_presence: "Included"
+  s360_module_led: "Included"
+
+  # === LED framework optional-input capabilities (LED-FRAMEWORK-002) ===
+  # RoomIQ (darkness) and Presence (occupancy) are composed here, so both LED
+  # automatic Night Mode Behaviours are available and the customer experience
+  # is unchanged. Declared at the top level so they authoritatively override
+  # the framework defaults; occupancy wiring is composed via
+  # packages/features/led_presence_bridge.yaml below.
+  led_has_roomiq: "true"
+  led_has_presence: "true"
+
+# ============================================================================
+# PACKAGE INCLUDES (board layer + base + profiles)
+# ============================================================================
 packages:
-  bundle: !include bundles/ceiling-poe-ventiq-roomiq-led.yaml
+  # === External Components (radar firmware) ===
+  external_components: !include ../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Board package holds the S360-100 ceiling Core content (PR 07 flip).
+  core_board: !include ../packages/boards/s360-100-core-ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  # Board package wraps packages/hardware/power_poe.yaml.
+  power_board: !include ../packages/boards/s360-410-poe-psu.yaml
+
+  # === Sense360 LED (S360-300, ceiling halo, WS2812B) ===
+  # Included for this LED-bearing preview sibling only. Board package binds
+  # `led_data_pin: GPIO38` per HW-010 / Core IO38 = LED_DATA and defines the
+  # customer Room Light. LED stays intentionally omitted from the production
+  # bundle, which carries no `LED` token.
+  led_board: !include ../packages/boards/s360-300-led.yaml
+  # === Sense360 LED framework (LED-FRAMEWORK-001) ===
+  # Customer light / Night Mode / status experience layered on the LED
+  # board: Night Mode + behaviour automation (fused Occupancy + RoomIQ lux),
+  # Status Indicator, Identify Device, priority arbitration and the restore
+  # contract (docs/architecture/sense360-led-framework.md).
+  led_framework: !include ../packages/features/led_framework.yaml
+  # === LED Presence bridge (LED-FRAMEWORK-002) ===
+  # Copies the fused Occupancy contract into the LED framework's occupancy
+  # globals (the single place s360_occupancy is referenced by the LED feature
+  # layer). Composed here because this bundle includes the Presence framework.
+  led_presence_bridge: !include ../packages/features/led_presence_bridge.yaml
+
+  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
+  # Board package wraps packages/expansions/airiq_bathroom_base.yaml.
+  ventiq_board: !include ../packages/boards/s360-211-ventiq.yaml
+  # === Sense360 VentIQ framework (VENTIQ-FRAMEWORK-001) ===
+  # Canonical bathroom ventilation service: VOC / NOx (the board's only
+  # schematic-proven sensor), one Air Quality headline from the embedded
+  # canonical AirIQ engine, one ventilation Recommendation with a
+  # plain-language Ventilation Reason, Shower Active / Mould Risk, and
+  # the VentIQ module runtime status (fourth wired module). Humidity /
+  # temperature are consumed from the RoomIQ canonical service —
+  # never the drifted on-board SHT4x/BMP390 drivers (VENTIQ-HW-DRIFT-001).
+  # Supersedes the legacy bathroom_profile display path in bundles;
+  # legacy shim products keep the profile, and every pre-framework
+  # entity id remains available as a disabled-by-default compatibility
+  # entity inside the framework.
+  ventiq_framework: !include ../packages/features/ventiq_framework.yaml
+  # diagnostics.yaml was previously nested inside bathroom_profile; the
+  # direct include keeps that shipped surface (CPU Duty) unchanged.
+  diagnostics: !include ../packages/features/diagnostics.yaml
+
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  # Board package wraps packages/expansions/comfort_ceiling.yaml +
+  # presence_ceiling.yaml.
+  roomiq_board: !include ../packages/boards/s360-200-roomiq.yaml
+  # === Sense360 RoomIQ framework (ROOMIQ-FRAMEWORK-001) ===
+  # Canonical comfort and environmental service: calibrated Temperature /
+  # Humidity / Illuminance, Comfort, Environment State, Brightness and the
+  # RoomIQ module runtime status (supersedes the legacy
+  # comfort_basic_profile display path in bundles; legacy products keep
+  # the profile and every pre-framework entity id remains available as a
+  # disabled-by-default compatibility entity inside the framework).
+  roomiq_framework: !include ../packages/features/roomiq_framework.yaml
+  # === Sense360 Presence framework (PRESENCE-FRAMEWORK-001) ===
+  # Tri-sensor customer Presence experience: PIR (immediate movement) +
+  # LD2450 (radar half above) + SEN0609 (static presence), fused by
+  # packages/features/presence_framework.yaml (supersedes the legacy
+  # presence_basic_profile in bundles; legacy products keep the profile).
+  roomiq_pir_board: !include ../packages/boards/s360-200-roomiq-pir.yaml
+  roomiq_sen0609_board: !include ../packages/boards/s360-200-roomiq-sen0609.yaml
+  roomiq_presence_framework: !include ../packages/features/presence_framework.yaml
+
+  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
+  # NOT included. FanTRIAC remains blocked per HW-005.
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Shared identity / capability / module-status / health entities.
+  framework: !include ../packages/base/device_framework.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    id: s360_product_sku
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    id: s360_product_firmware_version
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    id: s360_product_config_string
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-VentIQ-RoomIQ-LED"};
+    update_interval: never
+    entity_category: diagnostic
+
+# ============================================================================
+# STATIC DIAGNOSTIC PUBLICATION (STATIC-DIAGNOSTIC-PUBLISH-001)
+# ============================================================================
+# The product-identification text sensors above hold compile-time constants,
+# so they are declared `update_interval: never` — an immutable string must not
+# be polled on a timer. A never-polled template text sensor also never
+# evaluates its lambda, so each one is published exactly ONCE at boot.
+# Priority 500 runs after the text-sensor components are set up (ESPHome
+# `setup_priority::HARDWARE` = 800) and before every runtime framework boot hook
+# (priority 250), so no runtime publisher is ever overwritten.
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_product_sku
+        - component.update: s360_product_firmware_version
+        - component.update: s360_product_config_string

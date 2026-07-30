@@ -69,10 +69,10 @@ Every cross-repo reference pins to a **release tag**, never a moving branch:
                                                       └────────────────────────────┘
 ```
 
-## Inside esphome-public: board / bundle / alias / shim layers
+## Inside esphome-public: board / product layers
 
-The `products/*.yaml (+ packages)` box on the left of the flow is itself a
-**four-tier composition** (the board/bundle refactor, planned in
+The `products/*.yaml (+ packages)` box on the left of the flow is a
+**board / product composition** (the board/bundle refactor, planned in
 [`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) and proven for
 CI/gate parity by [`docs/ci-pipeline.md`](ci-pipeline.md)). The tiers exist so
 the YAML names what the catalog names — physical board SKUs and WebFlash config
@@ -83,9 +83,8 @@ strings — instead of only functional package names.
 | **Board packages (authoritative)** | `packages/boards/s360-*.yaml` | One canonical, self-contained package per board SKU — `S360-100` Core, `S360-200` RoomIQ, `S360-210` AirIQ, `S360-211` VentIQ, `S360-300` LED, `S360-410` PoE PSU — plus mount/power/variant overlays. The board package owns the chip, pin map, connector nets, I²C addresses, and UART bindings. This is the source of truth. |
 | **Legacy aliases (REMOVED)** | formerly `packages/expansions/*.yaml`, `packages/hardware/*.yaml` functional names (`led_ring_ceiling.yaml`, `airiq_ceiling.yaml`, `comfort_ceiling.yaml`, `presence_ceiling.yaml`, `power_poe.yaml`, …) | Deleted by SENSE360-CANONICALISATION-001 PR 07 (zero-alias): every live consumer was re-pointed to the authoritative board package first, the PR 06 contract gate proved every resolved composition byte-identical across the removal, and `tests/test_zero_alias.py` pins the deleted paths. Release tags keep every historical path for tag-pinned users. Do not add new alias paths. |
 | **Core flip (landed)** | `packages/boards/s360-100-core-ceiling.yaml` (`S360-100` ceiling Core) | The Core source-of-truth flip landed in SENSE360-CANONICALISATION-001 PR 07: the ceiling Core content moved verbatim into the board package, the legacy `hardware/sense360_core_ceiling.yaml` path and the never-wired `boards/s360-100-core.yaml` prototype are deleted, and the remaining `hardware/sense360_core*.yaml` files (generic / PoE / voice) survive only as implementations of catalogued legacy-compatible products. |
-| **Cross-referenced base drivers (also authoritative)** | `packages/expansions/presence_ld2412.yaml`, `packages/features/ceiling_halo_leds.yaml` | Documented base drivers / radar primitives with no board package holding their content. They stay **authoritative and un-folded** (cross-referenced from the board layer, not aliased). The formerly cross-referenced `expansions/airiq.yaml` and `expansions/presence_ld2450.yaml` were removed under PR 07 zero-alias (superseded by the board packages that absorbed their content). |
-| **Bundles (config-string-named)** | `products/bundles/*.yaml` | One YAML per WebFlash **config string**, named 1:1 to it, assembling `boards + expansions + base + profiles`. Carries the substitutions, entity names, config string, and artifact-name identity of the product it backs. |
-| **Product shims (customer include contract)** | `products/sense360-*.yaml` (the seven config-string products) | Thin `!include` of the matching bundle. The customer-pinned path (`files: - products/sense360-…yaml`, `ref: v1.0.0`) is preserved byte-for-byte, so a pinned include resolves `shim → bundle → board packages` unchanged. |
+| **Cross-referenced base drivers (also authoritative)** | `packages/features/ceiling_halo_leds.yaml` | The one documented base driver with no board package holding its content. It stays **authoritative and un-folded** (cross-referenced from the board layer, not aliased). The formerly cross-referenced `expansions/airiq.yaml` and `expansions/presence_ld2450.yaml` were removed under PR 07 zero-alias (superseded by the board packages that absorbed their content); `expansions/presence_ld2412.yaml` was removed by REPO-CONSOLIDATION-001 (zero composers after the package-level remote-include path retired). |
+| **Products (canonical compositions + customer include contract)** | `products/sense360-*.yaml` | One YAML per WebFlash **config string** (`sense360-<config-string>.yaml`, named 1:1 to it) assembling `boards + expansions + base + profiles`, carrying the substitutions, entity names, config string, and artifact-name identity — plus the catalogued legacy compositions. This is ALSO the customer-pinned path (`files: - products/sense360-…yaml`, `ref: v1.0.7`): REPO-CONSOLIDATION-001 folded the former `products/bundles/` layer into these files (the root path had been a thin one-include shim of its bundle), so a pinned include now resolves `product → board packages` directly. Release tags keep the historical `bundles/` paths for tag-pinned users. |
 
 Some families are **authoritative by composition** rather than 1:1: the
 `S360-200` RoomIQ board composes two independently-bound halves
@@ -100,8 +99,8 @@ compliance gates and are **not** in the board layer yet (see
 
 ### Cross-repo contract: this layering is invisible to WebFlash
 
-The board/bundle/alias/shim restructuring is an **esphome-public-internal**
-concern. WebFlash couples to this repo through **only** three stable surfaces —
+The board/product layer restructuring (including the former bundle and
+alias layers' removal) is an **esphome-public-internal** concern. WebFlash couples to this repo through **only** three stable surfaces —
 GitHub release **tags**, **config-string** values, and **artifact names** — and
 **no** WebFlash file references any `packages/` or `products/` path (confirmed
 read-only against `WebFlash/firmware/sources.json`, `WebFlash/manifest.json`,
@@ -112,10 +111,10 @@ and `WebFlash/scripts/data/`). Therefore:
   (`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, …) stays
   byte-identical across the refactor.
 - The release gate stays config-string driven
-  (`config/webflash-builds.json` → `products/webflash/` wrapper → product shim →
-  bundle → boards), so the same config strings build under the same artifact
+  (`config/webflash-builds.json` → `products/webflash/` wrapper →
+  canonical product → boards), so the same config strings build under the same artifact
   names.
-- A board/bundle/alias rename in esphome-public requires **no** change to
+- A board/product-layer rename in esphome-public requires **no** change to
   WebFlash's `sources.json`, `manifest.json`, or importer. **esphome-public is
   upstream; WebFlash is downstream**, and the boundary is config strings +
   artifact names + tags, nothing else. (The matching WebFlash-side note is
@@ -134,7 +133,7 @@ underlying config files win.
 
 ## Related documentation
 
-- [Board / bundle / alias / shim layers](#inside-esphome-public-board--bundle--alias--shim-layers) — the four-tier firmware-YAML composition inside this repo and why it is invisible to WebFlash.
+- [Board / product layers](#inside-esphome-public-board--product-layers) — the firmware-YAML composition inside this repo and why it is invisible to WebFlash.
 - [Board-package & bundle-YAML architecture plan (archived)](archive-index.md) — the target shape, rename/alias policy, and ordered PR sequence for the refactor.
 - [CI/CD Pipeline](ci-pipeline.md) — per-workflow gate-vs-manual map.
 - [Roadmap / Status](sense360-roadmap-status.md) — canonical lifecycle source of record.

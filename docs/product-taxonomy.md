@@ -1,8 +1,8 @@
 # Product Taxonomy & Compatibility
 
 The current Sense360 product taxonomy: board/SKU identity, the WebFlash
-config-string grammar, module-slot compatibility, the board/bundle
-distinction, the external-attachment model, and how capability differs from
+config-string grammar, module-slot compatibility, the board/product
+layering, the external-attachment model, and how capability differs from
 release state. This page is a **navigation document** — it summarises and
 links the machine-readable authorities instead of duplicating their detail:
 
@@ -135,16 +135,17 @@ and [`tests/test_taxonomy_terminology.py`](../tests/test_taxonomy_terminology.py
    stays unresolved under `HW-PINMAP-210-FOLLOWUP` and is excluded from this
    rule — see note ² above.)
 
-## Boards vs bundles vs YAML layers
+## Boards vs products vs YAML layers
 
 - **Board package** (`packages/boards/`) — authoritative firmware definition
   for one SKU.
-- **Bundle** (`products/bundles/`) — one YAML per WebFlash config string,
-  assembling boards + base infrastructure + feature profiles. Bundle
-  filenames are the lowercase config string.
-- **Shim** (`products/sense360-*.yaml`) — thin customer include paths that
-  `!include` the bundle. Customers pin these at release tags; they are never
-  renamed or deleted.
+- **Product** (`products/sense360-*.yaml`) — one YAML per WebFlash config
+  string (`sense360-<lowercase config string>.yaml`), assembling boards +
+  base infrastructure + feature profiles, plus the catalogued legacy
+  compositions. These are ALSO the customer include paths: customers pin
+  them at release tags; they are never renamed or deleted.
+  (REPO-CONSOLIDATION-001 folded the former `products/bundles/` layer into
+  these files; release tags keep the historical bundle paths.)
 - **WebFlash wrapper** (`products/webflash/`) — thin re-exports the release
   workflow consumes.
 - **Commercial bundles** (what a customer buys in a kit) are a different

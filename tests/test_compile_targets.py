@@ -1819,14 +1819,14 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
         allowed = {
             "products/sense360-fan-pwm.yaml",
             FANPWM_PRODUCT_YAML,
-            "products/bundles/ceiling-poe-fanpwm.yaml",
+            "products/sense360-ceiling-poe-fanpwm.yaml",
             # ROOM-BUNDLE-FAN-CONFIGS-001 room-bundle FanPWM previews
             # (shim + bundle, Bathroom + Kitchen); compile-pending, not
             # WebFlash-exposed.
             "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
-            "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+            "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
             "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
-            "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+            "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
             # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09): the owner
             # decision declared preview-channel FanPWM build rows, so the
             # matching WebFlash wrappers now legitimately exist under

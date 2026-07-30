@@ -39,7 +39,7 @@ The Sense360 platform is built on ESP32-S3-WROOM-1-N16R8 and supports modular ex
 > SKU-aligned board package. See
 > [`docs/arch-board-bundle-plan.md` (archived)](../docs/archive-index.md) for the
 > full target shape and
-> [`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers)
+> [`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--product-layers)
 > for how the layers fit the whole pipeline.
 
 The board layer maps each catalog board SKU
@@ -79,11 +79,14 @@ duplicate-id breakage. The `S360-300` LED, `S360-210` AirIQ, `S360-211` VentIQ,
 and `S360-410` PoE-PSU families are **1:1** — the whole driver folds into one
 board file.
 
-**Cross-referenced base drivers stay authoritative (NOT aliased).** The generic
-air-quality base driver `airiq.yaml`, the shared radar primitives
-`presence_ld2450.yaml` / `presence_ld2412.yaml`, and the feature-tier
-`ceiling_halo_leds.yaml` have no board package holding their content; they
-remain authoritative and un-folded, cross-referenced from the board layer.
+**Cross-referenced base drivers stay authoritative (NOT aliased).** The one
+surviving cross-referenced base driver is the feature-tier
+`ceiling_halo_leds.yaml`: no board package holds its content, so it remains
+authoritative and un-folded. The former generic drivers `airiq.yaml` and
+`presence_ld2450.yaml` were removed under PR 07 zero-alias (absorbed by the
+board packages), and `expansions/presence_ld2412.yaml` was removed by
+REPO-CONSOLIDATION-001 (zero composers after the package-level
+remote-include path retired; release tags keep every historical path).
 
 **Not yet promoted.** The mains-voltage driver boards (`S360-310` Relay,
 `S360-320` TRIAC, `S360-400` 240V PSU) and the SELV fan-driver SKUs (`S360-311`
@@ -173,11 +176,9 @@ Power budgets:
 **HLK-LD2450** (presence_ld2450.yaml) - Multi-target radar (see above)
 
 **HLK-LD2412** (presence_ld2412.yaml) - Single-zone radar
-- UART: 115200 baud
-- Power: 5V/100mA
-- Better still detection, up to 9m
-- Was the radar used by the now-removed Mini range; the package is retained
-  for legacy / advanced custom builds.
+- Was the radar used by the now-removed Mini range. The package was removed
+  by REPO-CONSOLIDATION-001 (zero composers after the package-level
+  remote-include path retired); release tags keep it for tag-pinned builds.
 
 ```yaml
 # For Presence Module (LD2450 default)
@@ -187,10 +188,6 @@ packages:
 # For Presence Module (C4001 alternative)
 packages:
   presence: !include packages/hardware/presence_dfrobot_c4001.yaml
-
-# LD2412 single-zone radar alternative (legacy)
-packages:
-  presence: !include packages/expansions/presence_ld2412.yaml
 ```
 
 ### Air Quality (airiq.yaml)

@@ -83,7 +83,7 @@ FAN_TOKEN_EXPECTED_CHANNEL = {
 }
 # The product YAML is now a thin compat shim; its full composition/substitution
 # content lives in the bundle. Content reads must target the bundle.
-PWM_BUNDLE = REPO_ROOT / "products" / "bundles" / "ceiling-poe-fanpwm.yaml"
+PWM_BUNDLE = REPO_ROOT / "products" / "sense360-ceiling-poe-fanpwm.yaml"
 
 # Existing siblings that PRODUCT-PWM-001 must not disturb.
 RELEASE_ONE_PRODUCT_REL = "products/sense360-ceiling-poe-ventiq-roomiq.yaml"

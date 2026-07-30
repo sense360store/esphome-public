@@ -231,18 +231,20 @@ or artifacts. Use `Ceiling`, never `Celling` (legacy typo).
 
 ## Repo layout
 
-The YAML is a **board / bundle / alias / shim** layered composition (see
-[`docs/system-architecture.md`](docs/system-architecture.md) and
-[`docs/arch-board-bundle-plan.md` (archived)](docs/archive-index.md)); the
-declaration layer that governs what ships lives in `config/`.
+The YAML is a **board-package / product** layered composition (see
+[`docs/system-architecture.md`](docs/system-architecture.md); the former
+bundle and alias layers were removed by SENSE360-CANONICALISATION-001 PR 07
+and REPO-CONSOLIDATION-001 respectively); the declaration layer that governs
+what ships lives in `config/`.
 
-- **`products/sense360-*.yaml`** — customer include paths. Thin compat
-  **shims** that do nothing but `!include` the matching bundle. Customers pin
-  these exact paths at a release tag (`ref: v1.0.0`), so they are never
-  deleted or renamed.
-- **`products/bundles/`** — one YAML per WebFlash config string; the
-  **canonical composition** (board packages + base infrastructure + feature
-  profiles) for that config.
+- **`products/sense360-*.yaml`** — customer include paths AND the
+  **canonical compositions** (board packages + base infrastructure + feature
+  profiles). REPO-CONSOLIDATION-001 folded the former `products/bundles/`
+  layer into these config-string-named files (`sense360-<config-string>.yaml`
+  for the shipping set, plus the catalogued legacy compositions). Customers
+  pin these exact paths at a release tag (`ref: v1.0.7`), so they are never
+  deleted or renamed; release tags keep the historical `bundles/` paths for
+  tag-pinned users.
 - **`products/webflash/`** — release-gate **wrappers**. Thin re-exports of the
   canonical product YAML so [`config/webflash-builds.json`](config/webflash-builds.json)
   can address builds via the `products/webflash/` namespace the release
@@ -300,8 +302,8 @@ declaration layer that governs what ships lives in `config/`.
 
 ## ESPHome conventions used here
 
-- **Full configs, not snippets.** Every `products/` entry resolves (shim →
-  bundle → packages) to a complete, standalone ESPHome config: bundles include
+- **Full configs, not snippets.** Every `products/` entry resolves (product →
+  packages) to a complete, standalone ESPHome config: each product includes
   the base packages (`wifi`, `api_encrypted`, `ota`, `logging`, `time`,
   `external_components`) plus board and feature packages, so
   `esphome config products/<file>.yaml` validates each product directly.

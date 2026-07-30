@@ -9,8 +9,8 @@
 > Core content now lives in `boards/s360-100-core-ceiling.yaml` and the
 > legacy `hardware/sense360_core_ceiling.yaml` path (plus the never-wired
 > `boards/s360-100-core.yaml` prototype) is deleted.
-> Alias references below are historical description, not live paths;
-> the table rewrite lands with the PR 16 documentation regeneration.
+> Alias references below are historical description, not live paths
+> (REPO-CONSOLIDATION-001 corrected the live-path claims in this file).
 
 This directory contains modular ESPHome configuration packages organized by category.
 
@@ -38,9 +38,10 @@ This directory contains modular ESPHome configuration packages organized by cate
 packages/
 ├── boards/            # SKU-aligned board packages (AUTHORITATIVE source of truth)
 ├── base/              # Core system components (wifi, api, ota, time, …)
-├── features/          # Feature profiles (basic & advanced) + ceiling_halo_leds
-├── hardware/          # Legacy core/LED/power paths — now aliases of packages/boards/
-└── expansions/        # Sensor module drivers — legacy names now aliases of packages/boards/
+├── features/          # Behaviour profiles + frameworks + ceiling_halo_leds
+├── hardware/          # Legacy Core variants + power packages (implementations of
+│                      # catalogued legacy-compatible products; aliases deleted, PR 07)
+└── expansions/        # Fan drivers + GPIO expander (sensor aliases deleted, PR 07)
 ```
 
 ### `packages/boards/` — the authoritative board layer
@@ -61,40 +62,51 @@ The legacy `packages/hardware/*` and `packages/expansions/*` functional names
 for these families were **thin `!include` aliases** of their board package
 until SENSE360-CANONICALISATION-001 PR 07 deleted them (zero-alias;
 `tests/test_zero_alias.py` is the ledger, release tags keep every historical
-path for tag-pinned users). The surviving generic base drivers
-`expansions/presence_ld2412.yaml` and `features/ceiling_halo_leds.yaml` stay
-**authoritative and un-folded** — cross-referenced from the board layer,
-not aliased. The mains driver boards
+path for tag-pinned users). The one surviving generic base driver is
+`features/ceiling_halo_leds.yaml`, **authoritative and un-folded** —
+cross-referenced from the board layer, not aliased.
+(`expansions/presence_ld2412.yaml` was removed by REPO-CONSOLIDATION-001:
+zero composers after the package-level remote-include path retired with
+`docs/remote-package-consumption.md`.) The mains driver boards
 (`S360-310/320/400`) and the SELV fan-driver SKUs (`S360-311/312`) remain
 expansion packages behind their evidence/compliance gates and are not in the
 board layer yet. Full layout and rationale:
-[`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+[`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--product-layers).
 
-### `products/bundles/` — the config-string bundle layer
+### `products/sense360-*.yaml` — the canonical product compositions
 
-Above the board layer, [`products/bundles/`](../products/bundles/) holds one
-YAML per WebFlash **config string**, named 1:1 to it, assembling
-`boards + expansions + base + profiles`. The customer-facing
-`products/sense360-*.yaml` paths are retained as thin compat shims that
-`!include` the matching bundle, so a pinned include resolves
-`shim → bundle → board packages` unchanged.
+Above the board layer, the customer-facing
+[`products/sense360-*.yaml`](../products/) paths carry one YAML per WebFlash
+**config string** (`sense360-<config-string>.yaml`, named 1:1 to it),
+assembling `boards + expansions + base + profiles`. REPO-CONSOLIDATION-001
+folded the former `products/bundles/` layer into these files — the
+customer-pinned path IS the composition, and a pinned include resolves
+`product → board packages` directly (release tags keep the historical
+`bundles/` paths for tag-pinned users).
 
-## Feature Profiles - Basic vs Advanced
+## Legacy feature profiles
 
-All features are available in two versions:
+> **Taxonomy exemption (recorded, REPO-CONSOLIDATION-001).** The
+> `*_basic_profile.yaml` / `bathroom_profile.yaml` filenames below are
+> **internal composition tokens** of the catalogued legacy-compatible
+> products (`products/sense360-core-ceiling*.yaml` line), never customer
+> copy: no bundle, WebFlash surface, or Release-One composition uses them
+> (`tests/test_presence_framework.py` pins the bundles' profile-free
+> composition), and no customer-facing surface renders a Basic/Advanced
+> tier. They are exempt from the Basic/Advanced taxonomy prohibition as
+> internal tokens; renaming them would churn the legacy products for no
+> customer-visible gain. Current compositions use the framework packages
+> (`airiq_framework.yaml`, `presence_framework.yaml`,
+> `roomiq_framework.yaml`, `ventiq_framework.yaml`).
 
-### Basic Profiles (Recommended for Most Users)
-- **Simple, user-friendly interface**
-- **No technical jargon** - uses terms everyone understands
-- **Easy-to-read measurements**
-- Perfect for home users who want simple, clear information
+Simplified entity profiles composed only by the legacy products:
 
-#### Presence Detection - Basic (`features/presence_basic_profile.yaml`)
+#### Presence Detection (`features/presence_basic_profile.yaml`)
 - Shows: "Room Occupied" (Yes/No)
 - Shows: "Activity Level" (Still/Moving)
 - No complex zones or technical data
 
-#### Air Quality - Basic (`features/airiq_basic_profile.yaml`)
+#### Air Quality (`features/airiq_basic_profile.yaml`)
 - Shows: Overall "Air Quality" (Excellent/Good/Fair/Poor)
 - Shows: Temperature & Humidity
 - Shows: Simple recommendations ("Open Window" / "Air is Good")
@@ -128,7 +140,7 @@ substitutions:
 packages:
   firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
+    ref: v1.0.7  # Pin to a release tag — never use 'main' in production
     files:
       - products/sense360-ceiling-poe-ventiq-roomiq.yaml  # Release-One
 ```
@@ -215,7 +227,8 @@ Located in `packages/expansions/`:
 ### Presence (legacy → WebFlash `RoomIQ`, mmWave half)
 - `presence_ceiling.yaml` - Ceiling mount (LD2450)
 - `presence_wall.yaml` - Wall mount (LD2450)
-- `presence_ld2412.yaml` - LD2412 variant
+- `presence_ld2412.yaml` - LD2412 variant (expansions/ copy removed by
+  REPO-CONSOLIDATION-001 — zero composers; release tags keep it)
 
 ### Bathroom (legacy → WebFlash `VentIQ`)
 - `airiq_bathroom_base.yaml` - VentIQ Base
