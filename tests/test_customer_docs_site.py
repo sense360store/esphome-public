@@ -77,6 +77,14 @@ def _rendered_prose(text):
     return re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
 
 
+def _resolve_includes(text):
+    """Inline the site/generated snippet includes a page embeds."""
+    def repl(match):
+        return (GENERATED / match.group(1)).read_text(encoding="utf-8")
+
+    return re.sub(r'--8<--\s+"([^"]+)"', repl, text)
+
+
 def _nav_paths(node, out):
     if isinstance(node, dict):
         for value in node.values():
@@ -141,7 +149,7 @@ class FactualClaimTests(unittest.TestCase):
             if not rel.startswith("rooms/"):
                 continue
             text = _rendered_prose(
-                (SITE_DOCS / rel).read_text(encoding="utf-8")
+                _resolve_includes((SITE_DOCS / rel).read_text(encoding="utf-8"))
             )
             for label in re.findall(r"Choose the \*\*([^*]+)\*\* setup", text):
                 self.assertIn(
@@ -152,7 +160,9 @@ class FactualClaimTests(unittest.TestCase):
                 )
 
     def test_bathroom_box_contents_match_the_preset_components(self):
-        text = (SITE_DOCS / "rooms/bathroom.md").read_text(encoding="utf-8")
+        text = _resolve_includes(
+            (SITE_DOCS / "rooms/bathroom.md").read_text(encoding="utf-8")
+        )
         box = text.split("## What's in the box", 1)[1].split("## ", 1)[0]
         components = self.presets["Bathroom"]["components"]
         self.assertTrue(components)
@@ -242,6 +252,29 @@ class FactualClaimTests(unittest.TestCase):
                 f"index.md badges {stem} as {badge!r} but the release "
                 f"matrix declares {declared!r}",
             )
+
+    def test_customer_docs_blocks_are_fresh(self):
+        # The generated blocks must byte-match their sources — a stale
+        # box-contents table, flash step, or glossary row fails here and
+        # in the docs-site CI lane.
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "generate_customer_docs_blocks",
+            REPO_ROOT / "scripts" / "generate_customer_docs_blocks.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        for name, expected in mod.build_blocks().items():
+            with self.subTest(block=name):
+                path = GENERATED / name
+                self.assertTrue(path.is_file(), f"missing block {name}")
+                self.assertEqual(
+                    path.read_text(encoding="utf-8"),
+                    expected,
+                    f"{name} is stale — regenerate with "
+                    "python3 scripts/generate_customer_docs_blocks.py",
+                )
 
     def test_zone_studio_is_linked_not_duplicated(self):
         text = _rendered_prose(

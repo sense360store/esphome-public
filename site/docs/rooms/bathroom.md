@@ -17,12 +17,7 @@ moisture and occupancy, and Home Assistant does the rest.
 
 ## What's in the box
 
-| Board | What it does |
-|---|---|
-| Sense360 Core | The hub. ESP32-S3 brain with connectors for every module. |
-| Sense360 RoomIQ | Room sensing: presence, light, temperature, humidity, pressure. |
-| Sense360 VentIQ | Bathroom air quality: VOC and NOx trends for ventilation decisions. |
-| Sense360 PoE PSU | Power over your network cable. No wall adapter needed. |
+--8<-- "room-bathroom-box-contents.md"
 
 Radar attachment modules are **not included**; the RoomIQ board provides
 connectors for them as an optional upgrade.
@@ -41,10 +36,7 @@ sequence.
 Use the [Sense360 installer](https://sense360store.github.io/WebFlash/) in
 Chrome or Edge on a laptop or desktop:
 
-1. Connect the hub over USB-C and open the installer.
-2. Choose the **Bathroom** setup when asked for your room.
-3. Follow the on-screen steps; the installer verifies the firmware and
-   flashes the device.
+--8<-- "room-bathroom-flash-steps.md"
 
 The installer is the supported path. If you build your own firmware
 instead, see the [advanced corner](../advanced/index.md).
