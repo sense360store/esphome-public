@@ -45,7 +45,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-210-R4 / sch_pdf / S360-210-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-210-R4.pdf`](schematics/S360-210-R4.pdf). |
+| `S360-210-R4 / sch_pdf / S360-210-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-210-R4.pdf`](../../hardware-artifacts/schematics/S360-210-R4.pdf). |
 | `S360-210-R4 / images / S360-210-R4.png` (and `_3.png` / `_5.png` / `_6.png`) | Renders / photos | Retained-but-not-committed. |
 | `S360-210-R4 / bom` | BOM artifacts | Retained-but-not-committed. |
 | `S360-210-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
@@ -57,7 +57,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-210-R4.pdf`](schematics/S360-210-R4.pdf) (committed) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-210-R4.pdf`](../../hardware-artifacts/schematics/S360-210-R4.pdf) (committed) | schematic-backed |
 | KiCad source | Not committed in-repo | TBD |
 | Gerber / drill files | Drive `gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `step_file` (retained-but-not-committed) | TBD |
@@ -125,7 +125,7 @@ unambiguously printed on the committed module-side PDF (see
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
 - [`s360-210-r4-airiq.md`](s360-210-r4-airiq.md) — AirIQ board-side hardware reference (companion audit doc).
 - [`s360-211-module-pinmap.md`](s360-211-module-pinmap.md) — VentIQ module-side pinmap (mutually-exclusive sibling on the same Core connector).
-- [`schematics/S360-210-R4.pdf`](schematics/S360-210-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-210-R4.pdf`](../../hardware-artifacts/schematics/S360-210-R4.pdf) — committed module-side schematic PDF.
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) — PoE room bundle SKU matrix.
 
 ## Do-not-change guardrails

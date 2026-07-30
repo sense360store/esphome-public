@@ -19,7 +19,7 @@
 # verified R4 schematic + BOM.
 # ----------------------------------------------------------------------------
 # Reconciled against the verified S360-200-R4 schematic
-# (docs/hardware/schematics/S360-200-R4.pdf) and the R4 BOM artifact record
+# (hardware-artifacts/schematics/S360-200-R4.pdf) and the R4 BOM artifact record
 # (docs/hardware/artifacts/S360-200-R4.md, HW-BOM-ASSETS-001):
 #
 #   FITTED AMBIENT-LIGHT SENSOR (U1): Lite-On LTR-303ALS-01 (BOM MFR#
@@ -203,7 +203,7 @@ sensor:
   # S360-200-R4-BMP581-001 — the fitted RoomIQ pressure part.
   #
   # Verified against the primary sources:
-  #   * Schematic (docs/hardware/schematics/S360-200-R4.pdf, sheet "Pressure
+  #   * Schematic (hardware-artifacts/schematics/S360-200-R4.pdf, sheet "Pressure
   #     Sensor BMP581"): U4 is a Bosch BMP581 with CS tied to +3.3 V (I2C mode),
   #     SCK/SCL (pin 2) + SDI/SDO/SDA (pin 4) on the SHARED I2C bus — the same
   #     `I2C_SCL`/`I2C_SDA` nets as U1/U2 (so it sits on `core_i2c`, not a

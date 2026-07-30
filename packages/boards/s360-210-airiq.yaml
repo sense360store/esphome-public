@@ -5,7 +5,7 @@
 # contained definition of the Sense360 AirIQ air-quality board (SKU `S360-210`,
 # revision R4, friendly name "Sense360 AirIQ"; `schematic_status: verified` per
 # config/hardware-catalog.json), reconciled against the verified R4 schematic
-# (docs/hardware/schematics/S360-210-R4.pdf) and the R4 BOM artifact record
+# (hardware-artifacts/schematics/S360-210-R4.pdf) and the R4 BOM artifact record
 # (docs/hardware/artifacts/S360-210-R4.md). AirIQ is the indoor-air-quality
 # sensor board on the shared core_i2c bus (CORE-ABSTRACT-BUS-001B).
 #

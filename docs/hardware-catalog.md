@@ -94,7 +94,7 @@ module-side schematics have not been pinned to this repo yet.
 > [`../config/hardware-catalog.json`](../config/hardware-catalog.json) with
 > that committed evidence: `S360-100`, `S360-200`, `S360-210`, `S360-211`,
 > and `S360-300` are now `schematic_status: verified` with their
-> `schematic_file` pointing under `docs/hardware/schematics/`. **Verified
+> `schematic_file` pointing under `hardware-artifacts/schematics/`. **Verified
 > schematic evidence is not a shippability claim.** HW-008 does not promote
 > any module into Release-One, does not unblock FanTRIAC (HW-005), does not
 > add `LED` to the Release-One config string `Ceiling-POE-VentIQ-RoomIQ`,

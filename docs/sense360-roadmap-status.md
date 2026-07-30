@@ -374,7 +374,7 @@ E9 + J2-harness E10 recorded on file and the Release-One PoE caveat E15
 closed by HW-S360-410-EVIDENCE-2026-06, 2026-06-08) — which records the
 connector pin-1 polarity (E9, CAD-render + as-labeled-connector basis), the
 J2-harness spec (E10), and the PCB-source / gerbers class (E13, gerber set
-committed at `docs/hardware/gerbers/S360-410-R4/`) **on file**, and the PoE
+committed at `hardware-artifacts/gerbers/S360-410-R4/`) **on file**, and the PoE
 bench (E11) as **partial** (link-up + 5 V confirmed; load / cold-start
 inrush / thermal / EMI-EMC **not measured**) — while the **bench remainder
 (E11) and the isolation / safety class (E12) stay missing**, none of which,

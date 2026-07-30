@@ -40,7 +40,7 @@ use the legacy `Bathroom Pro` name in new user-facing material.
 
 | Field             | Value                                              |
 | ----------------- | -------------------------------------------------- |
-| Schematic file    | [`schematics/S360-211-R4.pdf`](schematics/S360-211-R4.pdf) |
+| Schematic file    | [`schematics/S360-211-R4.pdf`](../../hardware-artifacts/schematics/S360-211-R4.pdf) |
 | PDF committed     | Yes, under HW-007                                  |
 | KiCad source      | Not committed                                      |
 
@@ -185,7 +185,7 @@ item tracked in
 What this doc does:
 
 - Records that the `S360-211-R4` schematic PDF is now committed under
-  [`schematics/S360-211-R4.pdf`](schematics/S360-211-R4.pdf).
+  [`schematics/S360-211-R4.pdf`](../../hardware-artifacts/schematics/S360-211-R4.pdf).
 - Captures the visible main-component evidence (SGP41, IR-temperature
   connector, SPS30 connector, inline fan-relay drive circuitry, J9
   mating).

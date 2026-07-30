@@ -5,7 +5,7 @@
 **Status: documentation-only architectural correction.** This document
 records the canonical S360-100 / S360-311 **native ESP32-S3 GPIO map**
 for the Sense360 fan signal path on the refreshed
-[`S360-100-R4.pdf`](schematics/S360-100-R4.pdf) (SHA256
+[`S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf) (SHA256
 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
 837,443 bytes, KiCad E.D.A. 10.0.3, single sheet `1/1`). The new
 hardware direction is:
@@ -228,7 +228,7 @@ This document and the tests added with it must not:
 - [`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) — FanPWM
   audit; module-side schematic, connector reconciliation, and
   remaining bench gates.
-- [`docs/hardware/schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf)
+- [`hardware-artifacts/schematics/S360-100-R4.pdf`](../../hardware-artifacts/schematics/S360-100-R4.pdf)
   — current canonical S360-100 Core schematic (SHA256
   `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`).
 - [`docs/blocker-burndown.md` §2A FanPWM / S360-311 (archived)](../archive-index.md)

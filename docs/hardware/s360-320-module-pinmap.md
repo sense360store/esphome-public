@@ -53,7 +53,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-320-R4 / sch_pdf / S360-320-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf). |
+| `S360-320-R4 / sch_pdf / S360-320-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-320-R4.pdf`](../../hardware-artifacts/schematics/S360-320-R4.pdf). |
 | `S360-320-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-320-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-320-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
@@ -65,7 +65,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf) (committed) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-320-R4.pdf`](../../hardware-artifacts/schematics/S360-320-R4.pdf) (committed) | schematic-backed |
 | KiCad source | Not committed in-repo | TBD |
 | Gerber / drill files | Drive `gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `stepfile` (retained-but-not-committed) | TBD |
@@ -159,7 +159,7 @@ stays `status: blocked`, `blocker: HW-005`,
 - [`s360-100-core-connector-pin-map.md`](s360-100-core-connector-pin-map.md) — canonical Core-to-module connector pin map (S360-100-CONNECTOR-PINMAP-001).
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
 - [`s360-320-r4-triac.md`](s360-320-r4-triac.md) — TRIAC board-side audit (HW-PINMAP-320 / HW-005).
-- [`schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-320-R4.pdf`](../../hardware-artifacts/schematics/S360-320-R4.pdf) — committed module-side schematic PDF.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) — COMPLIANCE-001 mains-voltage compliance tracker.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (HW-005).
 

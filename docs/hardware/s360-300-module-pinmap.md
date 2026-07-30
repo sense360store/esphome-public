@@ -48,7 +48,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Drive item | Type | Notes |
 |---|---|---|
-| `S360-300-R4 / sch_pdf / S360-300-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-300-R4.pdf`](schematics/S360-300-R4.pdf). |
+| `S360-300-R4 / sch_pdf / S360-300-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-300-R4.pdf`](../../hardware-artifacts/schematics/S360-300-R4.pdf). |
 | `S360-300-R4 / bom` | BOM artifacts | Retained-but-not-committed. |
 | `S360-300-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-300-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
@@ -60,7 +60,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 
 | Artifact class | Evidence available | Status |
 |---|---|---|
-| Module-side schematic PDF | [`schematics/S360-300-R4.pdf`](schematics/S360-300-R4.pdf) (committed) | schematic-backed |
+| Module-side schematic PDF | [`schematics/S360-300-R4.pdf`](../../hardware-artifacts/schematics/S360-300-R4.pdf) (committed) | schematic-backed |
 | KiCad source | Not committed in-repo | TBD |
 | Gerber / drill files | Drive `gerbers` (retained-but-not-committed) | TBD |
 | 3D render / STEP | Drive `step_file` (retained-but-not-committed) | TBD |
@@ -131,7 +131,7 @@ readiness to the LED slot. LED stable promotion is owned by
 - [`s360-100-core-connector-pin-map.md`](s360-100-core-connector-pin-map.md) — canonical Core-to-module connector pin map (S360-100-CONNECTOR-PINMAP-001).
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
 - [`s360-300-r4-led.md`](s360-300-r4-led.md) — LED board-side hardware reference (companion audit doc).
-- [`schematics/S360-300-R4.pdf`](schematics/S360-300-R4.pdf) — committed module-side schematic PDF.
+- [`schematics/S360-300-R4.pdf`](../../hardware-artifacts/schematics/S360-300-R4.pdf) — committed module-side schematic PDF.
 - [`docs/preview-to-stable-promotion-gates.md` (archived)](../archive-index.md) — LED preview-to-stable promotion gates.
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) — PoE room bundle SKU matrix.
 

@@ -178,7 +178,7 @@ class HW008VerifiedSKUsTests(unittest.TestCase):
         self.assertEqual(entry.get("schematic_status"), "verified")
         self.assertEqual(
             entry.get("schematic_file"),
-            "docs/hardware/schematics/S360-100-R4.pdf",
+            "hardware-artifacts/schematics/S360-100-R4.pdf",
         )
 
     def test_s360_200_roomiq_is_verified(self) -> None:
@@ -186,7 +186,7 @@ class HW008VerifiedSKUsTests(unittest.TestCase):
         self.assertEqual(entry.get("schematic_status"), "verified")
         self.assertEqual(
             entry.get("schematic_file"),
-            "docs/hardware/schematics/S360-200-R4.pdf",
+            "hardware-artifacts/schematics/S360-200-R4.pdf",
         )
 
     def test_s360_210_airiq_is_verified(self) -> None:
@@ -194,7 +194,7 @@ class HW008VerifiedSKUsTests(unittest.TestCase):
         self.assertEqual(entry.get("schematic_status"), "verified")
         self.assertEqual(
             entry.get("schematic_file"),
-            "docs/hardware/schematics/S360-210-R4.pdf",
+            "hardware-artifacts/schematics/S360-210-R4.pdf",
         )
 
     def test_s360_211_ventiq_is_verified(self) -> None:
@@ -202,7 +202,7 @@ class HW008VerifiedSKUsTests(unittest.TestCase):
         self.assertEqual(entry.get("schematic_status"), "verified")
         self.assertEqual(
             entry.get("schematic_file"),
-            "docs/hardware/schematics/S360-211-R4.pdf",
+            "hardware-artifacts/schematics/S360-211-R4.pdf",
         )
 
     def test_s360_300_led_is_verified(self) -> None:
@@ -210,7 +210,7 @@ class HW008VerifiedSKUsTests(unittest.TestCase):
         self.assertEqual(entry.get("schematic_status"), "verified")
         self.assertEqual(
             entry.get("schematic_file"),
-            "docs/hardware/schematics/S360-300-R4.pdf",
+            "hardware-artifacts/schematics/S360-300-R4.pdf",
         )
 
     def test_all_expected_verified_skus_are_verified(self) -> None:

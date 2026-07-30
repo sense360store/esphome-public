@@ -51,7 +51,7 @@ tracked as `AIRIQ-FRAMEWORK-BENCH-001`).
 ## 1. Sensor authority — what the S360-210 actually is
 
 Established by direct audit of the primary sources: the **verified R4
-schematic** `docs/hardware/schematics/S360-210-R4.pdf`
+schematic** `hardware-artifacts/schematics/S360-210-R4.pdf`
 (`schematic_status: verified`, HW-008), the R4 BOM artifact record
 `docs/hardware/artifacts/S360-210-R4.md`, `docs/hardware-catalog.md` +
 `config/hardware-catalog.json`, `docs/hardware/s360-210-r4-airiq.md`,
