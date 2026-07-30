@@ -489,20 +489,14 @@ for file in products/*.yaml; do
 done
 ```
 
-### Generate and Test Module Combinations
+### Generate and Test Module Combinations (retired)
 
-```bash
-# List all possible combinations
-python3 tests/generate_test_configs.py --mode list --full
-
-# Generate test configs
-python3 tests/generate_test_configs.py --mode generate --representative --output-dir tests/generated
-
-# Test generated configs
-for file in tests/generated/*.yaml; do
-  esphome config "$file"
-done
-```
+The former `tests/generate_test_configs.py` module-combination generator
+was removed by REPO-CONSOLIDATION-001: its module enums emitted includes
+exclusively of packages deleted by SENSE360-CANONICALISATION-001 PR 07/08,
+so every generated config was unresolvable, and no CI workflow invoked it.
+Combination coverage lives in the declaration-driven lanes instead
+(`config/compile-only-targets.json` + `scripts/validate_compile_targets.py`).
 
 ---
 

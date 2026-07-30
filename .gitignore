@@ -76,7 +76,11 @@ coverage.xml
 
 # Documentation build outputs. site/ is the TRACKED mkdocs source tree for
 # the product-guides site (PRODUCT-GUIDES-001); only its build output
-# (site_dir: .site-build in site/mkdocs.yml) is ignored.
+# (site_dir: .site-build in site/mkdocs.yml) is ignored. site/generated/
+# is committed ON PURPOSE (REPO-CONSOLIDATION-001 item 4 evidence): the
+# entity tables there are pymdownx.snippets build INPUTS included into the
+# pages, and scripts/generate_product_entity_tables.py --check is the CI
+# freshness gate over them (docs-site.yml) — they are not build output.
 docs/_build/
 site/.site-build/
 

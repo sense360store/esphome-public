@@ -82,22 +82,29 @@ YAML per WebFlash **config string**, named 1:1 to it, assembling
 `!include` the matching bundle, so a pinned include resolves
 `shim → bundle → board packages` unchanged.
 
-## Feature Profiles - Basic vs Advanced
+## Legacy feature profiles
 
-All features are available in two versions:
+> **Taxonomy exemption (recorded, REPO-CONSOLIDATION-001).** The
+> `*_basic_profile.yaml` / `bathroom_profile.yaml` filenames below are
+> **internal composition tokens** of the catalogued legacy-compatible
+> products (`products/sense360-core-ceiling*.yaml` line), never customer
+> copy: no bundle, WebFlash surface, or Release-One composition uses them
+> (`tests/test_presence_framework.py` pins the bundles' profile-free
+> composition), and no customer-facing surface renders a Basic/Advanced
+> tier. They are exempt from the Basic/Advanced taxonomy prohibition as
+> internal tokens; renaming them would churn the legacy products for no
+> customer-visible gain. Current compositions use the framework packages
+> (`airiq_framework.yaml`, `presence_framework.yaml`,
+> `roomiq_framework.yaml`, `ventiq_framework.yaml`).
 
-### Basic Profiles (Recommended for Most Users)
-- **Simple, user-friendly interface**
-- **No technical jargon** - uses terms everyone understands
-- **Easy-to-read measurements**
-- Perfect for home users who want simple, clear information
+Simplified entity profiles composed only by the legacy products:
 
-#### Presence Detection - Basic (`features/presence_basic_profile.yaml`)
+#### Presence Detection (`features/presence_basic_profile.yaml`)
 - Shows: "Room Occupied" (Yes/No)
 - Shows: "Activity Level" (Still/Moving)
 - No complex zones or technical data
 
-#### Air Quality - Basic (`features/airiq_basic_profile.yaml`)
+#### Air Quality (`features/airiq_basic_profile.yaml`)
 - Shows: Overall "Air Quality" (Excellent/Good/Fair/Poor)
 - Shows: Temperature & Humidity
 - Shows: Simple recommendations ("Open Window" / "Air is Good")
