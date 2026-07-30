@@ -13,10 +13,12 @@ extension (base_path: site/generated):
   room-<room>-flash-steps.md    from the same snapshot (the preset name a
                                 room page may instruct customers to pick)
   sensor-glossary.md            from config/hardware-catalog.json
-  led-behaviour.md              from packages/features/led_framework.yaml
-                                (the named customer controls, paired with
-                                a wording map that hard-fails on any new
-                                or renamed control)
+  led-behaviour.md              from packages/boards/s360-300-led.yaml
+                                (the board-owned Room Light) plus
+                                packages/features/led_framework.yaml
+                                (the behaviour controls), paired with a
+                                wording map that hard-fails on any new
+                                or renamed control
 
 Each block carries an HTML provenance comment naming its sources (and the
 mirror's upstream SHA where applicable). ``--check`` regenerates in
@@ -36,6 +38,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SNAPSHOT = REPO_ROOT / "config" / "webflash-preset-snapshot.json"
 HARDWARE = REPO_ROOT / "config" / "hardware-catalog.json"
 LED_FRAMEWORK = REPO_ROOT / "packages" / "features" / "led_framework.yaml"
+LED_BOARD = REPO_ROOT / "packages" / "boards" / "s360-300-led.yaml"
 OUT_DIR = REPO_ROOT / "site" / "generated"
 
 # Customer wording per LED framework control, keyed by entity id so a
@@ -45,8 +48,8 @@ OUT_DIR = REPO_ROOT / "site" / "generated"
 # excluded from the customer table).
 LED_CONTROL_WORDING = {
     "led_ring": "The ring itself — turn it on or off, set colour and brightness like any light.",
-    "s360_led_night_mode": "Dims the ring for night. Turn it on manually or let the automatic setting do it.",
-    "s360_led_night_behaviour": "What night mode does when it activates: dim the ring or switch it off entirely.",
+    "s360_led_night_mode": "Switches the ring to a low, warm night look. Turn it on yourself, or let it activate automatically.",
+    "s360_led_night_behaviour": "When night mode turns on by itself: manually only, when the room is dark, or when the room is dark and occupied.",
     "s360_led_status_indicator": "Whether the ring briefly shows device status events as coloured overlays.",
     "s360_led_darkness_threshold": "How dark the room must be before automatic night mode considers it night.",
     "s360_led_identify": "Flashes the ring so you can tell which device you are looking at.",
@@ -98,12 +101,15 @@ def _led_controls() -> list[tuple[str, str]]:
 
     for tag in ("!secret", "!include", "!extend", "!lambda", "!remove"):
         yaml.add_constructor(tag, ctor, Loader=_LedLoader)
-    doc = yaml.load(LED_FRAMEWORK.read_text(encoding="utf-8"), Loader=_LedLoader)
     controls = []
-    for platform_key in ("light", "switch", "select", "number", "button"):
-        for entry in doc.get(platform_key) or []:
-            if isinstance(entry, dict) and entry.get("id") and entry.get("name"):
-                controls.append((entry["id"], str(entry["name"])))
+    # The board file first: it owns the Room Light entity the framework
+    # deliberately delegates (both files are declared sources).
+    for source in (LED_BOARD, LED_FRAMEWORK):
+        doc = yaml.load(source.read_text(encoding="utf-8"), Loader=_LedLoader)
+        for platform_key in ("light", "switch", "select", "number", "button"):
+            for entry in doc.get(platform_key) or []:
+                if isinstance(entry, dict) and entry.get("id") and entry.get("name"):
+                    controls.append((entry["id"], str(entry["name"])))
     return controls
 
 
@@ -182,7 +188,10 @@ def build_blocks() -> dict[str, str]:
     if not led_rows:
         raise SystemExit("no named LED controls found in the framework")
     blocks["led-behaviour.md"] = (
-        _provenance("packages/features/led_framework.yaml")
+        _provenance(
+            "packages/boards/s360-300-led.yaml",
+            "packages/features/led_framework.yaml",
+        )
         + "\n| Control | What it does |\n|---|---|\n"
         + "\n".join(led_rows)
         + "\n"

@@ -44,10 +44,11 @@ instead, see the [advanced corner](../advanced/index.md).
 ## Connect to Home Assistant
 
 Home Assistant discovers the device on your network shortly after it
-comes online and shows it as a new ESPHome device. When it asks for the
-encryption key, use the key shown during setup. After that, every sensor
-and control on this page appears as entities on one device — no manual
-configuration files needed.
+comes online and shows it as a new ESPHome device. Adding it takes one
+click — installer firmware connects without an encryption key, and Home
+Assistant will show the connection as unencrypted on your local network.
+After that, every sensor and control on this page appears as entities on
+one device — no manual configuration files needed.
 
 If the device does not appear on its own, add it once by IP address:
 Settings, then Devices and services, then Add integration, then ESPHome.

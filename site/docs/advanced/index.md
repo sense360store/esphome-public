@@ -33,6 +33,11 @@ Override only the `device_name` and `friendly_name` substitutions. The
 full walkthrough lives in the
 [getting-started guide](https://github.com/sense360store/esphome-public/blob/main/docs/getting-started.md).
 
+Self-built firmware is also where connection security lives today: your
+own build carries your own secrets, including the Home Assistant API
+encryption key, and Home Assistant will ask for that key when it adds
+the device. Installer firmware connects without a key.
+
 ## Fan drivers and self-build configurations
 
 Fan-driver firmware exists for self-build use behind explicit warnings.

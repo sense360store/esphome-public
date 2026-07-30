@@ -13,12 +13,14 @@ does, it behaves in layers:
 
 - **Room light.** The base layer — the ring is an ordinary light in Home
   Assistant with colour and brightness.
-- **Status overlays.** When the status indicator is enabled, the ring
-  briefly shows device events over the room light, then returns to it.
+- **Status indications.** When the status indicator is enabled and the
+  room light is off, the ring briefly shows device events, then goes
+  idle again. Status never interrupts a room light that is on.
 - **Identify.** A flash pattern you trigger on purpose, so you can tell
   which ceiling unit is which.
-- **Night mode.** Dims the ring — or switches it off, your choice — at
-  night, either manually or automatically based on room darkness.
+- **Night mode.** Switches the ring to a low, warm night look. You can
+  turn it on yourself, or let it activate automatically when the room
+  is dark (or dark and occupied, on setups that sense presence).
 
 ## The controls
 
