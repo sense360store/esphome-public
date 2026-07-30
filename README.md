@@ -8,7 +8,7 @@ This repo holds the product YAML, builds and publishes the unsigned release
 most customers use — browser-based flashing of official **signed** firmware, no
 tooling, no YAML.
 
-[![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
+[![ESPHome](https://img.shields.io/badge/ESPHome-2026.4.5%2B-blue)](https://esphome.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
 [![CI: Quick Validation (PR gate)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml)
@@ -32,9 +32,8 @@ ESPHome:
    packages:
      sense360_firmware:
        url: https://github.com/sense360store/esphome-public
-       ref: v1.0.0  # Pin to a release tag — never 'main' in production
+       ref: v1.0.7  # Pin to a release tag — never 'main' in production
        files: [products/sense360-ceiling-poe-ventiq-roomiq.yaml]
-       refresh: 1d
    substitutions:
      device_name: sense360-bathroom
      friendly_name: "Bathroom Sense360"
@@ -60,8 +59,7 @@ Everything lives under [`docs/`](docs/README.md) — start at the
   sequence (Bump → Create Release → Build & Release → WebFlash Add Source →
   Import → Deploy) and which stages dispatch vs. auto-fire.
 - [Hardware Catalog](docs/hardware-catalog.md) — canonical board names, SKUs, revisions.
-- [Roadmap & Status](docs/sense360-roadmap-status.md) — the canonical status /
-  roadmap / blocker document.
+- [Product Matrix](docs/product-matrix.md) — complete slot/module reference.
 
 ## Where to get help
 

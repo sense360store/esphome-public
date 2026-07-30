@@ -170,7 +170,7 @@ There is no remote wrapper for the blower framework. The former
 `packages/remote/blower-framework.yaml` was deleted under the owner decision
 of 2026-07-28 (SENSE360-CANONICALISATION-001 PR 07): the customer
 remote-consumption guide
-([`docs/remote-package-consumption.md`](../remote-package-consumption.md))
+([`docs/remote-package-consumption.md` (archived)](../archive-index.md))
 never documented a blower entrypoint, so the wrapper was the unpublished
 remainder of `packages/remote/` — internal and removable. Migration note: no
 consumer existed to migrate; a remote consumer wanting the blower surface

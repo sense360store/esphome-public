@@ -59,7 +59,7 @@ FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "blower_framework.yaml
 # packages/remote/blower-framework.yaml was DELETED under the owner decision
 # of 2026-07-28 (SENSE360-CANONICALISATION-001 PR 07, packages/remote
 # resolution): the customer remote-consumption guide
-# docs/remote-package-consumption.md never documented a blower wrapper, so it
+# The archived remote-consumption guide never documented a blower wrapper, so it
 # was the unpublished remainder — internal per Section 7 and the recorded
 # no-external-customers fact. The blower FRAMEWORK package itself stays until
 # PR 12 decides the Blower surface.
@@ -351,7 +351,8 @@ class RemoteWrapperRemovedTests(unittest.TestCase):
             (REPO_ROOT / "packages" / "remote" / "blower-framework.yaml").exists(),
             "the blower remote wrapper was deleted as the unpublished "
             "remainder of packages/remote/ and must not return; the four "
-            "wrappers documented by docs/remote-package-consumption.md are "
+            "remaining packages/remote/ wrappers (see "
+            "docs/archive-index.md for the archived consumption guide) are "
             "the protected remote entrypoints",
         )
 

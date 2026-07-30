@@ -248,7 +248,7 @@ history). Honesty is enforced downstream instead:
   as an impossible config string (`Core` is outside the canonical grammar in
   `config/webflash-compatibility.json`).
 * Remote consumers pull `packages/remote/led-framework.yaml` (see
-  [remote-package consumption](../remote-package-consumption.md)); the wrapper
+  [`docs/remote-package-consumption.md` (archived)](../archive-index.md)); the wrapper
   defaults both flags `"false"`.
 
 No fake darkness and no fake occupancy is ever created; a missing input is a
