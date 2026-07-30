@@ -1,6 +1,15 @@
 # ============================================================================
 # SENSE360 CORE CEILING - POE POWER
 # ============================================================================
+# DISPOSITION (REPO-CONSOLIDATION-001, 2026-07-30): KEPT-WITH-RECORDED-REASON.
+# The filename carries the retired pre-catalog S360-CORE-C* identifier scheme
+# (the body already declares device_sku: S360-100). Verified consumers: the
+# config/product-catalog.json legacy-compatible row (its notes record the
+# owner's intent to retire after successor configs are authored),
+# scripts/product_name_mapper.py, and test fixtures. Rename/delete is barred
+# by the customer include contract (products/ paths are never renamed or
+# deleted on main); retirement therefore starts with an owner catalog
+# decision, not a file operation.
 # SKU: S360-CORE-C-POE
 #
 # Base configuration for Sense360 Core Ceiling with PoE power.
