@@ -82,7 +82,9 @@ nav:
   - Your room:
       - Bathroom: rooms/bathroom.md
   - Zone Studio: zone-studio.md
-  - Help: help/index.md
+  - Help:
+      - Overview: help/index.md
+      - What the boards do: help/sensor-glossary.md
   - Advanced: advanced/index.md
   - Firmware guides:
       - Overview: products/index.md

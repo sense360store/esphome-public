@@ -64,6 +64,9 @@ jobs:
       - name: Entity-table freshness check
         run: python3 scripts/generate_product_entity_tables.py --check
 
+      - name: Customer-docs block freshness check
+        run: python3 scripts/generate_customer_docs_blocks.py --check
+
       - name: Build site (strict)
         run: python3 -m mkdocs build --strict -f site/mkdocs.yml
 

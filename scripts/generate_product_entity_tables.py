@@ -47,6 +47,18 @@ CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 OUTPUT_DIR = REPO_ROOT / "site" / "generated"
 COMPARE_OUTPUT_NAME = "compare-matrix.md"
 
+# site/generated names owned by the customer-docs block generator
+# (scripts/generate_customer_docs_blocks.py, SENSE360-CUSTOMER-DOCS-001).
+# The unexpected-file guard skips exactly these; anything else foreign
+# still fails the check.
+FOREIGN_GENERATED_NAMES = frozenset(
+    {"sensor-glossary.md"}
+) | frozenset(
+    f"room-{room}-{kind}.md"
+    for room in ("bathroom", "bedroom", "kitchen", "hallway", "living-room")
+    for kind in ("box-contents", "flash-steps")
+)
+
 # Deployed docs-site base URL (mirrors ``site_url`` in ``site/mkdocs.yml``).
 # The compare matrix is a pymdownx snippet inlined into
 # ``site/docs/products/compare.md``, but the committed snippet file lives in
@@ -573,6 +585,11 @@ def check_outputs() -> int:
     if OUTPUT_DIR.exists():
         expected_names = {path.name for path in outputs}
         for existing in sorted(OUTPUT_DIR.glob("*.md")):
+            if existing.name in FOREIGN_GENERATED_NAMES:
+                # Owned by scripts/generate_customer_docs_blocks.py
+                # (SENSE360-CUSTOMER-DOCS-001); its own --check gate
+                # covers freshness for these.
+                continue
             if existing.name not in expected_names:
                 stale.append(
                     f"{existing.relative_to(REPO_ROOT)}: unexpected file "
