@@ -85,6 +85,7 @@ nav:
   - Help:
       - Overview: help/index.md
       - What the boards do: help/sensor-glossary.md
+      - The light ring: help/light-ring.md
   - Advanced: advanced/index.md
   - Firmware guides:
       - Overview: products/index.md

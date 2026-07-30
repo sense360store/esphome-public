@@ -32,8 +32,14 @@ The installer flow for this room lands here when this page is published.
 
 ## Connect to Home Assistant
 
-Home Assistant discovers the device on your network and asks for the API
-key shown during setup. Walkthrough content lands here.
+Home Assistant discovers the device on your network shortly after it
+comes online and shows it as a new ESPHome device. When it asks for the
+encryption key, use the key shown during setup. After that, every sensor
+and control on this page appears as entities on one device — no manual
+configuration files needed.
+
+If the device does not appear on its own, add it once by IP address:
+Settings, then Devices and services, then Add integration, then ESPHome.
 
 ## What you'll see
 
@@ -41,10 +47,20 @@ key shown during setup. Walkthrough content lands here.
 
 ## Tune it
 
-Air-quality tuning guidance lands here. For radar zone shaping, use
-[Zone Studio](../zone-studio.md).
+Air-quality behaviour is tunable from Home Assistant. The default
+thresholds are engineering defaults — validated tuning guidance lands
+here once bench measurements confirm the numbers. For radar zone
+shaping, use [Zone Studio](../zone-studio.md).
 
 ## Troubleshoot
 
-Common questions and recovery steps land here; see also the
-[help section](../help/index.md).
+- **The device is not discovered.** Check it has power (the network cable for PoE) and is
+  on the same network as Home Assistant, then try adding it by IP
+  address as above.
+- **Entities show as unavailable.** The device has lost power or
+  network; when it reconnects, the entities recover on their own.
+- **You want to start over.** Reflash it with the
+  [installer](https://sense360store.github.io/WebFlash/) — flashing
+  again is always safe and puts the device back in a known state.
+
+More answers in the [help section](../help/index.md).
