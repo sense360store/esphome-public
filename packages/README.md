@@ -9,8 +9,8 @@
 > Core content now lives in `boards/s360-100-core-ceiling.yaml` and the
 > legacy `hardware/sense360_core_ceiling.yaml` path (plus the never-wired
 > `boards/s360-100-core.yaml` prototype) is deleted.
-> Alias references below are historical description, not live paths;
-> the table rewrite lands with the PR 16 documentation regeneration.
+> Alias references below are historical description, not live paths
+> (REPO-CONSOLIDATION-001 corrected the live-path claims in this file).
 
 This directory contains modular ESPHome configuration packages organized by category.
 
@@ -71,16 +71,18 @@ zero composers after the package-level remote-include path retired with
 (`S360-310/320/400`) and the SELV fan-driver SKUs (`S360-311/312`) remain
 expansion packages behind their evidence/compliance gates and are not in the
 board layer yet. Full layout and rationale:
-[`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+[`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--product-layers).
 
-### `products/bundles/` — the config-string bundle layer
+### `products/sense360-*.yaml` — the canonical product compositions
 
-Above the board layer, [`products/bundles/`](../products/bundles/) holds one
-YAML per WebFlash **config string**, named 1:1 to it, assembling
-`boards + expansions + base + profiles`. The customer-facing
-`products/sense360-*.yaml` paths are retained as thin compat shims that
-`!include` the matching bundle, so a pinned include resolves
-`shim → bundle → board packages` unchanged.
+Above the board layer, the customer-facing
+[`products/sense360-*.yaml`](../products/) paths carry one YAML per WebFlash
+**config string** (`sense360-<config-string>.yaml`, named 1:1 to it),
+assembling `boards + expansions + base + profiles`. REPO-CONSOLIDATION-001
+folded the former `products/bundles/` layer into these files — the
+customer-pinned path IS the composition, and a pinned include resolves
+`product → board packages` directly (release tags keep the historical
+`bundles/` paths for tag-pinned users).
 
 ## Legacy feature profiles
 
@@ -138,7 +140,7 @@ substitutions:
 packages:
   firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
+    ref: v1.0.7  # Pin to a release tag — never use 'main' in production
     files:
       - products/sense360-ceiling-poe-ventiq-roomiq.yaml  # Release-One
 ```

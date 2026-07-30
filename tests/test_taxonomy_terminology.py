@@ -33,7 +33,6 @@ PRODUCT_CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 WEBFLASH_BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 WEBFLASH_COMPAT_PATH = REPO_ROOT / "config" / "webflash-compatibility.json"
 TAXONOMY_DOC_PATH = REPO_ROOT / "docs" / "product-taxonomy.md"
-BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
 
 FAN_TOKENS = {"FanRelay", "FanPWM", "FanDAC", "FanTRIAC"}
 AIR_QUALITY_TOKENS = {"AirIQ", "VentIQ"}
@@ -371,8 +370,14 @@ class TestTaxonomyDocAlignment(unittest.TestCase):
 
 
 class TestBundleNamesMatchCatalog(unittest.TestCase):
-    """products/bundles/ filenames follow the config-string grammar and
-    round-trip against the product catalog."""
+    """Canonical composition filenames follow the config-string grammar and
+    round-trip against the product catalog.
+
+    REPO-CONSOLIDATION-001 folded ``products/bundles/`` into the
+    config-string-named ``products/sense360-*.yaml`` paths; the
+    core-framework contract's ``bundle`` values declare the canonical
+    composition files.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -386,24 +391,43 @@ class TestBundleNamesMatchCatalog(unittest.TestCase):
             build["config_string"]
             for build in _load_json(WEBFLASH_BUILDS_PATH)["builds"]
         }
+        contract = _load_json(REPO_ROOT / "config" / "core-framework.json")
+        cls.composition_paths = {
+            entry["bundle"] for entry in contract.get("configs", {}).values()
+        }
 
     def test_every_bundle_matches_a_catalog_config_string(self):
         lowered = {s.lower(): s for s in self.catalog_strings}
-        for bundle in sorted(BUNDLES_DIR.glob("*.yaml")):
+        for rel in sorted(self.composition_paths):
+            stem = Path(rel).stem
+            self.assertTrue(
+                stem.startswith("sense360-"),
+                f"canonical composition is not config-string named: {rel}",
+            )
             self.assertIn(
-                bundle.stem,
+                stem[len("sense360-"):],
                 lowered,
-                f"bundle file does not match any catalog config string: "
-                f"products/bundles/{bundle.name}",
+                f"canonical composition does not match any catalog config "
+                f"string: {rel}",
+            )
+            self.assertTrue(
+                (REPO_ROOT / rel).is_file(),
+                f"declared canonical composition missing: {rel}",
             )
 
     def test_every_build_matrix_row_has_a_bundle(self):
-        bundle_stems = {b.stem for b in BUNDLES_DIR.glob("*.yaml")}
         for config_string in sorted(self.build_strings):
+            expected = f"products/sense360-{config_string.lower()}.yaml"
             self.assertIn(
-                config_string.lower(),
-                bundle_stems,
-                f"build matrix config string has no bundle: {config_string}",
+                expected,
+                self.composition_paths,
+                f"build matrix config string has no canonical composition "
+                f"declared in core-framework.json: {config_string}",
+            )
+            self.assertTrue(
+                (REPO_ROOT / expected).is_file(),
+                f"build matrix config string has no composition file: "
+                f"{config_string}",
             )
 
 

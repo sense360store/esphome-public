@@ -46,7 +46,8 @@ Nothing under `dev/` is ever release-eligible; see
 
 4. **Make the change.** Either edit the correct package layer directly on
    the branch (`packages/boards/`, `packages/base/`, `packages/features/`,
-   or the bundle under `products/bundles/`), or — when the correct home for
+   or the product composition under `products/sense360-*.yaml`), or — when
+   the correct home for
    the change is not yet clear — sketch it in `dev/dev-overlay.yaml` first.
    The overlay is merged into the bench device by the template
    (`overlay: !include dev-overlay.yaml`) and is the only place where

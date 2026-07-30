@@ -70,7 +70,7 @@ MATRIX = REPO_ROOT / "config" / "feature-entity-matrix.json"
 ROADMAP = REPO_ROOT / "docs" / "sense360-roadmap-status.md"
 BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
 
-FRAMEWORK_INCLUDE = "!include ../../packages/features/roomiq_framework.yaml"
+FRAMEWORK_INCLUDE = "!include ../packages/features/roomiq_framework.yaml"
 LEGACY_PROFILE_INCLUDES = (
     "comfort_basic_profile.yaml",
     "roomiq_profile.yaml",

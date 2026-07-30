@@ -9,8 +9,9 @@ the compile-validated webflash-lane preview candidates
 ``Ceiling-POE-RoomIQ-LED``):
 
   * the three wrapper files exist;
-  * each wrapper resolves to a valid ``products/sense360-*.yaml`` product shim
-    (which in turn re-includes its ``products/bundles`` composition);
+  * each wrapper resolves to a valid ``products/sense360-*.yaml`` product
+    (the canonical composition — REPO-CONSOLIDATION-001 folded the former
+    bundle layer into the root product files);
   * each wrapper is a thin re-export — it declares only a ``packages:`` block
     with no ``version`` / ``channel`` / ``artifact_name`` publication metadata;
   * the preview target manifest (``config/preview-release-targets.json``)
@@ -224,20 +225,28 @@ class WrapperFilesExistTests(unittest.TestCase):
                 )
                 self.assertTrue(resolved.is_file(), f"shim missing: {resolved}")
 
-    def test_shims_resolve_to_bundle_composition(self) -> None:
-        # wrapper -> products/sense360-*.yaml shim -> products/bundles/*.yaml.
+    def test_shims_carry_the_canonical_composition(self) -> None:
+        # REPO-CONSOLIDATION-001: the wrapper's target root product file IS
+        # the canonical composition (the former bundle layer was folded into
+        # it) — not a one-include shim of a further layer.
         for cs in NEW_WRAPPERS:
             with self.subTest(config_string=cs):
-                shim = REPO_ROOT / EXPECTED_SHIM[cs]
-                cfg = _load_yaml(shim)
+                product = REPO_ROOT / EXPECTED_SHIM[cs]
+                cfg = _load_yaml(product)
                 self.assertIn("packages", cfg)
-                include = _single_include(cfg["packages"])
-                resolved = (shim.parent / include).resolve()
-                self.assertTrue(
-                    resolved.is_file(),
-                    f"{cs}: shim include {include!r} does not resolve to a file",
+                self.assertIn(
+                    "substitutions",
+                    cfg,
+                    f"{cs}: the root product file must carry the composition "
+                    "directly (substitutions + packages), not re-include a "
+                    "deeper layer",
                 )
-                self.assertIn("products/bundles/", resolved.as_posix())
+                self.assertGreater(
+                    len(cfg["packages"]),
+                    1,
+                    f"{cs}: the root product file must compose multiple "
+                    "packages directly, not act as a one-include shim",
+                )
 
 
 class WrapperContentTests(unittest.TestCase):

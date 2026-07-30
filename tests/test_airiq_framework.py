@@ -87,7 +87,7 @@ CONTRACT = REPO_ROOT / "config" / "core-framework.json"
 ROADMAP = REPO_ROOT / "docs" / "sense360-roadmap-status.md"
 BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
 
-FRAMEWORK_INCLUDE = "!include ../../packages/features/airiq_framework.yaml"
+FRAMEWORK_INCLUDE = "!include ../packages/features/airiq_framework.yaml"
 LEGACY_PROFILE_INCLUDES = (
     "airiq_basic_profile.yaml",
     "airiq_mqtt_profile.yaml",

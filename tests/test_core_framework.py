@@ -54,7 +54,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTRACT_PATH = REPO_ROOT / "config" / "core-framework.json"
 FRAMEWORK_PACKAGE_REL = "packages/base/device_framework.yaml"
 FRAMEWORK_PACKAGE = REPO_ROOT / FRAMEWORK_PACKAGE_REL
-BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
 COMPILE_ONLY_DIR = REPO_ROOT / "products" / "compile-only"
 HARDWARE_CATALOG = REPO_ROOT / "config" / "hardware-catalog.json"
 PRODUCT_CATALOG = REPO_ROOT / "config" / "product-catalog.json"
@@ -219,7 +218,15 @@ def load_contract() -> Dict[str, Any]:
 
 
 def bundle_paths() -> List[Path]:
-    return sorted(BUNDLES_DIR.glob("*.yaml"))
+    """The canonical composition YAML of every contract config.
+
+    REPO-CONSOLIDATION-001 folded the former ``products/bundles/`` layer
+    into the customer-pinned ``products/sense360-*.yaml`` paths, so the
+    contract's ``bundle`` values are the composition files themselves —
+    the contract declares, this helper resolves.
+    """
+    configs = load_contract().get("configs") or {}
+    return sorted(REPO_ROOT / entry["bundle"] for entry in configs.values())
 
 
 def framework_text_sensors() -> Dict[str, Dict[str, Any]]:
@@ -425,10 +432,58 @@ class ContractFileTests(unittest.TestCase):
             )
 
     def test_every_bundle_has_a_config_entry(self) -> None:
+        """Contract configs ↔ config-string-named canonical compositions.
+
+        Post REPO-CONSOLIDATION-001 the canonical composition for a config
+        string IS the customer-pinned ``products/sense360-<cs>.yaml`` path.
+        Each declared ``bundle`` must exist, follow the deterministic
+        naming both CI lanes rely on, and agree with the catalog's
+        ``product_yaml``; and every catalog row whose ``product_yaml``
+        follows that naming must have a contract entry (exhaustiveness —
+        a new config-string product cannot skip the framework contract).
+        """
         configs = self.contract.get("configs") or {}
-        declared_bundles = {entry.get("bundle") for entry in configs.values()}
-        actual_bundles = {str(p.relative_to(REPO_ROOT)) for p in bundle_paths()}
-        self.assertEqual(declared_bundles, actual_bundles)
+        catalog = json.loads(PRODUCT_CATALOG.read_text())
+        rows = catalog["products"] if isinstance(catalog, dict) else catalog
+        by_config_string = {
+            r["config_string"]: r for r in rows if r.get("config_string")
+        }
+        for config_string, entry in configs.items():
+            bundle = entry.get("bundle")
+            expected = f"products/sense360-{config_string.lower()}.yaml"
+            self.assertEqual(
+                bundle,
+                expected,
+                f"{config_string}: bundle must be the deterministic "
+                f"config-string-named product path {expected}",
+            )
+            self.assertTrue(
+                (REPO_ROOT / bundle).is_file(),
+                f"{config_string}: declared bundle {bundle} does not exist",
+            )
+            catalog_row = by_config_string.get(config_string)
+            self.assertIsNotNone(
+                catalog_row,
+                f"{config_string}: no product-catalog row declares this "
+                "config string",
+            )
+            self.assertEqual(
+                catalog_row["product_yaml"],
+                bundle,
+                f"{config_string}: catalog product_yaml disagrees with the "
+                "contract bundle path",
+            )
+        expected_configs = {
+            cs
+            for cs, r in by_config_string.items()
+            if r.get("product_yaml") == f"products/sense360-{cs.lower()}.yaml"
+        }
+        self.assertEqual(
+            set(configs.keys()),
+            expected_configs,
+            "core-framework configs must cover exactly the config-string-"
+            "named catalog products",
+        )
 
     def test_config_capabilities_match_config_string_tokens(self) -> None:
         configs = self.contract.get("configs") or {}
@@ -625,7 +680,7 @@ class BundleWiringTests(unittest.TestCase):
         for config_string, entry in self.configs.items():
             bundle, _ = self._bundle_doc(entry)
             occurrences = bundle.read_text().count(
-                "!include ../../packages/base/device_framework.yaml"
+                "!include ../packages/base/device_framework.yaml"
             )
             expected = 1 if entry.get("framework_included", True) else 0
             self.assertEqual(

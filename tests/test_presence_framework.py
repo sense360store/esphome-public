@@ -69,7 +69,18 @@ VALIDATE_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "validate.yml"
 CONTRACT = REPO_ROOT / "config" / "core-framework.json"
 MATRIX = REPO_ROOT / "config" / "feature-entity-matrix.json"
 ROADMAP = REPO_ROOT / "docs" / "sense360-roadmap-status.md"
-BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
+def all_bundles() -> List[Path]:
+    """Every canonical composition declared by the framework contract.
+
+    REPO-CONSOLIDATION-001 folded ``products/bundles/`` into the
+    config-string-named ``products/sense360-*.yaml`` paths; the contract's
+    ``bundle`` values are the canonical composition files.
+    """
+    contract = json.loads(CONTRACT.read_text())
+    return sorted(
+        REPO_ROOT / entry["bundle"]
+        for entry in contract.get("configs", {}).values()
+    )
 
 # Customer status values. "Multiple targets" (not "Multiple people"): the
 # LD2450 reports radar targets, not verified people — promotion of the
@@ -96,9 +107,9 @@ MODULE_HEALTH_VALUES = (
 MODE_OPTIONS = ["Balanced", "Responsive", "Stable", "Custom"]
 
 ADAPTER_INCLUDES = (
-    "!include ../../packages/boards/s360-200-roomiq-pir.yaml",
-    "!include ../../packages/boards/s360-200-roomiq-sen0609.yaml",
-    "!include ../../packages/features/presence_framework.yaml",
+    "!include ../packages/boards/s360-200-roomiq-pir.yaml",
+    "!include ../packages/boards/s360-200-roomiq-sen0609.yaml",
+    "!include ../packages/features/presence_framework.yaml",
 )
 
 ENTITY_PLATFORM_KEYS = (
@@ -657,7 +668,7 @@ class BundleWiringTests(unittest.TestCase):
 
     def test_non_presence_bundles_do_not_compose_the_framework(self) -> None:
         presence = {p.resolve() for p in presence_bundles()}
-        for bundle in sorted(BUNDLES_DIR.glob("*.yaml")):
+        for bundle in all_bundles():
             if bundle.resolve() in presence:
                 continue
             raw = bundle.read_text()

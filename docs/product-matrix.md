@@ -22,16 +22,17 @@ Complete product hierarchy and configuration guide for the Sense360 modular sens
 > `Ceiling-POE-VentIQ-RoomIQ`; FanTRIAC is experimental-lane only (see
 > [`standing-invariants.md`](standing-invariants.md)).
 
-> **Board + bundle layout.** Each module/SKU below now has a SKU-aligned
+> **Board + product layout.** Each module/SKU below now has a SKU-aligned
 > **board package** under [`../packages/boards/`](../packages/boards/) as its
 > authoritative firmware definition, and each shipping config string has a
-> matching **bundle** under [`../products/bundles/`](../products/bundles/) that
-> assembles `boards + expansions + base + profiles` (the customer-facing
-> `products/sense360-*.yaml` paths are thin compat shims that `!include` the
-> bundle). The legacy `packages/expansions/*` / `packages/hardware/*` names
-> referenced in this doc are retained as `!include` aliases of their board
-> package. See the [SKU → board package map](hardware-catalog.md#sku--board-package)
-> and the [board / bundle / alias / shim layers](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+> canonical composition at the customer-facing
+> [`products/sense360-*.yaml`](../products/) path (REPO-CONSOLIDATION-001
+> folded the former `products/bundles/` layer into those files). The legacy
+> `packages/expansions/*` / `packages/hardware/*` alias names referenced in
+> this doc were DELETED by SENSE360-CANONICALISATION-001 PR 07 (zero-alias;
+> release tags keep them for tag-pinned users). See the
+> [SKU → board package map](hardware-catalog.md#sku--board-package)
+> and the [board / product layers](system-architecture.md#inside-esphome-public-board--product-layers).
 
 ## Current WebFlash Taxonomy
 

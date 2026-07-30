@@ -9,7 +9,7 @@
 #
 # Canonical YAML (full substitutions, packages, board config):
 #   products/sense360-ceiling-poe-roomiq.yaml
-#   (a compat shim over products/bundles/ceiling-poe-roomiq.yaml)
+#   (the canonical composition; the former bundle layer was folded in)
 #
 # WebFlash config string : Ceiling-POE-RoomIQ
 # Channel / version      : stable; the live version + artifact name are

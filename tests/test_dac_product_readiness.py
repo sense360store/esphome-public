@@ -69,7 +69,7 @@ DAC_PRODUCT_YAML = REPO_ROOT / "products" / "sense360-ceiling-poe-fandac.yaml"
 DAC_PRODUCT_REL = "products/sense360-ceiling-poe-fandac.yaml"
 # The product YAML is now a thin compat shim; its full composition/substitution
 # content lives in the bundle. Content reads must target the bundle.
-DAC_BUNDLE = REPO_ROOT / "products" / "bundles" / "ceiling-poe-fandac.yaml"
+DAC_BUNDLE = REPO_ROOT / "products" / "sense360-ceiling-poe-fandac.yaml"
 DAC_CONFIG_STRING = "Ceiling-POE-FanDAC"
 # HW-RELEASE-001: the release-gate WebFlash wrapper now exists.
 DAC_WRAPPER_REL = "products/webflash/ceiling-poe-fandac.yaml"

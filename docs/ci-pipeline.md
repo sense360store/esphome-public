@@ -44,52 +44,51 @@ What this pipeline ensures:
 ## Refactored YAML layout: boards, bundles, aliases, and shims
 
 The firmware YAML has been restructured into SKU-aligned **board packages**
-plus product-named **bundle YAMLs** (the
-[`ARCH-BOARD-BUNDLE-PLAN-001` (archived)](archive-index.md) epic). This section
-records the new directory layout and how each CI workflow handles it. The key
-property for CI is that **every glob, `find`, and `sed` keeps its existing
-semantics** — the refactor was designed to land under the unchanged sweeps, and
-`CI-REFACTOR-VERIFY-001` proved that parity holds with **no workflow edit**.
+plus config-string-named **product compositions** (the
+[`ARCH-BOARD-BUNDLE-PLAN-001` (archived)](archive-index.md) epic introduced
+the bundle layer; SENSE360-CANONICALISATION-001 PR 07 removed the alias
+layer; REPO-CONSOLIDATION-001 folded the bundle layer into the customer-pinned
+`products/sense360-*.yaml` paths). This section records the directory layout
+and how each CI workflow handles it. The key property for CI is that
+**every glob, `find`, and `sed` keeps its existing semantics** — each
+restructuring was designed to land under the unchanged sweeps.
 
-### The four layers CI walks
+### The two layers CI walks
 
 | Layer | Location | What it holds | CI relevance |
 |-------|----------|---------------|--------------|
 | **Board packages (authoritative)** | `packages/boards/s360-*.yaml` | One canonical, self-contained package per board SKU (`S360-100` Core, `S360-200` RoomIQ, `S360-210` AirIQ, `S360-211` VentIQ, `S360-300` LED, `S360-410` PoE PSU) plus mount/power/variant overlays | Linted by the recursive `yamllint … packages/`; validated by `validate_configs.py`'s `packages/` walk |
-| **Legacy aliases** | `packages/expansions/*.yaml`, `packages/hardware/*.yaml` (legacy functional names, e.g. `led_ring_ceiling.yaml`, `airiq_ceiling.yaml`, `comfort_ceiling.yaml`, `power_poe.yaml`) | Thin `!include` wrappers of their board package — the **path is preserved** (never deleted) so legacy-compatible products and tests keep resolving. An alias is dropped only when its binder count reaches zero (gated on `PRODUCT-DEP-CORE-001`). | Same recursive lint/walk as boards; their `!include` chain resolves through the board package |
-| **Bundles (config-string-named)** | `products/bundles/*.yaml` | One YAML per WebFlash config string, assembling `boards + expansions + base + profiles`. Carries the substitutions, entity names, config string, and artifact-name identity of the product it backs. | **Auto-discovered** by the recursive `find products/` sweep; linted by `yamllint … products/`; walked by `validate_configs.py` |
-| **Product shims (customer include contract)** | `products/sense360-*.yaml` (the seven config-string products) | Thin `!include` of the matching bundle. The customer-pinned path (`files: - products/sense360-…yaml`) is preserved byte-for-byte. | Discovered by the same `find products/` sweep; resolves shim → bundle → boards |
+| **Products (canonical compositions + customer include contract)** | `products/sense360-*.yaml` | One YAML per WebFlash config string (`sense360-<config-string>.yaml`) assembling `boards + expansions + base + profiles` with the substitutions, entity names, config string, and artifact-name identity — plus the catalogued legacy compositions. The customer-pinned path IS the composition: REPO-CONSOLIDATION-001 folded the former `products/bundles/` layer into these files, and SENSE360-CANONICALISATION-001 PR 07 had already deleted the legacy alias layer (`tests/test_zero_alias.py` is the ledger). | **Auto-discovered** by the recursive `find products/` sweep; linted by `yamllint … products/`; walked by `validate_configs.py`; resolves product → boards directly |
 
 The base tier (`packages/base/**`) and the feature tier
 (`packages/features/**`) **did not move** — they are functional, not
-board-bound, and bundles include them unchanged. This is why the two `sed`
-substitution targets are untouched (see below).
+board-bound, and the product compositions include them unchanged. This is
+why the two `sed` substitution targets are untouched (see below).
 
 ### How each workflow handles the new layout (verified, no edit required)
 
 - **`yamllint -c .yamllint products/ packages/`** (`validate-yaml` job in
   `ci-validate-configs.yml`). `yamllint` recurses into directories, so
-  `packages/boards/` and `products/bundles/` are covered automatically. Verified
-  clean across boards, bundles, aliases, and shims.
+  `packages/boards/` and the `products/` compositions are covered
+  automatically.
 
 - **`discover-products`** in `ci-validate-configs.yml` is mode-aware. In the
   default `quick` mode it validates only the maintained Ceiling-POE shipping
   set (the config-string product YAMLs in `config/webflash-builds.json`). In
   the opt-in `full` mode it walks every product YAML under `products/`
-  (recursive), enumerating `products/bundles/*.yaml` and
-  `products/compile-only/*.yaml` alongside the top-level shims/legacy products
-  and excluding only the `products/webflash/*` wrappers. Every discovered
-  file's `!include` chain resolves (shim → bundle → board package →
-  base/feature tiers).
+  (recursive), enumerating `products/compile-only/*.yaml` alongside the
+  top-level canonical/legacy products and excluding only the
+  `products/webflash/*` wrappers. Every discovered file's `!include` chain
+  resolves (product → board package → base/feature tiers).
 
 - **`external_components` → local `components/` tree.** The CI lanes no longer
   clone this repo through the `external_components` git source. The shared
   `setup-esphome-build` action's `patch-external-components: true` rewrites
   `packages/base/external_components.yaml` to `type: local, path: ../components`
   (the checked-out tree). `ci-validate-configs.yml`, `preview-compile-dryrun.yml`,
-  and `firmware-build-release.yml` all use this local patch; bundles pull
-  `external_components` from that same base include via
-  `external_components: !include ../../packages/base/external_components.yaml`,
+  and `firmware-build-release.yml` all use this local patch; the product
+  compositions pull `external_components` from that same base include via
+  `external_components: !include ../packages/base/external_components.yaml`,
   so the patch reaches them through the include. (The earlier per-lane
   `sed "ref: main" → "ref: $BRANCH"` branch-rewrite has been removed; it failed
   non-interactively when the rewritten ref was not fetchable on GitHub.)
@@ -99,14 +98,14 @@ substitution targets are untouched (see below).
   Every compile-only `product_yaml` still points at a real file: the
   `products/webflash/*` wrapper targets resolve to their canonical product, the
   `products/compile-only/*` targets are unchanged, and the
-  `products/sense360-*.yaml` product targets now resolve through the shim →
-  bundle chain. Metadata validation passes unchanged.
+  `products/sense360-*.yaml` product targets carry their composition
+  directly. Metadata validation passes unchanged.
 
 - **Release gate** (`firmware-build-release.yml`). This workflow is
   **config-string-driven, not glob-driven**: it enumerates release targets from
   `config/webflash-builds.json` and, for a `products/webflash/*` wrapper entry,
-  compiles the canonical `products/sense360-<stem>.yaml` (the shim) instead. The
-  shim's config_dir stays `products/`, so the `path: ../components`
+  compiles the canonical `products/sense360-<stem>.yaml` composition instead.
+  The product's config_dir stays `products/`, so the `path: ../components`
   external-components rewrite still resolves to the repo-root `components/` tree.
   Config strings, artifact names, and `config/webflash-builds.json` are
   byte-identical, so the same builds ship under the same names.
@@ -286,12 +285,13 @@ PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" ! -path 
 
 This means:
 - The default sweep stays fast and focused on what the repo actually ships.
-- The `full` mode is the broad deep check: it covers `products/bundles/*.yaml`,
-  `products/compile-only/*.yaml`, and the legacy/reference boards alongside the
-  top-level shims (see
+- The `full` mode is the broad deep check: it covers
+  `products/compile-only/*.yaml` and the legacy/reference compositions
+  alongside the canonical `products/sense360-*.yaml` products (see
   [Refactored YAML layout](#refactored-yaml-layout-boards-bundles-aliases-and-shims)).
-  The `products/sense360-*.yaml` compat shims resolve through
-  `shim → bundle → board package`.
+  Each product resolves `product → board packages` directly
+  (REPO-CONSOLIDATION-001 folded the former bundle layer into the root
+  paths).
 
 ### 3. Build & Release (`firmware-build-release.yml`)
 

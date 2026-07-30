@@ -39,7 +39,7 @@ The Sense360 platform is built on ESP32-S3-WROOM-1-N16R8 and supports modular ex
 > SKU-aligned board package. See
 > [`docs/arch-board-bundle-plan.md` (archived)](../docs/archive-index.md) for the
 > full target shape and
-> [`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers)
+> [`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--product-layers)
 > for how the layers fit the whole pipeline.
 
 The board layer maps each catalog board SKU

@@ -4,9 +4,8 @@
 PRODUCT-GUIDES-001 (G1). For each config string served to customers via
 WebFlash (see ``SERVED_CONFIG_STRINGS``), this script resolves the product's
 package composition — the ``products/webflash/`` wrapper declared in
-``config/webflash-builds.json``, through the ``products/`` compat shim and the
-``products/bundles/`` bundle, down every local ``!include`` in each
-``packages:`` block — and mechanically derives the Home Assistant entities the
+``config/webflash-builds.json``, through the canonical ``products/``
+composition, down every local ``!include`` in each ``packages:`` block — and mechanically derives the Home Assistant entities the
 firmware exposes (name, type, unit, notes). One markdown include per config is
 written under ``site/generated/`` for the mkdocs product-guides site to embed.
 

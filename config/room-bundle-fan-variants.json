@@ -293,7 +293,7 @@
       "firmware_config_status": "buildable-preview-compile-validated",
       "firmware_config_evidence": {
         "product_yaml": "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
-        "bundle_yaml": "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+        "bundle_yaml": "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
         "compile_only_target_id": "ceiling-poe-ventiq-fanpwm-roomiq-compile-only",
         "compile_validation_status": "validated-full-compile",
         "compile_evidence": {
@@ -433,7 +433,7 @@
       "firmware_config_status": "buildable-preview-compile-validated",
       "firmware_config_evidence": {
         "product_yaml": "products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml",
-        "bundle_yaml": "products/bundles/ceiling-poe-ventiq-fandac-roomiq.yaml",
+        "bundle_yaml": "products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml",
         "compile_only_target_id": "ceiling-poe-ventiq-fandac-roomiq-compile-only",
         "compile_validation_status": "validated-full-compile",
         "compile_evidence": {
@@ -607,7 +607,7 @@
       "firmware_config_status": "buildable-preview-compile-validated",
       "firmware_config_evidence": {
         "product_yaml": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
-        "bundle_yaml": "products/bundles/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+        "bundle_yaml": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
         "compile_only_target_id": "ceiling-poe-airiq-fanrelay-roomiq-compile-only",
         "compile_validation_status": "validated-full-compile",
         "compile_evidence": {
@@ -748,7 +748,7 @@
       "firmware_config_status": "buildable-preview-compile-validated",
       "firmware_config_evidence": {
         "product_yaml": "products/sense360-ceiling-poe-airiq-fandac-roomiq.yaml",
-        "bundle_yaml": "products/bundles/ceiling-poe-airiq-fandac-roomiq.yaml",
+        "bundle_yaml": "products/sense360-ceiling-poe-airiq-fandac-roomiq.yaml",
         "compile_only_target_id": "ceiling-poe-airiq-fandac-roomiq-compile-only",
         "compile_validation_status": "validated-full-compile",
         "compile_evidence": {
@@ -927,7 +927,7 @@
       "firmware_config_status": "buildable-preview-compile-validated",
       "firmware_config_evidence": {
         "product_yaml": "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
-        "bundle_yaml": "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+        "bundle_yaml": "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
         "compile_only_target_id": "ceiling-poe-airiq-fanpwm-roomiq-compile-only",
         "compile_validation_status": "validated-full-compile",
         "compile_evidence": {

@@ -1,36 +1,266 @@
 # ============================================================================
-# SENSE360 PRODUCT (compat shim) — Ceiling-POE-AirIQ-RoomIQ (preview candidate)
+# REPO-CONSOLIDATION-001 (2026-07-30): canonical composition lives HERE.
+# This customer-pinned path (`products/sense360-ceiling-poe-airiq-roomiq.yaml`) now carries the
+# full composition directly. The former `products/bundles/ceiling-poe-airiq-roomiq.yaml`
+# layer was folded into this file and deleted: the root path was a thin
+# one-include shim of the bundle, so the resolved config is unchanged
+# (include paths rebased `../../packages/` -> `../packages/`; release tags
+# keep the historical bundles/ path for tag-pinned users). The WebFlash
+# wrapper `products/webflash/ceiling-poe-airiq-roomiq.yaml` still re-exports this path.
 # ============================================================================
-# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §3.2). This product path is
-# a thin compatibility shim: its composition lives in the config-string-named
-# bundle `products/bundles/ceiling-poe-airiq-roomiq.yaml` and this file does
-# nothing but `!include` that bundle.
+# ============================================================================
+# SENSE360 BUNDLE — Ceiling-POE-AirIQ-RoomIQ (preview candidate, release-blocked)
+# ============================================================================
+# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §2.2, §3.2).
 #
-# Authoring slice : RELEASE-PREVIEW-BUILD-FIXES-001 (turn the YAML-less preview
-#                   candidate into a concrete product YAML).
-# Channel         : PREVIEW candidate — NOT stable, NOT production, NOT
-#                   recommended, NOT hardware verified. Release-blocked on the
-#                   shared S360-410 PoE PSU schematic-verification gate
-#                   (PRODUCT-POE-410-001). NOT WebFlash-exposed: no
-#                   artifact_name, no webflash_wrapper, no
-#                   config/webflash-builds.json row.
+# Config-string-named bundle YAML, aligned 1:1 with the catalog config string
+# `Ceiling-POE-AirIQ-RoomIQ`. Authored by RELEASE-PREVIEW-BUILD-FIXES-001 to
+# turn the previously YAML-less preview candidate (recorded as
+# `blocked-by-missing-yaml` in docs/release-preview-build-dryrun.md §3) into a
+# concrete product YAML that a future hosted ESPHome compile dry-run can build.
+# This file IS the customer-facing product path — REPO-CONSOLIDATION-001
+# folded the former bundle layer into it.
 #
-# Full composition, substitutions, board assembly, and product identification:
-#   products/bundles/ceiling-poe-airiq-roomiq.yaml
+# WebFlash config string : Ceiling-POE-AirIQ-RoomIQ
+# WebFlash artifact name  : Sense360-Ceiling-POE-AirIQ-RoomIQ-vX.Y.Z-{channel}.bin
+#                           (NOT cut here — no config/webflash-builds.json row,
+#                           no products/webflash wrapper, no artifact published)
 #
-# Customer usage in their ESPHome config:
+# Status — what this YAML IS:
+#   The full Kitchen-class AirIQ + RoomIQ POE ceiling product: Core ceiling +
+#   PoE PSU + AirIQ (PCB air-quality sensors) + RoomIQ (comfort +
+#   presence). The package composition is the production
+#   `Ceiling-POE-VentIQ-RoomIQ` build with the VentIQ air-quality module
+#   swapped for the full AirIQ module; the identical AirIQ + comfort + presence
+#   composition is already exercised by the compile-only skeleton
+#   products/compile-only/ceiling-poe-airiq-roomiq.yaml and by
+#   products/sense360-core-ceiling.yaml, so it is known to be expressible.
 #
-#   packages:
-#     sense360_firmware:
-#       url: https://github.com/sense360store/esphome-public
-#       files:
-#         - products/sense360-ceiling-poe-airiq-roomiq.yaml
-#       refresh: 1d
+# Status — what this YAML is NOT (preview-eligible, stable-blocked):
+#   * NOT stable, NOT production, NOT recommended, NOT a customer default. This
+#     is a PREVIEW candidate only (testers, flash-at-your-own-risk). No bench
+#     evidence and no compliance is claimed.
+#   * NOT hardware verified. Compile success says nothing about bench / harness
+#     / silkscreen / schematic / pinmap evidence. The PoE PSU (S360-410)
+#     schematic_status stays cataloged_unverified and the Release-One PoE
+#     "schematic verification pending" caveat (PRODUCT-POE-410-001) remains
+#     open. The catalog row (config/product-catalog.json) is status: blocked,
+#     blocker PRODUCT-POE-410-001 — a STABLE/lifecycle gate, not a preview
+#     prohibition (docs/release-preview-build-dryrun.md §3).
+#   * NOT a WebFlash exposed build. No entry is added to
+#     config/webflash-builds.json; webflash_build_matrix stays false; no
+#     webflash_wrapper is created under products/webflash/; no artifact_name is
+#     declared.
+#   * NOT a release artifact. No .bin / version / channel / checksum / GitHub
+#     Release tag / proof row is created. No ESPHome compile was run in the
+#     authoring environment (ESPHome CLI unavailable); none is faked.
 #
-#   substitutions:
-#     device_name: sense360-kitchen
-#     friendly_name: "Kitchen Sense360"
+# Board assembly (docs/arch-board-bundle-plan.md §2.2):
+#   Boards: S360-100 Core (ceiling) + S360-410 PoE PSU + S360-210 AirIQ +
+#   S360-200 RoomIQ.
+#   External sensor attachments: none separately declared. (The S360-210
+#   supports an external SPS30 PM module on J2; its driver is compiled,
+#   but no kit/SOT record declares the module as supplied, so PM entities
+#   ship disabled by default and SPS30 is not expected by module health.)
+#
+# Mapping (board package / feature this bundle uses):
+#   core_hardware  (sense360_core_ceiling)    -> packages/boards/s360-100-core-ceiling.yaml
+#   power_config   (power_poe)                -> packages/boards/s360-410-poe-psu.yaml
+#   airiq_module   (airiq_ceiling)            -> packages/boards/s360-210-airiq.yaml
+#   roomiq_comfort + roomiq_presence
+#       (comfort_ceiling + presence_ceiling)  -> packages/boards/s360-200-roomiq.yaml
+#   profiles (airiq / comfort / presence)     -> packages/features/* (unchanged)
+#
+# Compatibility rules (see docs/release-one.md):
+# - AirIQ and VentIQ are mutually exclusive; this build ships AirIQ (no VentIQ).
+# - RoomIQ is the R4 merge of the legacy Comfort + Presence boards.
+# - This build ships no fan-driver firmware and no LED firmware (the config
+#   string carries no fan token and no LED token). FanTRIAC stays blocked
+#   (HW-005) and is intentionally omitted.
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending (PRODUCT-POE-410-001).
+# - Air Quality  : Sense360 AirIQ   (S360-210-R4 board: SCD41 CO2 + SGP41
+#                  VOC/NOx PCB-mounted; the SPS30 PM module is an EXTERNAL
+#                  J2 attachment with a compiled driver — not separately
+#                  declared in this bundle's contents, so PM entities ship
+#                  disabled by default and SPS30 is not expected by module
+#                  health)
+# - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
+# - Fan Driver   : not included     (no fan token in config string)
+# - LED          : not included     (no LED token in config string)
 # ============================================================================
 
+substitutions:
+  # === Device Configuration ===
+  # ESPHome hostnames are limited to 31 chars; this is the shortened hostname
+  # only. WebFlash identity (config string, text sensors) remains
+  # `Ceiling-POE-AirIQ-RoomIQ`.
+  device_name: s360-ceil-poe-airiq-roomiq
+  friendly_name: Sense360 Ceiling AirIQ RoomIQ
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
+  # Blocked on the shared S360-410 schematic-verification gate; this is NOT a
+  # release version and must not be read as one (see PRODUCT-POE-410-001).
+  device_version: "0.0.0-blocked-s360-410"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === WiFi AP fallback ===
+  # ESPHome enforces a 32-character maximum on the AP SSID. Override with a
+  # short, human-readable label that identifies the AirIQ + RoomIQ build
+  # during AP/setup mode.
+  fallback_ssid: "S360 AirIQ RoomIQ"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Compile-time capability declaration for the shared device framework
+  # (packages/base/device_framework.yaml). Values must match this config
+  # string's entry in config/core-framework.json — enforced by
+  # tests/test_core_framework.py. These are compile-time composition
+  # facts only; no runtime hardware autodetection is claimed.
+  s360_config_string: "Ceiling-POE-AirIQ-RoomIQ"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,power_poe,airiq,roomiq,presence"
+  s360_capabilities_human: "Core, PoE power, AirIQ, RoomIQ, Presence"
+  s360_module_airiq: "Included"
+  s360_module_roomiq: "Included"
+  s360_module_presence: "Included"
+
+# ============================================================================
+# PACKAGE INCLUDES (board layer + base + profiles)
+# ============================================================================
 packages:
-  bundle: !include bundles/ceiling-poe-airiq-roomiq.yaml
+  # === External Components (radar firmware) ===
+  external_components: !include ../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Board package holds the S360-100 ceiling Core content (PR 07 flip); defines
+  # the canonical single shared Core I²C bus `core_i2c` that AirIQ + RoomIQ bind.
+  core_board: !include ../packages/boards/s360-100-core-ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  # Board package wraps packages/hardware/power_poe.yaml. Schematic verification
+  # pending — S360-410 stays schematic_status: cataloged_unverified
+  # (PRODUCT-POE-410-001). This bundle does NOT close that caveat.
+  power_board: !include ../packages/boards/s360-410-poe-psu.yaml
+
+  # === Sense360 LED (S360-300) ===
+  # Intentionally NOT included. The config string `Ceiling-POE-AirIQ-RoomIQ`
+  # carries no `LED` token.
+
+  # === Sense360 AirIQ (S360-210 board + supported external attachments) ===
+  # Board package wraps packages/expansions/airiq_ceiling.yaml: SGP41
+  # VOC/NOx + SCD41 CO2 PCB-mounted on the shared core_i2c bus, plus the
+  # compiled driver for the external SPS30 PM attachment (J2, not
+  # separately declared) and the drifted internal BMP390 (firmware/catalog
+  # drift; no pressure part on the verified schematic/BOM).
+  # AirIQ and VentIQ are mutually exclusive; this build ships AirIQ.
+  airiq_board: !include ../packages/boards/s360-210-airiq.yaml
+  # === Sense360 AirIQ framework (AIRIQ-FRAMEWORK-001) ===
+  # Canonical indoor-air-quality service: CO2 / VOC / NOx / PM2.5, one
+  # headline Air Quality state, one Recommendation and the AirIQ module
+  # runtime status (supersedes the legacy airiq_basic_profile MQTT/
+  # placeholder path in bundles; the profile's published surface — the
+  # air_quality_state compatibility entity and the MQTT block — is
+  # preserved inside the framework package; legacy shim products keep
+  # the profile).
+  airiq_framework: !include ../packages/features/airiq_framework.yaml
+
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  # Board package wraps packages/expansions/comfort_ceiling.yaml +
+  # presence_ceiling.yaml. The RoomIQ display sensors stay in the profiles.
+  roomiq_board: !include ../packages/boards/s360-200-roomiq.yaml
+  # === Sense360 RoomIQ framework (ROOMIQ-FRAMEWORK-001) ===
+  # Canonical comfort and environmental service: calibrated Temperature /
+  # Humidity / Illuminance, Comfort, Environment State, Brightness and the
+  # RoomIQ module runtime status (supersedes the legacy
+  # comfort_basic_profile display path in bundles; legacy products keep
+  # the profile and every pre-framework entity id remains available as a
+  # disabled-by-default compatibility entity inside the framework).
+  roomiq_framework: !include ../packages/features/roomiq_framework.yaml
+  # === Sense360 Presence framework (PRESENCE-FRAMEWORK-001) ===
+  # Tri-sensor customer Presence experience: PIR (immediate movement) +
+  # LD2450 (radar half above) + SEN0609 (static presence), fused by
+  # packages/features/presence_framework.yaml (supersedes the legacy
+  # presence_basic_profile in bundles; legacy products keep the profile).
+  roomiq_pir_board: !include ../packages/boards/s360-200-roomiq-pir.yaml
+  roomiq_sen0609_board: !include ../packages/boards/s360-200-roomiq-sen0609.yaml
+  roomiq_presence_framework: !include ../packages/features/presence_framework.yaml
+
+  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
+  # NOT included. The FanTRIAC slot is blocked per HW-005.
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Shared identity / capability / module-status / health entities.
+  framework: !include ../packages/base/device_framework.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    id: s360_product_sku
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    id: s360_product_firmware_version
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    id: s360_product_config_string
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-AirIQ-RoomIQ"};
+    update_interval: never
+    entity_category: diagnostic
+
+# ============================================================================
+# STATIC DIAGNOSTIC PUBLICATION (STATIC-DIAGNOSTIC-PUBLISH-001)
+# ============================================================================
+# The product-identification text sensors above hold compile-time constants,
+# so they are declared `update_interval: never` — an immutable string must not
+# be polled on a timer. A never-polled template text sensor also never
+# evaluates its lambda, so each one is published exactly ONCE at boot.
+# Priority 500 runs after the text-sensor components are set up (ESPHome
+# `setup_priority::HARDWARE` = 800) and before every runtime framework boot hook
+# (priority 250), so no runtime publisher is ever overwritten.
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_product_sku
+        - component.update: s360_product_firmware_version
+        - component.update: s360_product_config_string
