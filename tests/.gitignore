@@ -1,2 +1,8 @@
 # Ignore generated test configs
 generated/
+# C++ unit-test build outputs — built from tests/unit/*.cpp by tests/Makefile
+# (CI: core-framework-compile.yml runs `make -C tests test`). Never commit these:
+# a committed binary with a fresh mtime shadows its source under make and can
+# mask a source regression.
+bin/
+build/
