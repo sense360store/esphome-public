@@ -1,4 +1,7 @@
 #include "sfa40.h"
+
+#include <cinttypes>
+
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -50,7 +53,8 @@ void SFA40Component::dump_config() {
         break;
     }
   } else {
-    ESP_LOGCONFIG(TAG, "  Serial number: 0x%08X%08X", static_cast<uint32_t>(this->serial_number_ >> 32),
+    ESP_LOGCONFIG(TAG, "  Serial number: 0x%08" PRIX32 "%08" PRIX32,
+                  static_cast<uint32_t>(this->serial_number_ >> 32),
                   static_cast<uint32_t>(this->serial_number_ & 0xFFFFFFFF));
   }
   LOG_UPDATE_INTERVAL(this);

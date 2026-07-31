@@ -1,5 +1,6 @@
 #include "sense360_roomiq.h"
 
+#include <cinttypes>
 #include <cmath>
 
 #include "esphome/core/hal.h"
@@ -188,9 +189,9 @@ void Sense360RoomIQ::dump_config() {
   ESP_LOGCONFIG(TAG, "Sense360 RoomIQ (glue over the canonical engine "
                      "singleton; model logic lives in "
                      "components/sense360/roomiq_engine.h)");
-  ESP_LOGCONFIG(TAG, "  Climate windows: warmup %ums stale %ums",
+  ESP_LOGCONFIG(TAG, "  Climate windows: warmup %" PRIu32 "ms stale %" PRIu32 "ms",
                 this->climate_warmup_ms_, this->climate_stale_ms_);
-  ESP_LOGCONFIG(TAG, "  Illuminance windows: warmup %ums stale %ums",
+  ESP_LOGCONFIG(TAG, "  Illuminance windows: warmup %" PRIu32 "ms stale %" PRIu32 "ms",
                 this->lux_warmup_ms_, this->lux_stale_ms_);
   ESP_LOGCONFIG(TAG, "  Calibration schema version: %d",
                 this->calibration_schema_version_);
