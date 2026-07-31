@@ -236,7 +236,13 @@ class Sfa40OptOutTests(unittest.TestCase):
     # engine-input and marks HCHO not-expected, without touching the default.
     def test_overlay_removes_sfa40_and_expected(self) -> None:
         self.assertIn("!remove sfa40_sensor", self.overlay_raw)
-        self.assertIn("!remove s360_airiq_hcho_sample", self.overlay_raw)
+        # The framework's former HCHO copy sensor (s360_airiq_hcho_sample)
+        # was retired by the PR 11 migration onto the sense360_airiq domain
+        # component; the overlay now drops the component's optional
+        # hcho_source binding instead, so no dangling airiq_hcho reference
+        # survives.
+        self.assertNotIn("s360_airiq_hcho_sample", self.overlay_raw)
+        self.assertIn("hcho_source: !remove", self.overlay_raw)
         subs = self.overlay.get("substitutions") or {}
         self.assertEqual(subs.get("airiq_expected_hcho"), "false")
         # The overlay must NOT itself declare an sfa40 driver (a comment may

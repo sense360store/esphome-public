@@ -15,9 +15,10 @@
 #     airiq_hcho / airiq_sfa40_* sub-sensors) so no `platform: sfa40` is
 #     compiled and the unfitted sensor NEVER probes 0x5D or logs a repeated
 #     communication failure;
-#   * removes the AirIQ framework's HCHO engine-input copy sensor
-#     (`s360_airiq_hcho_sample`), which references the now-absent `airiq_hcho`
-#     — so a no-SFA40 composition validates with no dangling reference;
+#   * removes the sense360_airiq domain component's optional `hcho_source`
+#     binding, which references the now-absent `airiq_hcho` — so a no-SFA40
+#     composition validates with no dangling reference (the framework's
+#     former HCHO copy sensor was retired by the PR 11 component migration);
 #   * sets `airiq_expected_hcho: "false"` so formaldehyde is NOT an expected
 #     channel: a deliberately-omitted SFA40 does NOT degrade AirIQ module
 #     health, and the capability / expected-sensor surface reflects the real
@@ -51,8 +52,15 @@ substitutions:
   # deliberately-omitted SFA40 does not mark the module Degraded/Unavailable.
   airiq_expected_hcho: "false"
 
-# Remove the raw SFA40 driver (board package) and the framework's HCHO
-# engine-input copy sensor (which references the now-absent airiq_hcho).
+# Remove the raw SFA40 driver (board package). The framework's former HCHO
+# engine-input copy sensor was retired by the PR 11 migration onto the
+# sense360_airiq domain component, so it no longer needs removing here.
 sensor:
   - id: !remove sfa40_sensor
-  - id: !remove s360_airiq_hcho_sample
+
+# The sense360_airiq domain component (AIRIQ-FRAMEWORK-001, PR 11) feeds its
+# HCHO input from `hcho_source: airiq_hcho`; with the SFA40 unfitted that id
+# no longer exists, so drop the optional source binding (the engine then
+# treats HCHO as never-fed, matching airiq_expected_hcho "false" above).
+sense360_airiq:
+  hcho_source: !remove

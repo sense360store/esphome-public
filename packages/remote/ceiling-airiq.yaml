@@ -50,7 +50,11 @@ external_components:
       url: ${sense360_remote_url}
       ref: ${sense360_remote_ref}
       path: components
-    components: [sense360]
+    # sense360_airiq is the AirIQ domain component the framework's platforms
+    # use (sensor/text_sensor `platform: sense360_airiq`); it auto-loads the
+    # sense360 foundation component, which is also declared explicitly for the
+    # bare `sense360:` load below.
+    components: [sense360, sense360_airiq]
     refresh: 1d
 
 # Load the shared-engine delivery component (its to_code #includes the headers).

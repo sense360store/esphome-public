@@ -70,7 +70,7 @@ external_components:
       url: ${sense360_remote_url}
       ref: ${sense360_remote_ref}
       path: components
-    components: [sense360, sense360_roomiq]
+    components: [sense360, sense360_roomiq, sense360_presence]
     refresh: 1d
 
 # Load the shared-engine delivery component (its to_code #includes the headers).

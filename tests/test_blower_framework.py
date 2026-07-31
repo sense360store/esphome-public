@@ -58,11 +58,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "blower_framework.yaml"
 # packages/remote/blower-framework.yaml was DELETED under the owner decision
 # of 2026-07-28 (SENSE360-CANONICALISATION-001 PR 07, packages/remote
-# resolution): the customer remote-consumption guide
-# The archived remote-consumption guide never documented a blower wrapper, so it
-# was the unpublished remainder — internal per Section 7 and the recorded
-# no-external-customers fact. The blower FRAMEWORK package itself stays until
-# PR 12 decides the Blower surface.
+# resolution) as the unpublished remainder of packages/remote/, and that
+# legacy path stays deleted. The SUPPORTED remote entrypoint is the
+# convention-named packages/remote/ceiling-blower.yaml wrapper
+# (REMOTE-PACKAGE-HEADER-RESOLUTION-001 pattern, alongside ceiling-airiq /
+# ceiling-roomiq-presence / led-framework), which delivers the engine headers
+# via the sense360 external component instead of the framework's
+# repository-local esphome: includes: path.
+REMOTE_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-blower.yaml"
 FIXTURE = REPO_ROOT / "products" / "sense360-core-ceiling-airiq-blower.yaml"
 HEADER = REPO_ROOT / "components" / "sense360" / "blower_controller.h"
 AIRIQ_HEADER = REPO_ROOT / "components" / "sense360" / "airiq_engine.h"
@@ -344,17 +347,101 @@ class FrameworkPackageTests(unittest.TestCase):
 
 
 class RemoteWrapperRemovedTests(unittest.TestCase):
-    """The unpublished remote wrapper stays deleted (PR 07 record above)."""
+    """The unpublished legacy remote wrapper stays deleted (PR 07 record
+    above); packages/remote/ceiling-blower.yaml is the supported entrypoint."""
 
     def test_the_unpublished_remote_wrapper_stays_deleted(self) -> None:
         self.assertFalse(
             (REPO_ROOT / "packages" / "remote" / "blower-framework.yaml").exists(),
-            "the blower remote wrapper was deleted as the unpublished "
-            "remainder of packages/remote/ and must not return; the four "
-            "remaining packages/remote/ wrappers (see "
-            "docs/archive-index.md for the archived consumption guide) are "
-            "the protected remote entrypoints",
+            "the legacy blower-framework.yaml remote wrapper was deleted as "
+            "the unpublished remainder of packages/remote/ and must not "
+            "return; packages/remote/ceiling-blower.yaml is the supported "
+            "remote entrypoint",
         )
+
+
+class RemoteWrapperTests(unittest.TestCase):
+    """packages/remote/ceiling-blower.yaml — the remote-consumer-safe blower
+    entrypoint (REMOTE-PACKAGE-HEADER-RESOLUTION-001 pattern). It must deliver
+    the engine headers via the git-sourced sense360 external component and
+    remove the framework's repository-local include, so a git-package consumer
+    never resolves `../components/sense360/*.h` against their own /config."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.raw = REMOTE_WRAPPER.read_text()
+        cls.doc = load_yaml(REMOTE_WRAPPER)
+
+    def test_wrapper_exists(self) -> None:
+        self.assertTrue(
+            REMOTE_WRAPPER.is_file(),
+            "packages/remote/ceiling-blower.yaml must exist as the supported "
+            "remote blower entrypoint",
+        )
+
+    def test_delivers_engines_via_git_sense360_component(self) -> None:
+        ext = self.doc.get("external_components")
+        self.assertTrue(ext, "wrapper must declare external_components")
+        self.assertEqual(ext[0]["source"]["type"], "git")
+        self.assertEqual(ext[0]["source"]["path"], "components")
+        self.assertIn("sense360", ext[0]["components"])
+        # Loads the delivery component so its to_code #includes the headers.
+        self.assertIn("sense360", self.doc)
+        # The caller's configured ref must be preserved (never a hardcoded ref
+        # inside the source block).
+        self.assertIn("ref: ${sense360_remote_ref}", self.raw)
+        self.assertIn("url: ${sense360_remote_url}", self.raw)
+        # Never a `type: local` source, which cannot travel with a git package.
+        self.assertNotIn("type: local", self.raw)
+
+    def test_composes_framework_and_removes_local_include(self) -> None:
+        # Composes the existing framework (never duplicates its behaviour)...
+        self.assertIn("../features/blower_framework.yaml", self.raw)
+        # ...and removes the framework's repository-local include path, the
+        # exact consumer-side "Could not find file .../components/sense360/..."
+        # defect this wrapper fixes.
+        self.assertIn("includes: !remove", self.raw)
+
+    def test_wrapper_binds_no_pin_and_duplicates_no_behaviour(self) -> None:
+        # The FAN-net pin stays owned by the framework (GPIO21 via the
+        # blower_fan_pin substitution); the wrapper adds no output, entity,
+        # relay or second control surface of its own.
+        for key in (
+            "output",
+            "select",
+            "binary_sensor",
+            "switch",
+            "fan",
+            "script",
+            "interval",
+            "text_sensor",
+        ):
+            self.assertNotIn(
+                key, self.doc, f"wrapper must not declare its own `{key}:` block"
+            )
+        self.assertNotIn("pin:", self.raw)
+        self.assertNotIn("number: GPIO", self.raw)
+        self.assertNotIn("main_relay", self.doc.get("substitutions", {}))
+
+    def test_wrapper_changes_no_commercial_or_release_declaration(self) -> None:
+        for forbidden in (
+            "webflash-builds",
+            "product-catalog",
+            "release-channel-policy",
+            "artifact_name",
+            "webflash_build_matrix",
+        ):
+            self.assertNotIn(forbidden, self.raw, f"wrapper must not touch {forbidden}")
+
+    def test_engine_headers_registered_for_delivery(self) -> None:
+        init_raw = INIT_PY.read_text()
+        for header in ("blower_controller.h", "airiq_engine.h"):
+            self.assertIn(
+                header,
+                init_raw,
+                f"{header} must be delivered by the sense360 component so the "
+                "remote wrapper resolves it without a consumer-local copy",
+            )
 
 
 class FixtureTests(unittest.TestCase):

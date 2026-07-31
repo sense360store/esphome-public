@@ -86,6 +86,18 @@ jobs:
         run: |
           python3 tests/test_ventiq_framework.py
 
+      - name: Blower framework contract (BLOWER-FRAMEWORK-001)
+        run: |
+          python3 tests/test_blower_framework.py
+
+      # Structural half of REMOTE-PACKAGE-HEADER-RESOLUTION-001: wrapper /
+      # component shape checks always run; the esphome-CLI consumer
+      # validations skip here (no esphome installed) and run with the CLI in
+      # the compile-only workflow's full-compile lane.
+      - name: Remote package consumer contract (REMOTE-PACKAGE-HEADER-RESOLUTION-001)
+        run: |
+          python3 tests/test_remote_package_consumer.py
+
       - name: Reject known fallback-AP password literals (SEC-ESP-FALLBACK-AP-001)
         run: |
           python3 scripts/check_fallback_ap_password.py

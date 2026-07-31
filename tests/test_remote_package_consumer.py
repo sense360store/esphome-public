@@ -76,6 +76,8 @@ AIRIQ_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-airiq.yaml"
 ROOMIQ_PRESENCE_WRAPPER = (
     REPO_ROOT / "packages" / "remote" / "ceiling-roomiq-presence.yaml"
 )
+BLOWER_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-blower.yaml"
+BLOWER_CONTROLLER_HEADER = REPO_ROOT / "components" / "sense360" / "blower_controller.h"
 
 # Every shared header the sense360 component must deliver (one physical copy of
 # each lives in components/sense360/ — the same files the native C++ unit tests
@@ -87,6 +89,7 @@ EXPECTED_SHARED_HEADERS = {
     "presence_fusion.h",
     "led_controller.h",
     "led_logic.h",
+    "blower_controller.h",
     "thresholds.h",
     "calibration.h",
     "time_utils.h",
@@ -404,6 +407,125 @@ logger:
   level: DEBUG
 
 mqtt: null
+"""
+
+
+# BLOWER-FRAMEWORK-001 remote consumer: Core + AirIQ + the FULL blower
+# behaviour framework, ALL pulled through git packages — this models the exact
+# external Home Assistant configuration that previously failed with
+# "Could not find file '/config/esphome/../components/sense360/
+# blower_controller.h'". The blower wrapper delivers blower_controller.h and
+# airiq_engine.h via the sense360 external component; AirIQ is genuinely
+# composed here so the device honestly sets blower_has_airiq "true".
+CONSUMER_CORE_AIRIQ_BLOWER = """\
+substitutions:
+  device_name: sense360-core-blower
+  friendly_name: Sense360 Core Blower
+  timezone: "Europe/London"
+  device_version: "0.0.0-remote-consumer-test"
+  sense360_remote_url: file://__REMOTE__
+  sense360_remote_ref: main
+  s360_config_string: "Ceiling-Core-AirIQ-Blower-Bench"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,blower"
+  s360_capabilities_human: "Core, AirIQ, Blower"
+  s360_module_airiq: "Included"
+  s360_module_fan_control: "Included"
+  blower_has_airiq: "true"
+
+packages:
+  core:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/boards/s360-100-core-ceiling.yaml]
+    refresh: 0s
+  core_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 0s
+  airiq:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-airiq.yaml]
+    refresh: 0s
+  blower:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-blower.yaml]
+    refresh: 0s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: DEBUG
+
+mqtt: null
+"""
+
+
+# BLOWER-FRAMEWORK-001 fail-safe remote consumer: Core + blower WITHOUT AirIQ.
+# blower_has_airiq stays at its "false" framework default, so Auto has no
+# actionable demand and the blower stays off (fail-safe) — this composition
+# must still validate remotely (the AirIQ engine header is delivered and
+# compiled unfed, never inventing demand).
+CONSUMER_CORE_BLOWER_NO_AIRIQ = """\
+substitutions:
+  device_name: sense360-core-blower-solo
+  friendly_name: Sense360 Core Blower Solo
+  timezone: "Europe/London"
+  device_version: "0.0.0-remote-consumer-test"
+  sense360_remote_url: file://__REMOTE__
+  sense360_remote_ref: main
+  s360_config_string: "Ceiling-Core-Blower-Bench"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,blower"
+  s360_capabilities_human: "Core, Blower"
+  s360_module_fan_control: "Included"
+
+packages:
+  core:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/boards/s360-100-core-ceiling.yaml]
+    refresh: 0s
+  core_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 0s
+  blower:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-blower.yaml]
+    refresh: 0s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: DEBUG
 """
 
 
@@ -734,9 +856,12 @@ class LedFrameworkRemoteConfigTests(unittest.TestCase):
         self.assertNotIn("Couldn't find ID", out, out[-2000:])
         self.assertEqual(proc.returncode, 0, out[-3000:])
         self.assertIn("Configuration is valid", out)
-        # The optional-input flags reached the engine as bool literals: this
+        # The optional-input flags reached the sense360_led component config
+        # (which forwards them to the engine via set_capabilities in codegen —
+        # the former YAML-lambda literal no longer exists post-PR 12): this
         # AirIQ-only device honestly declares no RoomIQ and no Presence.
-        self.assertIn("set_capabilities(false, false)", out)
+        self.assertIn("has_roomiq: false", out)
+        self.assertIn("has_presence: false", out)
 
     def test_consumer_dir_has_no_local_include_tree(self) -> None:
         self.fixture.run("config")
@@ -777,9 +902,11 @@ class RoomIqPresenceRemoteConfigTests(unittest.TestCase):
         self.assertNotIn("Couldn't find ID", out, out[-2000:])
         self.assertEqual(proc.returncode, 0, out[-3000:])
         self.assertIn("Configuration is valid", out)
-        # RoomIQ + Presence are genuinely composed, so the LED engine received
-        # both capability flags as true bool literals.
-        self.assertIn("set_capabilities(true, true)", out)
+        # RoomIQ + Presence are genuinely composed, so the sense360_led
+        # component config (which forwards to the engine's set_capabilities in
+        # codegen) carries both capability flags true.
+        self.assertIn("has_roomiq: true", out)
+        self.assertIn("has_presence: true", out)
 
     def test_consumer_dir_has_no_local_include_tree(self) -> None:
         # Proves the engines are NOT satisfied by a local /config/include copy.
@@ -826,6 +953,108 @@ class NoSfa40RemoteConfigTests(unittest.TestCase):
         self.assertIn("platform: ltr_als_ps", out)
         self.assertIn("address: 0x29", out)
         self.assertNotIn("platform: veml7700", out)
+
+    def test_consumer_dir_has_no_local_include_tree(self) -> None:
+        self.fixture.run("config")
+        self.assertFalse(
+            (self.fixture.consumer / "include").exists(),
+            "consumer must not need a local include/ directory",
+        )
+
+
+@unittest.skipIf(_esphome_cli() is None, "esphome CLI not installed")
+class BlowerRemoteConfigTests(unittest.TestCase):
+    """BLOWER-FRAMEWORK-001: the FULL blower framework composes remotely
+    (Core + AirIQ + blower wrapper, all via git packages) with
+    blower_controller.h and airiq_engine.h resolved via the sense360
+    component — the exact consumer-local '../components/...' include failure
+    is gone, GPIO21 stays the only blower output, and the GPIO3 main_relay
+    stays a separate Core-owned control."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_CORE_AIRIQ_BLOWER)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_config_validates_with_blower_engine_resolved(self) -> None:
+        proc = self.fixture.run("config")
+        out = proc.stdout
+        # The exact reported defect must be gone: no unresolved repository-
+        # local header path and no "Could not find file".
+        for header in ("blower_controller.h", "airiq_engine.h"):
+            self.assertNotIn(
+                f"components/sense360/{header}'",
+                out,
+                f"{header} must not appear as an unresolved local include",
+            )
+        self.assertNotIn("Could not find file", out, out[-2000:])
+        self.assertNotIn("Couldn't find ID", out, out[-2000:])
+        self.assertEqual(proc.returncode, 0, out[-3000:])
+        self.assertIn("Configuration is valid", out)
+
+    def test_expanded_config_carries_the_blower_contract(self) -> None:
+        proc = self.fixture.run("config")
+        out = proc.stdout
+        self.assertEqual(proc.returncode, 0, out[-3000:])
+        # Dedicated GPIO21 blower output (S360-100-R4 FAN net).
+        self.assertIn("id: blower_output", out)
+        blower_out = re.search(
+            r"id: blower_output\s*\n\s*pin:\s*\n(?:\s+\w+:.*\n)*?\s+number: 21\b",
+            out,
+        )
+        self.assertIsNotNone(
+            blower_out, "blower_output must drive GPIO21 (the FAN net)"
+        )
+        # Customer contract: authoritative mode select, auto trigger, and the
+        # read-only commanded-state binary sensor.
+        self.assertIn("Blower Mode", out)
+        self.assertIn("Blower Auto Trigger", out)
+        self.assertIn("id: blower_state", out)
+        # No conflicting control surface: no fan: entity, no blower switch.
+        self.assertIsNone(re.search(r"(?m)^fan:", out), "no fan: entity")
+        # The GPIO3 main_relay remains a separate Core-owned control; the
+        # blower evaluation script drives blower_output only, never the relay.
+        self.assertIn("id: main_relay", out)
+        script_match = re.search(r"id\(blower_output\)\.turn_on\(\)", out)
+        self.assertIsNotNone(script_match, "engine must drive blower_output")
+        self.assertNotIn("id(main_relay).turn_on", out)
+        self.assertNotIn("id(main_relay).turn_off", out)
+        # AirIQ genuinely composed: the capability flag reached the engine as
+        # a true bool literal.
+        self.assertIn("set_has_airiq(true)", out)
+
+    def test_consumer_dir_has_no_local_include_tree(self) -> None:
+        self.fixture.run("config")
+        self.assertFalse(
+            (self.fixture.consumer / "include").exists(),
+            "consumer must not need a local include/ directory",
+        )
+
+
+@unittest.skipIf(_esphome_cli() is None, "esphome CLI not installed")
+class BlowerNoAiriqRemoteConfigTests(unittest.TestCase):
+    """BLOWER-FRAMEWORK-001 fail-safe: the blower wrapper composes remotely
+    WITHOUT AirIQ. blower_has_airiq stays at its 'false' default so Auto has
+    no actionable demand (the unfed AirIQ engine reports UNKNOWN and never
+    starts the blower)."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_CORE_BLOWER_NO_AIRIQ)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_config_validates_fail_safe_without_airiq(self) -> None:
+        proc = self.fixture.run("config")
+        out = proc.stdout
+        self.assertNotIn("Could not find file", out, out[-2000:])
+        self.assertNotIn("Couldn't find ID", out, out[-2000:])
+        self.assertEqual(proc.returncode, 0, out[-3000:])
+        self.assertIn("Configuration is valid", out)
+        # The composition capability honestly reached the engine as false.
+        self.assertIn("set_has_airiq(false)", out)
+        self.assertIn("id: blower_output", out)
 
     def test_consumer_dir_has_no_local_include_tree(self) -> None:
         self.fixture.run("config")
@@ -924,6 +1153,49 @@ class RoomIqPresenceSourceResolutionTests(unittest.TestCase):
         generated = esphome_h[0].read_text()
         self.assertIn("esphome/components/sense360/roomiq_engine.h", generated)
         self.assertIn("esphome/components/sense360/presence_fusion.h", generated)
+
+
+@unittest.skipUnless(
+    _esphome_cli() is not None and os.environ.get("RUN_REMOTE_COMPILE") == "1",
+    "set RUN_REMOTE_COMPILE=1 (and install esphome) to run the compile source-resolution check",
+)
+class BlowerSourceResolutionTests(unittest.TestCase):
+    """BLOWER-FRAMEWORK-001 compile source-resolution: a real `esphome
+    compile` of the remote Core + AirIQ + blower composition delivers
+    blower_controller.h into the build byte-identically to the canonical
+    single source, and #includes it."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_CORE_AIRIQ_BLOWER)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_delivered_blower_controller_matches_canonical(self) -> None:
+        self.fixture.run("compile")
+        delivered = None
+        for cand in self.fixture.cache.rglob(
+            "src/esphome/components/sense360/blower_controller.h"
+        ):
+            delivered = cand
+            break
+        self.assertIsNotNone(
+            delivered,
+            "blower_controller.h was not delivered into the build via the "
+            "package mechanism",
+        )
+        self.assertEqual(
+            delivered.read_bytes(),
+            BLOWER_CONTROLLER_HEADER.read_bytes(),
+            "delivered blower_controller.h must be byte-identical to the "
+            "canonical single source",
+        )
+        esphome_h = list(self.fixture.cache.rglob("src/esphome.h"))
+        self.assertTrue(esphome_h)
+        self.assertIn(
+            "esphome/components/sense360/blower_controller.h",
+            esphome_h[0].read_text(),
+        )
 
 
 @unittest.skipUnless(
