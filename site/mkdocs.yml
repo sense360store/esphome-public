@@ -84,6 +84,9 @@ nav:
   - Zone Studio: zone-studio.md
   - Help:
       - Overview: help/index.md
+      - Get it online: help/get-online.md
+      - Updates and recovery: help/updates-and-recovery.md
+      - Moving rooms: help/moving-rooms.md
       - What the boards do: help/sensor-glossary.md
       - The light ring: help/light-ring.md
   - Advanced: advanced/index.md

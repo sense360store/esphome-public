@@ -26,6 +26,20 @@ fails CI. Phase 1 pins:
 - zone-configuration guidance is linked to the sense360zones surface,
   never duplicated here.
 
+Phase 3 adds:
+
+- security honesty ("no security stronger than shipped"): released
+  installer firmware ships unprovisioned (keyless unencrypted API,
+  unauthenticated OTA, open setup hotspot — see
+  docs/security/release-firmware-credential-posture.md), so rendered
+  customer prose must never claim encryption, authentication, signing,
+  or any equivalent for it; the honest shapes ("without an encryption
+  key", "unencrypted", the self-build "encryption key") stay allowed,
+  and the room pages must keep the keyless honesty statement;
+- the help articles join the customer-page scans;
+- owner-asset glue: every `owner-asset:` placeholder on a site page has
+  a row in the Phase 4 shot list (docs/customer-docs-owner-assets.md).
+
 Stdlib unittest only; runnable directly or under plain pytest.
 """
 
@@ -54,11 +68,17 @@ SPINE = (
 )
 
 CUSTOMER_PAGES = [
+    "index.md",
     "rooms/bathroom.md",
     "rooms/bedroom.md",
     "rooms/kitchen.md",
     "zone-studio.md",
     "help/index.md",
+    "help/get-online.md",
+    "help/updates-and-recovery.md",
+    "help/moving-rooms.md",
+    "help/sensor-glossary.md",
+    "help/light-ring.md",
     "advanced/index.md",
 ]
 
@@ -70,6 +90,28 @@ FORBIDDEN_COMMERCIAL = re.compile(
 )
 # Programme/tracking identifier shapes (e.g. ABC-DEF-001, OD-SOT-004).
 INTERNAL_ID = re.compile(r"\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)+-\d{3}\b")
+
+# "No security stronger than shipped": released installer firmware is
+# unprovisioned (docs/security/release-firmware-credential-posture.md),
+# so customer prose must not claim encryption, authentication, signing,
+# TLS, or tamper-anything for it. Allowed honest shapes: "unencrypted"
+# (single word, so \bencrypted\b never matches inside it) and
+# "encryption key" (the keyless statement and the self-build key both
+# use it — the lookahead lets exactly that phrase through).
+SECURITY_OVERCLAIM = re.compile(
+    r"\bencrypted\b"
+    r"|\bencryption\b(?!\s+key)"
+    r"|\bsecured?\b"
+    r"|password.protected"
+    r"|end.to.end"
+    r"|\btls\b|\bssl\b"
+    r"|\bsigned\b"
+    r"|\bauthenticat"
+    r"|tamper",
+    re.IGNORECASE,
+)
+
+SHOT_LIST = REPO_ROOT / "docs" / "customer-docs-owner-assets.md"
 
 
 def _rendered_prose(text):
@@ -274,6 +316,61 @@ class FactualClaimTests(unittest.TestCase):
                     expected,
                     f"{name} is stale — regenerate with "
                     "python3 scripts/generate_customer_docs_blocks.py",
+                )
+
+    def test_no_security_overclaims_in_customer_prose(self):
+        # Includes are resolved first so the generated blocks a page
+        # embeds are swept too; comments (authoring notes and generated
+        # provenance headers) are exempt.
+        for rel in CUSTOMER_PAGES:
+            text = _rendered_prose(
+                _resolve_includes(
+                    (SITE_DOCS / rel).read_text(encoding="utf-8")
+                )
+            )
+            match = SECURITY_OVERCLAIM.search(text)
+            self.assertIsNone(
+                match,
+                f"{rel}: claims {match.group(0)!r} — security stronger "
+                "than the shipped installer firmware provides (see "
+                "docs/security/release-firmware-credential-posture.md)"
+                if match
+                else None,
+            )
+
+    def test_room_pages_keep_the_keyless_honesty_statement(self):
+        # The positive half of the gate: the Connect section must keep
+        # telling customers the installer firmware is keyless and the
+        # connection shows as unencrypted.
+        for rel in ("rooms/bathroom.md", "rooms/bedroom.md", "rooms/kitchen.md"):
+            with self.subTest(page=rel):
+                text = _rendered_prose(
+                    (SITE_DOCS / rel).read_text(encoding="utf-8")
+                )
+                self.assertIn(
+                    "without an encryption key",
+                    text,
+                    f"{rel}: keyless statement missing",
+                )
+                self.assertIn(
+                    "unencrypted",
+                    text,
+                    f"{rel}: unencrypted honesty statement missing",
+                )
+
+    def test_owner_asset_placeholders_are_in_the_shot_list(self):
+        shot_list = SHOT_LIST.read_text(encoding="utf-8")
+        for page in sorted(SITE_DOCS.rglob("*.md")):
+            for asset in re.findall(
+                r"owner-asset:([a-z0-9-]+)",
+                page.read_text(encoding="utf-8"),
+            ):
+                self.assertIn(
+                    f"`{asset}`",
+                    shot_list,
+                    f"{page.relative_to(SITE_DOCS)}: owner-asset "
+                    f"{asset!r} has no row in the Phase 4 shot list "
+                    "(docs/customer-docs-owner-assets.md)",
                 )
 
     def test_zone_studio_is_linked_not_duplicated(self):
