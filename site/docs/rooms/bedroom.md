@@ -30,8 +30,12 @@ Chrome or Edge on a laptop or desktop:
 
 ## Connect to Home Assistant
 
-Home Assistant discovers the device on your network shortly after it
-comes online and shows it as a new ESPHome device. Adding it takes one
+First, get the device onto your Wi-Fi: after flashing it opens a setup
+hotspot — join it once and give it your network. Full steps in
+[Get it online](../help/get-online.md).
+
+Home Assistant then discovers the device on your network shortly after
+it comes online and shows it as a new ESPHome device. Adding it takes one
 click — installer firmware connects without an encryption key, and Home
 Assistant will show the connection as unencrypted on your local network.
 After that, every sensor and control on this page appears as entities on
