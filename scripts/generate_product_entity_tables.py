@@ -52,7 +52,7 @@ COMPARE_OUTPUT_NAME = "compare-matrix.md"
 # The unexpected-file guard skips exactly these; anything else foreign
 # still fails the check.
 FOREIGN_GENERATED_NAMES = frozenset(
-    {"sensor-glossary.md"}
+    {"sensor-glossary.md", "led-behaviour.md"}
 ) | frozenset(
     f"room-{room}-{kind}.md"
     for room in ("bathroom", "bedroom", "kitchen", "hallway", "living-room")
