@@ -1,0 +1,81 @@
+# ============================================================================
+# SENSE360 REMOTE WRAPPER — Ceiling on-board Blower framework
+# (REMOTE-PACKAGE-HEADER-RESOLUTION-001 / BLOWER-FRAMEWORK-001)
+# ============================================================================
+# Remote-consumer entrypoint for the customer blower framework driving the
+# Sense360 Core's dedicated on-board FAN net (S360-100-R4 schematic IO21 ->
+# Q4 SI2302S -> J13, a two-wire binary 5 V blower output). A Home Assistant
+# ESPHome user pulls THIS single file through a git package to add the blower
+# experience to a Sense360 Core device — the shared C++ engines
+# (components/sense360/blower_controller.h + airiq_engine.h) are delivered
+# automatically via the `sense360` external component, with no
+# `/config/include` setup and no manual header download.
+#
+# It composes, relative to itself inside the fetched repository:
+#   * packages/features/blower_framework.yaml — the FULL blower behaviour
+#     framework (Blower Mode Off/Auto/On, Blower Auto Trigger, read-only
+#     Blower state, min-on / purge / min-off timing, fail-safe Auto)
+# and delivers the shared engine headers through the `sense360` external
+# component while removing the framework's repository-local
+# `esphome: includes:` entry (which resolves only for a repository-local
+# build, never against a remote consumer's /config directory). Exactly one
+# copy of each engine header is compiled — the same files the native C++ unit
+# tests exercise (tests/unit/test_blower_controller.cpp,
+# tests/unit/test_blower_airiq_coexist.cpp) — so nothing is duplicated and no
+# algorithm is re-implemented.
+#
+# Compose alongside the Core board package (packages/boards/
+# s360-100-core-ceiling.yaml), which owns the ESP32-S3 board definition, the
+# GPIO46 status LED and the SEPARATE GPIO3 `main_relay` — neither is ever
+# part of the blower path. The blower output is GPIO21 only, binary on/off,
+# with NO speed / tach / current / airflow / rotation feedback claimed.
+#
+# Optional AirIQ input: compose packages/remote/ceiling-airiq.yaml alongside
+# and set `blower_has_airiq: "true"` in the device substitutions so Auto
+# follows the canonical AirIQ ventilation demand. Without AirIQ the flag
+# stays at its "false" default and Auto is fail-safe: the blower never
+# starts from missing / initialising / unavailable air-quality data.
+#
+# This wrapper changes NO firmware behaviour, entity, product, release,
+# channel or commercial state. It is a packaging/delivery convenience only.
+# The blower remains COMPILE-ONLY under the "Fans are never stable" standing
+# gate (docs/standing-invariants.md): no build-matrix row, no artifact,
+# never stable / preview / customer-default. Release-One
+# (Ceiling-POE-VentIQ-RoomIQ) is unchanged.
+#
+# Pinning: for reproducible production builds set `sense360_remote_ref` to a
+# release tag (e.g. v1.0.7) matching the `ref:` your `packages:` entries pin.
+# `sense360_remote_url` exists so automated tests can retarget the engine
+# delivery at a local fixture repository; leave it at the default for real
+# use.
+# ============================================================================
+
+substitutions:
+  sense360_remote_url: https://github.com/sense360store/esphome-public
+  sense360_remote_ref: main
+  # Declare the fan-control module for the Core Framework "Fan Control Module
+  # Status" entity (compile-time presence only; overridable by the consumer).
+  s360_module_fan_control: "Included"
+
+external_components:
+  - source:
+      type: git
+      url: ${sense360_remote_url}
+      ref: ${sense360_remote_ref}
+      path: components
+    components: [sense360]
+    refresh: 1d
+
+# Load the shared-engine delivery component (its to_code #includes the
+# headers, including blower_controller.h and airiq_engine.h).
+sense360:
+
+packages:
+  blower_framework: !include ../features/blower_framework.yaml
+
+# Remove the framework's repository-local include path; the headers are now
+# delivered by the `sense360` external component above. The framework's
+# on_boot hooks (static diagnostic publish + late restored-mode evaluation)
+# merge through untouched.
+esphome:
+  includes: !remove

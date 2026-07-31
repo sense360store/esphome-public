@@ -139,6 +139,17 @@ jobs:
           # external_components.
           extra-secrets-dirs: "products/webflash products/compile-only"
 
+      # REMOTE-PACKAGE-HEADER-RESOLUTION-001: with the esphome CLI installed,
+      # run the remote-package-consumer regression suite. This models a REAL
+      # external Home Assistant consumer (isolated config dir, git-package
+      # fetch from a snapshot of this checkout) and catches the exact
+      # "Could not find file .../components/sense360/<engine>.h" class of
+      # consumer-local include failure that an in-repository !include build
+      # can never surface. Config-validation only — no firmware artefact.
+      - name: Remote package consumer validation (esphome CLI)
+        run: |
+          python3 tests/test_remote_package_consumer.py
+
       - name: Run compile-only validator (full compile)
         # Per-target progress + a 20-minute-per-target timeout are built
         # into the validator (COMPILE-VALIDATOR-PROGRESS-LOGGING-001); the

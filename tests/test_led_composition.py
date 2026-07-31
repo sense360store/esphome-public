@@ -12,7 +12,8 @@ config` across every supported composition, with RoomIQ and Presence optional:
 
 For each it asserts the config is valid, no `id()` fails to resolve (the exact
 Presence-less defect this programme fixes), and the compile-time capability
-flags reach the engine as the expected `set_capabilities(<roomiq>, <presence>)`
+flags reach the sense360_led component as the expected `has_roomiq` /
+`has_presence` config (forwarded to the engine's set_capabilities in codegen)
 bool literals — so the degraded behaviour is proven, not assumed.
 
 How this avoids a false pass
@@ -89,11 +90,12 @@ _BASE_PACKAGES = """\
   framework: !include ../packages/base/device_framework.yaml
 """
 
-# Each composition: (name, expected set_capabilities literal, extra subs, extra
+# Each composition: (name, expected sense360_led capability config (which
+# codegen forwards to the engine's set_capabilities), extra subs, extra
 # package includes). The base always composes Core + LED board + LED framework.
 COMPOSITIONS = {
     "led_only": (
-        "set_capabilities(false, false)",
+        "has_roomiq: false\n  has_presence: false",
         '  s360_config_string: "Ceiling-Core-LED"\n'
         '  s360_capabilities: "core,led"\n'
         '  s360_capabilities_human: "Core, LED"\n'
@@ -103,7 +105,7 @@ COMPOSITIONS = {
         "",
     ),
     "core_airiq_led": (
-        "set_capabilities(false, false)",
+        "has_roomiq: false\n  has_presence: false",
         '  s360_config_string: "Ceiling-Core-LED-AirIQ"\n'
         '  s360_capabilities: "core,airiq,led"\n'
         '  s360_capabilities_human: "Core, AirIQ, LED"\n'
@@ -115,7 +117,7 @@ COMPOSITIONS = {
         "  airiq_framework: !include ../packages/features/airiq_framework.yaml\n",
     ),
     "led_roomiq": (
-        "set_capabilities(true, false)",
+        "has_roomiq: true\n  has_presence: false",
         '  s360_config_string: "Ceiling-Core-RoomIQ-LED"\n'
         '  s360_capabilities: "core,roomiq,led"\n'
         '  s360_capabilities_human: "Core, RoomIQ, LED"\n'
@@ -127,7 +129,7 @@ COMPOSITIONS = {
         "  roomiq_framework: !include ../packages/features/roomiq_framework.yaml\n",
     ),
     "led_presence": (
-        "set_capabilities(false, true)",
+        "has_roomiq: false\n  has_presence: true",
         '  s360_config_string: "Ceiling-Core-Presence-LED"\n'
         '  s360_capabilities: "core,presence,led"\n'
         '  s360_capabilities_human: "Core, Presence, LED"\n'
@@ -142,7 +144,7 @@ COMPOSITIONS = {
         "  presence_framework: !include ../packages/features/presence_framework.yaml\n",
     ),
     "led_roomiq_presence": (
-        "set_capabilities(true, true)",
+        "has_roomiq: true\n  has_presence: true",
         '  s360_config_string: "Ceiling-Core-RoomIQ-Presence-LED"\n'
         '  s360_capabilities: "core,roomiq,presence,led"\n'
         '  s360_capabilities_human: "Core, RoomIQ, Presence, LED"\n'
@@ -229,8 +231,8 @@ class CompositionMatrixStructureTests(unittest.TestCase):
             has_roomiq = 'led_has_roomiq: "true"' in subs
             has_presence = 'led_has_presence: "true"' in subs
             want = (
-                f"set_capabilities({'true' if has_roomiq else 'false'}, "
-                f"{'true' if has_presence else 'false'})"
+                f"has_roomiq: {'true' if has_roomiq else 'false'}\n"
+                f"  has_presence: {'true' if has_presence else 'false'}"
             )
             self.assertEqual(expected, want, name)
 

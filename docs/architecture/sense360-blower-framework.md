@@ -166,18 +166,61 @@ purge, restart inhibition, and millis rollover.
 
 ## Remote consumption
 
-There is no remote wrapper for the blower framework. The former
-`packages/remote/blower-framework.yaml` was deleted under the owner decision
-of 2026-07-28 (SENSE360-CANONICALISATION-001 PR 07): the customer
-remote-consumption guide
-([`docs/remote-package-consumption.md` (archived)](../archive-index.md))
-never documented a blower entrypoint, so the wrapper was the unpublished
-remainder of `packages/remote/` — internal and removable. Migration note: no
-consumer existed to migrate; a remote consumer wanting the blower surface
-composes `packages/features/blower_framework.yaml` directly with the
-`sense360` external component
-([`components/sense360/__init__.py`](../../components/sense360/__init__.py)),
-until PR 12 decides the Blower surface as a whole.
+The supported remote-consumer entrypoint is
+[`packages/remote/ceiling-blower.yaml`](../../packages/remote/ceiling-blower.yaml)
+(REMOTE-PACKAGE-HEADER-RESOLUTION-001 pattern, alongside `ceiling-airiq` /
+`ceiling-roomiq-presence` / `led-framework`). Do **not** pull
+`packages/features/blower_framework.yaml` directly through a git package: its
+repository-local `esphome: includes:` paths
+(`../components/sense360/*.h`) resolve against the *consumer's* config
+directory and fail with
+`Could not find file '/config/.../components/sense360/blower_controller.h'`.
+The wrapper composes the framework unchanged and instead delivers
+`blower_controller.h` + `airiq_engine.h` through the `sense360` external
+component ([`components/sense360/__init__.py`](../../components/sense360/__init__.py)),
+so no header is ever copied into the consumer's `/config`.
+
+A Home Assistant ESPHome device adds the blower like this (pin `ref` and
+`sense360_remote_ref` to the same release tag for reproducible builds):
+
+```yaml
+substitutions:
+  blower_has_airiq: "true"   # only when ceiling-airiq is composed too
+
+packages:
+  core:
+    url: "https://github.com/sense360store/esphome-public"
+    ref: "main"
+    files:
+      - "packages/boards/s360-100-core-ceiling.yaml"
+    refresh: 0s
+  airiq:                     # optional — enables the Auto demand input
+    url: "https://github.com/sense360store/esphome-public"
+    ref: "main"
+    files:
+      - "packages/remote/ceiling-airiq.yaml"
+    refresh: 0s
+  blower:
+    url: "https://github.com/sense360store/esphome-public"
+    ref: "main"
+    files:
+      - "packages/remote/ceiling-blower.yaml"
+    refresh: 0s
+```
+
+Without the `airiq` package, leave `blower_has_airiq` at its `"false"`
+default: Auto then has no actionable demand and the blower stays off
+(fail-safe). The regression suite
+([`tests/test_remote_package_consumer.py`](../../tests/test_remote_package_consumer.py))
+validates both compositions from an isolated consumer directory through
+ESPHome's git-package mechanism, and pins that the delivered
+`blower_controller.h` is byte-identical to the canonical tested source.
+
+History: the former `packages/remote/blower-framework.yaml` was deleted under
+the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001 PR 07) as the
+unpublished remainder of `packages/remote/`; that legacy path stays deleted
+(`tests/test_blower_framework.py`), and `ceiling-blower.yaml` is its
+convention-named published successor.
 
 ## Gate posture and honesty limits
 

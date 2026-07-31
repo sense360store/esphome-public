@@ -776,7 +776,9 @@ class RuntimeModuleStatusTests(unittest.TestCase):
             "the presence framework must bind the runtime status to the "
             "sense360_presence component",
         )
-        cpp = (REPO_ROOT / "components/sense360_presence/sense360_presence.cpp").read_text()
+        cpp = (
+            REPO_ROOT / "components/sense360_presence/sense360_presence.cpp"
+        ).read_text()
         self.assertIn("publish_state(health)", cpp)
         self.assertIn("EVALUATE_INTERVAL_MS = 500", cpp)
 
@@ -875,7 +877,7 @@ packages:
   core:
     url: file://__REMOTE__
     ref: main
-    files: [packages/hardware/sense360_core_ceiling.yaml]
+    files: [packages/boards/s360-100-core-ceiling.yaml]
     refresh: 0s
   core_framework:
     url: file://__REMOTE__
@@ -1038,7 +1040,24 @@ class RemoteConsumerPublicationTests(unittest.TestCase):
             for p in re.findall(r"^\s+- priority: (\S+)$", self.result.stdout, re.M)
         ]
         self.assertIn(float(STATIC_PUBLISH_BOOT_PRIORITY), priorities)
-        self.assertIn(float(RUNTIME_FRAMEWORK_BOOT_PRIORITY), priorities)
+        # The runtime framework boot hooks migrated into the sense360_*
+        # domain components (their setup runs at component priority, not via
+        # a YAML on_boot hook pinned at exactly 250), so assert the ordering
+        # property itself: at least one runtime-lane YAML boot hook remains
+        # at or below the runtime priority, and every such hook runs after
+        # the static publish point.
+        runtime_hooks = [
+            p for p in priorities if p <= float(RUNTIME_FRAMEWORK_BOOT_PRIORITY)
+        ]
+        self.assertTrue(
+            runtime_hooks,
+            "expected at least one runtime-lane boot hook at priority "
+            f"<= {RUNTIME_FRAMEWORK_BOOT_PRIORITY}",
+        )
+        self.assertTrue(
+            all(p < float(STATIC_PUBLISH_BOOT_PRIORITY) for p in runtime_hooks),
+            "runtime-lane boot hooks must run after the static publish point",
+        )
 
     def test_led_boot_hook_survives_package_merging(self) -> None:
         """Map-form on_boot used to delete other packages' boot hooks."""
