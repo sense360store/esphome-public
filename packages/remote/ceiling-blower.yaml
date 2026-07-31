@@ -12,9 +12,10 @@
 # `/config/include` setup and no manual header download.
 #
 # It composes, relative to itself inside the fetched repository:
-#   * packages/features/blower_framework.yaml — the FULL blower behaviour
-#     framework (Blower Mode Off/Auto/On, Blower Auto Trigger, read-only
-#     Blower state, min-on / purge / min-off timing, fail-safe Auto)
+#   * packages/features/blower_framework.yaml — the FULL circulation-fan
+#     behaviour framework (Circulation Fan Mode Off/Auto/On, duty-cycle
+#     circulation with air-quality boost, Circulation Boost Trigger,
+#     read-only Circulation Fan state, fail-safe boost gating)
 # and delivers the shared engine headers through the `sense360` external
 # component while removing the framework's repository-local
 # `esphome: includes:` entry (which resolves only for a repository-local

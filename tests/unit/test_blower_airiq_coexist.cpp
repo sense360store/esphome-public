@@ -62,24 +62,27 @@ int main() {
   const uint32_t t = 100000;
 
   // 2) An unfed AirIQ engine (framework not composed / no samples) stays
-  //    INITIALISING -> demand UNKNOWN -> blower never starts (fail-safe).
+  //    INITIALISING -> demand UNKNOWN -> the fan NEVER boosts (fail-safe).
+  //    The base circulation duty cycle still runs — circulation is enclosure
+  //    sampling, deliberately independent of AirIQ data.
   {
     sense360::airiq::AirIQEngine airiq;
     airiq.begin(t);
     airiq.evaluate(t + 1000);  // still warming up, no samples
-    BlowerController blower;
-    blower.set_has_airiq(true);
-    blower.set_mode(MODE_AUTO);
-    blower.begin(t);
-    blower.input_demand(t + 1000, airiq_demand_bridge(airiq));
-    blower.evaluate(t + 1000);
-    assert(blower.demand() == DEMAND_UNKNOWN);
-    assert(!blower.output_on());
-    assert(blower.state() == STATE_AUTO_OFF_UNKNOWN);
+    BlowerController fan;
+    fan.set_has_airiq(true);
+    fan.set_mode(MODE_AUTO);
+    fan.begin(t);
+    fan.input_demand(t + 1000, airiq_demand_bridge(airiq));
+    fan.evaluate(t + 1000);
+    assert(fan.demand() == DEMAND_UNKNOWN);
+    assert(!fan.boosting());  // UNKNOWN never boosts
+    assert(fan.output_on());  // ...but the normal cycle run proceeds
+    assert(fan.state() == STATE_AUTO_CIRCULATING);
   }
 
   // 3) A real "Ventilate now" from the AirIQ engine (CO2 in the very-poor band)
-  //    drives the same bridge to start the blower.
+  //    drives the same bridge to boost the fan to continuous circulation.
   {
     sense360::airiq::AirIQEngine airiq;
     airiq.begin(t);
@@ -88,16 +91,17 @@ int main() {
     assert(airiq.recommendation() ==
            sense360::airiq::RECOMMENDATION_VENTILATE_NOW);
 
-    BlowerController blower;
-    blower.set_has_airiq(true);
-    blower.set_mode(MODE_AUTO);
-    blower.set_trigger(TRIGGER_NOW);
-    blower.begin(t);
-    blower.input_demand(t, airiq_demand_bridge(airiq));
-    blower.evaluate(t);
-    assert(blower.demand() == DEMAND_HIGH);
-    assert(blower.output_on());
-    assert(blower.state() == STATE_AUTO_VENTILATING);
+    BlowerController fan;
+    fan.set_has_airiq(true);
+    fan.set_mode(MODE_AUTO);
+    fan.set_trigger(TRIGGER_NOW);
+    fan.begin(t);
+    fan.input_demand(t, airiq_demand_bridge(airiq));
+    fan.evaluate(t);
+    assert(fan.demand() == DEMAND_HIGH);
+    assert(fan.output_on());
+    assert(fan.boosting());
+    assert(fan.state() == STATE_AUTO_BOOST);
   }
 
   printf("[PASS] blower_controller.h + airiq_engine.h coexist and cooperate\n");

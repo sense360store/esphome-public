@@ -1008,8 +1008,8 @@ class BlowerRemoteConfigTests(unittest.TestCase):
         )
         # Customer contract: authoritative mode select, auto trigger, and the
         # read-only commanded-state binary sensor.
-        self.assertIn("Blower Mode", out)
-        self.assertIn("Blower Auto Trigger", out)
+        self.assertIn("Circulation Fan Mode", out)
+        self.assertIn("Circulation Boost Trigger", out)
         self.assertIn("id: blower_state", out)
         # No conflicting control surface: no fan: entity, no blower switch.
         self.assertIsNone(re.search(r"(?m)^fan:", out), "no fan: entity")

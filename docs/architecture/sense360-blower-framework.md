@@ -13,23 +13,28 @@ compliance or commercial validation.
 
 ## Purpose
 
-One polished, simple customer experience for the Core's on-board blower — the
-customer never needs to know about GPIOs, MOSFETs or the AirIQ engine:
+The Core's on-board blower is an **enclosure air-circulation fan** (owner
+decision, 2026-07-31): it moves room air through the Sense360 enclosure so the
+on-board sensors sample representative air. It is **not** a room-ventilation
+output and no room-air-change effect is claimed. One polished, simple customer
+experience — the customer never needs to know about GPIOs, MOSFETs or the
+AirIQ engine:
 
-* **Blower Mode** — the single **authoritative** control: *Off* / *Auto* / *On*,
-  default **Auto** (the blower operates automatically out of the box). *Off*
-  always commands the blower off; *On* always commands it on; *Auto* follows the
-  canonical AirIQ ventilation demand through the timing state machine. The mode
-  is persisted across restart.
-* **Blower Auto Trigger** — *Ventilate now* / *Ventilate soon*: the AirIQ demand
-  level at which Auto starts the blower (conservative default: only *Ventilate
-  now*).
-* **Blower** — a **read-only** commanded-state representation (on/off). There is
-  deliberately **no** customer on/off toggle and **no** speed control: because
-  the mode is the only control, nothing can transiently contradict the selected
-  mode (no "toggle that Auto silently reverses"). Interface choice **A** —
-  Blower Mode is authoritative; the `Blower` binary sensor is the read-only
-  commanded state ESPHome permits.
+* **Circulation Fan Mode** — the single **authoritative** control: *Off* /
+  *Auto* / *On*, default **Auto** (the fan circulates automatically out of the
+  box). *Off* always commands the fan off; *On* always commands it on; *Auto*
+  runs a periodic duty-cycle circulation, boosted to continuous while the
+  canonical AirIQ demand is at/above the boost trigger. The mode is persisted
+  across restart.
+* **Circulation Boost Trigger** — *Ventilate now* / *Ventilate soon*: the AirIQ
+  demand level at which Auto boosts to continuous circulation (conservative
+  default: only *Ventilate now*).
+* **Circulation Fan** — a **read-only** commanded-state representation
+  (on/off). There is deliberately **no** customer on/off toggle and **no**
+  speed control: because the mode is the only control, nothing can transiently
+  contradict the selected mode (no "toggle that Auto silently reverses").
+  Interface choice **A** — the mode select is authoritative; the `Circulation
+  Fan` binary sensor is the read-only commanded state ESPHome permits.
 
 ## Hardware contract (verified S360-100-R4)
 
@@ -39,29 +44,29 @@ than the contract proves.
 
 | Fact | Value |
 |---|---|
-| Blower drive net | Core `FAN` net — schematic `IO21` (ESP32-S3 `GPIO21`) |
+| Fan drive net | Core `FAN` net — schematic `IO21` (ESP32-S3 `GPIO21`) |
 | Switching element | `Q4` `SI2302S` low-side MOSFET |
 | Connector | `J13`, a two-wire binary 5 V blower output (pins: +5V, FAN, GND) |
 | Feedback | **None** — no tach, speed-PWM, current, airflow or physical-rotation feedback exists on J13 |
-| `GPIO46` | `GP_Fan_Status_Led`, a Core-side status indicator — **never** rotation feedback; the blower framework never touches it |
-| `GPIO3` | the generic Relay net (J4), a **separate** control owned by the Core board (`main_relay`) — the blower framework never drives it |
+| `GPIO46` | `GP_Fan_Status_Led`, a Core-side status indicator — **never** rotation feedback; the framework never touches it |
+| `GPIO3` | the generic Relay net (J4), a **separate** control owned by the Core board (`main_relay`) — the framework never drives it |
 
 Because the FAN net is a one-way binary drive, the firmware commands only
-`on`/`off` and can never verify the blower physically spun. The framework
+`on`/`off` and can never verify the fan physically spun. The framework
 therefore makes **no** speed / airflow / current / rotation claim, and the
-*Blower Output Verification* diagnostic states this limit on-device.
+*Circulation Fan Output Verification* diagnostic states this limit on-device.
 
 ## Customer entities
 
 | Entity | Platform | Default | Purpose |
 |---|---|---|---|
-| Blower Mode | `select` | enabled (config), default **Auto**, persisted | The authoritative control: Off / Auto / On. |
-| Blower Auto Trigger | `select` | enabled (config) | Ventilate now / Ventilate soon. |
-| Blower | `binary_sensor` (read-only) | enabled | The commanded blower state (on/off) — not a toggle. |
-| Blower Purging | `binary_sensor` | diagnostic, disabled | Distinct post-demand purge indication. |
-| Blower Control Status | `text_sensor` | diagnostic, disabled | What the blower is doing and why (incl. purge / fail-safe / no-AirIQ). |
-| Blower Air-Quality Demand | `text_sensor` | diagnostic, disabled | The AirIQ demand the blower is reading. |
-| Blower Output Verification | `text_sensor` | diagnostic, disabled | On-device statement of the one-way, no-feedback limit. |
+| Circulation Fan Mode | `select` | enabled (config), default **Auto**, persisted | The authoritative control: Off / Auto / On. |
+| Circulation Boost Trigger | `select` | enabled (config) | Ventilate now / Ventilate soon. |
+| Circulation Fan | `binary_sensor` (read-only) | enabled | The commanded fan state (on/off) — not a toggle. |
+| Circulation Fan Boost | `binary_sensor` | diagnostic, disabled | Distinct air-quality boost indication. |
+| Circulation Fan Status | `text_sensor` | diagnostic, disabled | What the fan is doing and why (run / rest / boost). |
+| Circulation Fan Air-Quality Demand | `text_sensor` | diagnostic, disabled | The AirIQ demand the boost is reading. |
+| Circulation Fan Output Verification | `text_sensor` | diagnostic, disabled | On-device statement of the one-way, no-feedback limit. |
 
 Boot safety: the FAN-net GPIO output boots **off**; the persisted mode is
 restored during setup and applied by the late (`priority: -100`) `on_boot`
@@ -84,20 +89,23 @@ so tested logic and shipped logic cannot drift. The contract is pinned by
 The engine owns:
 
 * **Mode arbitration** — Off / Auto / On. Off and On command the output
-  directly; Auto runs the timing state machine. The engine owns the output in
+  directly; Auto runs the duty cycle + boost. The engine owns the output in
   every mode, so a customer toggle can never contradict the selected mode.
 * **Demand mapping** — the one interpretation of the canonical AirIQ
-  recommendation as a ventilation `Demand`.
+  recommendation as a `Demand`.
 * **Fail-safe** — an `UNKNOWN` demand (AirIQ initialising / unavailable / not
-  composed) never starts a stopped blower.
-* **Auto timing state machine** — minimum run time, a **post-demand purge**, and
-  a minimum-off restart lockout (see below).
+  composed) never boosts the fan; missing air-quality data never changes the
+  fan's behaviour.
+* **Auto duty cycle** — run / rest windows plus the air-quality boost (see
+  below).
 
 ## Optional input — AirIQ is not required (the canonical demand contract)
 
-The canonical AirIQ air-quality service (AIRIQ-FRAMEWORK-001) is the blower's
-demand producer, but it is **not** a hard dependency. One compile-time flag
-declares whether it is composed:
+The canonical AirIQ air-quality service (AIRIQ-FRAMEWORK-001) is the boost's
+demand producer, but it is **not** a hard dependency. The base duty cycle is
+deliberately **independent** of AirIQ — circulation is an enclosure-sampling
+function, not a response to air quality — so Auto circulates with or without
+AirIQ composed. One compile-time flag declares whether AirIQ is composed:
 
 * `blower_has_airiq` — is the AirIQ framework composed? Default `"false"`.
 
@@ -114,55 +122,55 @@ is simply unfed and its recommendation stays *Sensor initialising* →
 
 The AirIQ `Recommendation` (a stable enum, single-sourced in
 [`components/sense360/airiq_engine.h`](../../components/sense360/airiq_engine.h)) maps
-to a blower `Demand`:
+to a `Demand`; a demand at/above the boost trigger switches Auto from the duty
+cycle to continuous circulation:
 
-| AirIQ recommendation | Blower demand | Auto (Trigger = now) | Auto (Trigger = soon) |
+| AirIQ recommendation | Demand | Boost (Trigger = now) | Boost (Trigger = soon) |
 |---|---|---|---|
-| Sensor initialising | Unknown | off (fail-safe) | off (fail-safe) |
-| No action needed | None | off | off |
-| Ventilate soon | Ventilate soon | off | **on** |
-| Ventilate now | Ventilate now | **on** | **on** |
-| Check pollution source | None | off | off |
-| Unavailable | Unknown | off (fail-safe) | off (fail-safe) |
+| Sensor initialising | Unknown | no (fail-safe) | no (fail-safe) |
+| No action needed | None | no | no |
+| Ventilate soon | Ventilate soon | no | **yes** |
+| Ventilate now | Ventilate now | **yes** | **yes** |
+| Check pollution source | None | no | no |
+| Unavailable | Unknown | no (fail-safe) | no (fail-safe) |
 
-*Check pollution source* is deliberately **not** a ventilation demand: outdoor
-air quality is unknown, so the AirIQ contract does not recommend ventilation for
-it, and neither does the blower. The integer contract this mapping relies on is
-pinned against the AirIQ enum by `test_blower_airiq_coexist.cpp`.
+*Check pollution source* is deliberately **not** a boost demand: outdoor air
+quality is unknown, so the AirIQ contract does not recommend ventilation for
+it, and the fan does not boost for it either. The integer contract this mapping
+relies on is pinned against the AirIQ enum by `test_blower_airiq_coexist.cpp`.
 
 ### Fallback rules and fail-safe semantics
 
-| Composition | Blower Mode = Auto |
+| Composition | Circulation Fan Mode = Auto |
 |---|---|
-| No AirIQ (`blower_has_airiq: "false"`) | no actionable demand — blower **off**; *Blower Control Status* names the missing input |
-| AirIQ present, demand Unknown / Initialising / Unavailable | a **stopped** blower never starts; a **running** blower completes min-on + purge and stops (never runs forever on stale data) |
-| AirIQ present, demand at/above the trigger | blower on (subject to the min-off restart lockout) |
+| No AirIQ (`blower_has_airiq: "false"`) | the base duty cycle runs; no boost is ever possible |
+| AirIQ present, demand Unknown / Initialising / Unavailable | the base duty cycle runs unchanged — a boost never starts on missing data, and a boost already running ends (rest, then resume the cycle) rather than running forever on stale data |
+| AirIQ present, demand at/above the boost trigger | continuous circulation (boost) |
 
 `Off` and `On` always command the output directly, in every composition. `Auto`
 is the default. The mode is the single control, so there is no separate toggle
 that can transiently contradict it.
 
-## Auto timing state machine
+## Auto duty cycle
 
 Provisional engineering defaults (pending the bench checklist), substitution-
-tunable: `blower_min_on_ms` (60 s), `blower_purge_ms` (120 s),
-`blower_min_off_ms` (60 s). In Auto:
+tunable: `blower_circulate_on_ms` (60 s run) and `blower_circulate_off_ms`
+(240 s rest — a 20% duty cycle). In Auto:
 
-1. A demand at/above the trigger starts the blower (subject to the min-off
-   restart lockout, which never delays the first start of an Auto session).
-2. When a valid demand **clears** (or goes stale/unavailable) while running, the
-   blower does **not** stop immediately — it completes its **minimum run time**
-   *and* a **post-demand purge** period, then stops. A demand returning during
-   purge resumes ventilation.
-3. After stopping, a **minimum off time** must elapse before it may restart.
+1. Entering Auto (boot restore or a mode change) starts a circulation run
+   immediately, then the cycle repeats: on for `blower_circulate_on_ms`, off
+   for `blower_circulate_off_ms`.
+2. **Boost**: while a real AirIQ demand is at/above the boost trigger the fan
+   runs continuously so sampling stays fresh while air quality is changing.
+3. When the boost ends (demand cleared **or** data gone stale/unavailable) the
+   cycle resumes with a **full rest period** — the fan has just been running.
 
-Fail-safe: an `UNKNOWN` demand never starts a stopped blower; a blower already
-running from a previously valid demand winds down through purge and stops rather
-than running forever on stale data. All transitions use rollover-safe unsigned
-timing. These rules are pinned by the deterministic C++ suite
-(`tests/unit/test_blower_controller.cpp`): demand clears before min-on, purge
-begin / duration, demand returns during purge, stale-while-running, Off/On during
-purge, restart inhibition, and millis rollover.
+Fail-safe: an `UNKNOWN` demand never boosts; the base cycle is unaffected by
+AirIQ state in every case. All transitions use rollover-safe unsigned timing.
+These rules are pinned by the deterministic C++ suite
+(`tests/unit/test_blower_controller.cpp`): cycle repetition, boost entry from
+run and rest phases, trigger levels, UNKNOWN handling, boost wind-down,
+mode-change reseeding, and millis rollover.
 
 ## Remote consumption
 

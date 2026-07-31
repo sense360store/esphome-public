@@ -3,21 +3,21 @@
 # ============================================================================
 # BLOWER-FRAMEWORK-001 (docs/architecture/sense360-blower-framework.md). The
 # representative Core + AirIQ + Blower device that motivated
-# BLOWER-FRAMEWORK-001: it composes the FULL customer blower framework driving
-# the Core's on-board FAN net (schematic IO21 -> Q4 SI2302S -> J13) together with
-# the canonical AirIQ air-quality service, proving the blower framework's Auto
-# behaviour reads the AirIQ demand contract and composes cleanly. Self-contained
+# BLOWER-FRAMEWORK-001: it composes the FULL customer circulation-fan
+# framework driving the Core's on-board FAN net (schematic IO21 -> Q4 SI2302S
+# -> J13) together with the canonical AirIQ air-quality service, proving the
+# framework's Auto boost reads the AirIQ demand contract and composes cleanly. Self-contained
 # one-deep product (its `esphome: includes:` resolve against products/, unlike
 # the two-deep compile-only skeletons) so a hosted `esphome compile` can build
 # it directly.
 #
 # Optional-input capability model (BLOWER-FRAMEWORK-001):
-#   * blower_has_airiq: "true" — AirIQ IS composed here, so the Auto behaviour
-#     follows the canonical AirIQ ventilation demand (with the min-on / purge /
-#     min-off timing state machine). A missing / initialising / unavailable
-#     demand is UNKNOWN and never starts the blower.
-# The Blower Mode select (Off / Auto / On, default Auto), the Blower Auto Trigger
-# and the read-only Blower state all work.
+#   * blower_has_airiq: "true" — AirIQ IS composed here, so the Auto duty
+#     cycle is boosted to continuous circulation while the canonical AirIQ
+#     demand is at/above the boost trigger. A missing / initialising /
+#     unavailable demand is UNKNOWN and never boosts the fan.
+# The Circulation Fan Mode select (Off / Auto / On, default Auto), the
+# Circulation Boost Trigger and the read-only Circulation Fan state all work.
 #
 # Hardware honesty (verified S360-100-R4 contract):
 #   * The blower is the Core's dedicated FAN net (IO21 -> Q4 SI2302S -> J13), a
@@ -70,8 +70,8 @@ substitutions:
   s360_module_led: "Not included"
 
   # === Blower framework optional-input capability (BLOWER-FRAMEWORK-001) ===
-  # AirIQ IS composed below, so the Auto behaviour is supported and follows the
-  # canonical AirIQ ventilation demand.
+  # AirIQ IS composed below, so the Auto duty cycle supports the air-quality
+  # boost from the canonical AirIQ demand.
   blower_has_airiq: "true"
 
 # ============================================================================
@@ -98,8 +98,9 @@ packages:
   airiq_framework: !include ../packages/features/airiq_framework.yaml
 
   # === Sense360 Blower (on-board FAN net J13 + BLOWER-FRAMEWORK-001) ===
-  # The FULL blower behaviour framework, with AirIQ composed (blower_has_airiq
-  # true). Owns the blower output on IO21 and the customer Blower controls.
+  # The FULL circulation-fan behaviour framework, with AirIQ composed
+  # (blower_has_airiq true). Owns the fan output on IO21 and the customer
+  # Circulation Fan controls.
   blower_framework: !include ../packages/features/blower_framework.yaml
 
   # === Device Health & Diagnostics ===
