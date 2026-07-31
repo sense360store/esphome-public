@@ -3,10 +3,11 @@
 
 These tests define (and then pin) the customer-focused Sense360 blower framework
 for the Core's dedicated on-board FAN net (schematic ``IO21`` → Q4 SI2302S → J13,
-a two-wire binary 5 V blower output): one customer Blower control, a Blower Mode
-(Manual / Auto) that optionally follows the canonical AirIQ ventilation demand,
-and a Blower Auto Trigger — all honest about the fact that J13 has NO speed /
-tach / current / airflow / rotation feedback.
+a two-wire binary 5 V blower output — an ENCLOSURE AIR-CIRCULATION fan): one
+customer control, a Circulation Fan Mode (Off / Auto / On) whose Auto runs a
+duty-cycle circulation boosted by the canonical AirIQ demand, and a Circulation
+Boost Trigger — all honest about the fact that J13 has NO speed / tach /
+current / airflow / rotation feedback.
 
 Contract highlights enforced here:
 
@@ -20,9 +21,10 @@ Contract highlights enforced here:
   ``sense360::airiq::global_engine().recommendation()`` — never a hard ``id()``
   to an AirIQ entity, and pollutant thresholds are never duplicated. The
   compile-time flag ``blower_has_airiq`` (default ``"false"``) gates the Auto
-  behaviour, which is honestly downgraded to Manual when AirIQ is absent.
+  air-quality BOOST only; the base circulation duty cycle is deliberately
+  independent of AirIQ.
 * Fail-safe: a missing / initialising / unavailable AirIQ demand is UNKNOWN and
-  NEVER starts the blower.
+  NEVER boosts the fan (it never changes the fan's behaviour at all).
 * Honesty: the FAN net is a one-way binary drive; the framework commands only
   on/off and claims no speed / airflow / current / rotation. It NEVER touches
   the Core ``GPIO46`` status LED (not rotation feedback) or the separate
@@ -149,13 +151,14 @@ class EngineHeaderTests(unittest.TestCase):
             "DEMAND_HIGH",
             "TRIGGER_NOW",
             "TRIGGER_SOON",
-            "STATE_AUTO_PURGE",
+            "STATE_AUTO_CIRCULATING",
+            "STATE_AUTO_RESTING",
+            "STATE_AUTO_BOOST",
             "demand_from_airiq_recommendation",
             "set_has_airiq",
-            "set_min_on_ms",
-            "set_min_off_ms",
-            "set_purge_ms",
-            "purging",
+            "set_circulate_on_ms",
+            "set_circulate_off_ms",
+            "boosting",
             "output_on",
             "global_controller",
         ):
@@ -165,12 +168,13 @@ class EngineHeaderTests(unittest.TestCase):
         # Auto is the default/first-boot mode (owner decision).
         self.assertIn("Mode mode_ = MODE_AUTO", self.raw)
 
-    def test_fail_safe_unknown_demand_never_starts_blower(self) -> None:
-        # A start requires an actionable demand (HIGH, or ELEVATED under the
-        # SOON trigger); UNKNOWN is never actionable, so a stopped blower never
-        # starts on unknown/stale data, and the honest off-state names it.
+    def test_fail_safe_unknown_demand_never_boosts(self) -> None:
+        # A boost requires an actionable demand (HIGH, or ELEVATED under the
+        # SOON trigger); UNKNOWN is never actionable, so missing/stale AirIQ
+        # data never changes the fan's behaviour. The demand input defaults to
+        # UNKNOWN so nothing is ever invented before real data arrives.
         self.assertIn("demand_ == DEMAND_HIGH", self.raw)
-        self.assertIn("STATE_AUTO_OFF_UNKNOWN", self.raw)
+        self.assertIn("Demand demand_ = DEMAND_UNKNOWN", self.raw)
 
     def test_no_speed_or_rotation_surface(self) -> None:
         # Honesty: the engine commands binary on/off only. Its CODE (comments
@@ -228,7 +232,7 @@ class FrameworkPackageTests(unittest.TestCase):
 
     def test_timing_substitutions_present(self) -> None:
         subs = self.doc.get("substitutions") or {}
-        for sub in ("blower_min_on_ms", "blower_min_off_ms", "blower_purge_ms"):
+        for sub in ("blower_circulate_on_ms", "blower_circulate_off_ms"):
             self.assertIn(sub, subs, f"framework must expose {sub}")
 
     def test_compiles_both_engine_headers(self) -> None:
@@ -266,7 +270,7 @@ class FrameworkPackageTests(unittest.TestCase):
         bsensors = {b.get("id"): b for b in entries(self.doc, "binary_sensor")}
         self.assertIn("blower_state", bsensors)
         blower = bsensors["blower_state"]
-        self.assertEqual(blower.get("name"), "Blower")
+        self.assertEqual(blower.get("name"), "Circulation Fan")
         self.assertIn("lambda", blower, "Blower state is a read-only lambda sensor")
         self.assertNotIn("on_press", blower)
 
@@ -274,6 +278,11 @@ class FrameworkPackageTests(unittest.TestCase):
         selects = {s.get("id"): s for s in entries(self.doc, "select")}
         # Owner decision: explicit Off / Auto / On, default Auto.
         self.assertIn("s360_blower_mode", selects)
+        self.assertEqual(
+            selects["s360_blower_mode"].get("name"),
+            "Circulation Fan Mode",
+            "the authoritative control is named for the circulation purpose",
+        )
         self.assertEqual(
             selects["s360_blower_mode"].get("options"), ["Off", "Auto", "On"]
         )

@@ -33,47 +33,51 @@ fill in results, measurements, dates or attestation.
 
 ## Mode surface (Off / Auto / On)
 
-- [ ] Blower Mode = **On**: the blower is commanded on regardless of demand.
-- [ ] Blower Mode = **Off**: the blower is commanded off regardless of demand.
-- [ ] Blower Mode = **Auto** is the default and first-boot mode.
+- [ ] Circulation Fan Mode = **On**: the fan is commanded on regardless of
+      demand.
+- [ ] Circulation Fan Mode = **Off**: the fan is commanded off regardless of
+      demand.
+- [ ] Circulation Fan Mode = **Auto** is the default and first-boot mode.
 - [ ] The selected mode persists across restart.
 - [ ] Boot state is OFF before the restored mode is evaluated; an interrupted
       run is not replayed.
-- [ ] The read-only "Blower" state matches the actual commanded output; there is
-      no customer toggle that contradicts the selected mode.
+- [ ] The read-only "Circulation Fan" state matches the actual commanded
+      output; there is no customer toggle that contradicts the selected mode.
 
-## Auto behaviour (with AirIQ)
+## Auto duty cycle (circulation)
 
-- [ ] Compose AirIQ (`blower_has_airiq: "true"`). Blower Mode = Auto.
-- [ ] Drive the air quality to *Ventilate now*: with Blower Auto Trigger =
-      *Ventilate now* the blower starts.
-- [ ] With Blower Auto Trigger = *Ventilate soon*, a *Ventilate soon*
-      recommendation also starts the blower.
+- [ ] In Auto, entering the mode (or booting into it) starts a circulation run
+      immediately.
+- [ ] The fan runs for `blower_circulate_on_ms`, rests for
+      `blower_circulate_off_ms`, and repeats.
+- [ ] The duty cycle runs identically with and without AirIQ composed.
+- [ ] Tune `blower_circulate_on_ms` / `blower_circulate_off_ms` to the real
+      enclosure: the run should exchange the enclosure air volume; the rest
+      should keep noise and fan wear acceptable.
+- [ ] Confirm the enclosure airflow direction/path actually draws room air
+      across the sensor boards (operator judgement; firmware cannot verify
+      airflow).
 
-## Post-demand purge
+## Air-quality boost (with AirIQ)
 
-- [ ] When the air quality returns to Good/No action, the blower completes its
-      minimum run time, then continues for the **purge** period, then stops.
-- [ ] A demand returning during purge resumes ventilation.
-- [ ] Tune `blower_purge_ms` to the room / duct clearing time.
+- [ ] Compose AirIQ (`blower_has_airiq: "true"`). Circulation Fan Mode = Auto.
+- [ ] Drive the air quality to *Ventilate now*: with Circulation Boost
+      Trigger = *Ventilate now* the fan boosts to continuous running.
+- [ ] With Circulation Boost Trigger = *Ventilate soon*, a *Ventilate soon*
+      recommendation also boosts.
+- [ ] When the air quality returns to Good/No action, the boost ends and the
+      cycle resumes with a full rest period before the next run.
 
 ## Fail-safe
 
 - [ ] Remove / disable AirIQ inputs so the AirIQ recommendation is
-      *Sensor initialising* / *Unavailable*: in Auto a **stopped** blower stays
-      off (Blower Air-Quality Demand shows *Unknown*).
-- [ ] A blower **running** when the demand goes stale completes min-on + purge
-      and then stops (it does not run forever on stale data).
-- [ ] On a build without AirIQ composed, Auto keeps the blower off and the
-      *Blower Control Status* diagnostic states that AirIQ is not composed.
-
-## Anti-short-cycle
-
-- [ ] Confirm the minimum run time holds the blower on after demand clears.
-- [ ] Confirm the minimum off time blocks a rapid restart after a real run.
-- [ ] Confirm the first-ever start after boot is not delayed by the min-off
-      window.
-- [ ] Tune `blower_min_on_ms` / `blower_min_off_ms` to the real blower motor.
+      *Sensor initialising* / *Unavailable*: in Auto the duty cycle continues
+      unchanged and no boost starts (Circulation Fan Air-Quality Demand shows
+      *Unknown*).
+- [ ] A fan **boosting** when the demand goes stale ends the boost and rests
+      (it does not run continuously forever on stale data).
+- [ ] On a build without AirIQ composed, the duty cycle runs and no boost is
+      ever indicated.
 
 ## Electrical / thermal (operator judgement)
 
