@@ -54,9 +54,11 @@
         "S360-410"
       ],
       "likely_firmware_config_target": "Ceiling-POE-AirIQ-RoomIQ",
-      "current_release_status": "stable-release",
-      "missing_gates": [],
-      "notes": "Kitchen bundle pairs the AirIQ air-quality module (S360-210) with RoomIQ. Promoted stable-candidate -> stable-release under owner declaration HW-RELEASE-001 (docs/hw-release-001.md), superseding KITCHEN-BUNDLE-PROMOTE-001 step K2's bench-proof precondition. The three G8 evidence gates (G8-AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390, G8-PRODUCT-POE-410-001, G8-S360-410-schematic-status-verified) were cleared by owner declaration, HW-RELEASE-001 — an owner decision, not hardware verification; the prior owner waivers HW-AIRIQ-WAIVER-2026-06 and HW-S360-410-WAIVER-2026-06 remain the recorded risk-acceptance for the stable build. The stale G1-G7 gates were cleared as already satisfied by the shipped Ceiling-POE-AirIQ-RoomIQ stable build (top-level product YAML, catalog row, full compile, WebFlash wrapper, artifact name, config/webflash-builds.json stable row v1.0.9, release notes). Kit / customer visibility is UNCHANGED by this promotion: the bundle stays hidden / not buyable in config/shop-commercial-source-of-truth.json; kit exposure remains a separate owner decision (KITCHEN-BUNDLE-PROMOTE-001 K4, WebFlash repo)."
+      "current_release_status": "stable-candidate",
+      "missing_gates": [
+        "G11-r-d4-owner-bench-attestation"
+      ],
+      "notes": "Kitchen bundle pairs the AirIQ air-quality module (S360-210) with RoomIQ. Release history: promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06 and owner declaration HW-RELEASE-001 (docs/hw-release-001.md); republished as v1.0.9 in the 2026-07-06 security rebuild; then DELIBERATELY DEMOTED to the preview channel by PR #834 (2026-07-16: the owner waiver is not hardware verification and must not cut a stable build), upheld by the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001). Current truth: config/webflash-builds.json and config/product-catalog.json declare Ceiling-POE-AirIQ-RoomIQ preview v1.0.9 (release_state metadata-ready-unpublished); the published GitHub Release v1.0.9 and its -stable.bin asset remain immutable and available; the WebFlash PRESENTATION of that build is preview so served presentation matches the recorded channel. Promotion to production is GATED on the owner-authored R-D4 bench attestation (G11; EXC-AIRIQ-PROMOTION-GATE-001 in the SOT SENSE360-CANONICALISATION-001 charter) — waivers, compiles, scanner passes and served-state observation do not satisfy it, the attestation is never machine-written, and the channel change itself is owner-only. The prior waivers HW-AIRIQ-WAIVER-2026-06 and HW-S360-410-WAIVER-2026-06 remain the recorded risk-acceptance history; G1-G7 remain satisfied by the shipped build surfaces. Kit / customer visibility is UNCHANGED: the bundle stays hidden / not buyable / never the customer default (OD-SOT-009, docs/standing-invariants.md)."
     },
     {
       "bundle_sku": "S360-KIT-BEDROOM-P",
@@ -68,19 +70,9 @@
         "S360-410"
       ],
       "likely_firmware_config_target": "Ceiling-POE-RoomIQ",
-      "current_release_status": "stable-candidate",
-      "missing_gates": [
-        "G1-top-level-canonical-product-yaml",
-        "G2-product-catalog-row",
-        "G3-top-level-full-compile",
-        "G4-webflash-wrapper",
-        "G5-artifact-name",
-        "G6-webflash-builds-row",
-        "G7-release-notes-generation",
-        "G8-PRODUCT-POE-410-001",
-        "G8-S360-410-schematic-status-verified"
-      ],
-      "notes": "Bedroom bundle is the smallest RoomIQ-only PoE bundle. The compile-only skeleton products/compile-only/ceiling-poe-roomiq.yaml validates the combination today. Promotion to stable is owned by STABLE-TARGET-ROOMIQ-001 (after STABLE-TARGET-CORE-001's shared PoE-410 closure; see docs/stable-target-expansion-plan.md). Not promoted by this PR."
+      "current_release_status": "stable-release",
+      "missing_gates": [],
+      "notes": "Bedroom bundle is the smallest RoomIQ-only PoE bundle. Release history: promoted to stable v1.0.5 (2026-06-08) under owner risk-acceptance waiver HW-S360-410-WAIVER-2026-06 — an owner decision, NOT hardware verification: S360-410 schematic_status stays cataloged_unverified and the remaining PoE bench / isolation evidence was waived, not measured; republished as v1.0.8 in the 2026-07-06 security rebuild. Current truth: config/webflash-builds.json declares Ceiling-POE-RoomIQ stable v1.0.8, config/product-catalog.json status production, and WebFlash serves it on the stable channel. The former G1-G7 gates are satisfied by the shipped build surfaces (top-level product YAML, catalog row, full compile, WebFlash wrapper, artifact name, config/webflash-builds.json stable row v1.0.8, release notes); the G8 evidence gates were resolved by the waiver as release blockers while the underlying evidence remains outstanding (RoomIQ on-device flash verification is not yet done; the pending owner R-D4 bench attestation applies to this build under the batch standard EXC-V107-V108-BATCH-INCONSISTENCY-001 in the SOT charter). Kit / customer visibility is UNCHANGED: the bundle stays hidden / not buyable / never the customer default (OD-SOT-009, docs/standing-invariants.md)."
     },
     {
       "bundle_sku": "S360-KIT-CORRIDOR-P",
