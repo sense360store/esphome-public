@@ -346,16 +346,43 @@ class RoomBundleGuardrailTests(unittest.TestCase):
             bundle["likely_firmware_config_target"],
             "Ceiling-POE-AirIQ-RoomIQ",
         )
-        # Promoted stable-candidate -> stable-release under owner declaration
-        # HW-RELEASE-001 (docs/hw-release-001.md); G8 gates cleared by owner
-        # declaration, kit/customer visibility unchanged.
-        self.assertEqual(bundle["current_release_status"], "stable-release")
-        self.assertEqual(bundle["missing_gates"], [])
+        # Deliberately demoted to preview by PR #834 (2026-07-16), upheld by
+        # the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001):
+        # the config is preview v1.0.9 in config/webflash-builds.json and
+        # config/product-catalog.json, and promotion to production is gated
+        # on the owner-authored R-D4 bench attestation
+        # (EXC-AIRIQ-PROMOTION-GATE-001). The bundle row is therefore a
+        # stable-candidate, never stable-release, until that owner-only
+        # promotion happens.
+        self.assertEqual(bundle["current_release_status"], "stable-candidate")
+        self.assertEqual(
+            bundle["missing_gates"], ["G11-r-d4-owner-bench-attestation"]
+        )
         for sku in ("S360-100", "S360-200", "S360-210", "S360-410"):
             self.assertIn(
                 sku,
                 bundle["included_board_skus"],
                 f"S360-KIT-KITCHEN-P must include board SKU {sku!r}",
+            )
+
+    def test_kitchen_status_agrees_with_the_release_matrix_channel(self):
+        """The bundle row may never again claim a stabler channel than the
+        release matrix declares for its firmware target (the drift this
+        reconciliation fixed)."""
+        bundle = self.by_sku["S360-KIT-KITCHEN-P"]
+        builds = _load(WEBFLASH_BUILDS_PATH)
+        row = next(
+            entry
+            for entry in builds["builds"]
+            if entry.get("config_string") == bundle["likely_firmware_config_target"]
+        )
+        if row.get("channel") != "stable":
+            self.assertNotEqual(
+                bundle["current_release_status"],
+                "stable-release",
+                "S360-KIT-KITCHEN-P claims stable-release while its firmware "
+                f"target is on the {row.get('channel')!r} channel in "
+                "config/webflash-builds.json",
             )
 
     def test_bedroom_bundle_maps_to_roomiq_candidate(self):
@@ -364,7 +391,16 @@ class RoomBundleGuardrailTests(unittest.TestCase):
             bundle["likely_firmware_config_target"],
             "Ceiling-POE-RoomIQ",
         )
-        self.assertEqual(bundle["current_release_status"], "stable-candidate")
+        # Ceiling-POE-RoomIQ is stable v1.0.8 in config/webflash-builds.json
+        # (promoted v1.0.5 2026-06-08 under owner waiver
+        # HW-S360-410-WAIVER-2026-06 — owner risk-acceptance, not hardware
+        # verification; republished v1.0.8 in the 2026-07-06 security
+        # rebuild) and served by WebFlash on the stable channel. The bundle
+        # row mirrors that recorded truth; commercial visibility is a
+        # separate layer and the bundle stays hidden / not buyable / never
+        # the customer default (OD-SOT-009).
+        self.assertEqual(bundle["current_release_status"], "stable-release")
+        self.assertEqual(bundle["missing_gates"], [])
         self.assertEqual(
             set(bundle["included_board_skus"]),
             {"S360-100", "S360-200", "S360-410"},
