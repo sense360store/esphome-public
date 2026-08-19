@@ -10,7 +10,13 @@
 # re-reading raw sensors or duplicating pollutant threshold logic.
 #
 # Customer entities (enabled by default — the ONLY default-enabled set):
-#   CO2 · VOC · NOx · Formaldehyde · Air Quality · Recommendation
+#   CO2 · VOC · NOx · Air Quality · Recommendation
+# Formaldehyde is customer-facing but ships diagnostic + disabled by
+# default while SFA40 (U2) production population is an open bench item
+# (SOT OD-SOT-008) — see the rationale at the entity below. Presentation
+# only: the driver, unit and health logic are unchanged, the reading
+# returns as soon as the entity is enabled, and nothing there claims the
+# part is fitted or absent.
 # ALL PM entities (PM2.5 / PM1 / PM4 / PM10) remain available but ship
 # disabled by default: the SPS30 is an EXTERNAL ATTACHMENT (J2) whose
 # commercial inclusion is not declared by any kit / SOT / product record

@@ -672,9 +672,13 @@ machine-readable runtime-status wiring:
 
 Scope facts (do not overclaim):
 
-* **Customer surface (default-enabled):** Occupancy, Presence Status,
-  Radar Target Count, Presence Mode (Balanced / Responsive / Stable /
-  Custom), Clear Delay (5–600 s, default 30 s, persisted, runtime-applied).
+* **Customer surface:** Occupancy is the default-enabled room signal.
+  Presence Mode (Balanced / Responsive / Stable / Custom) and Clear Delay
+  (5–600 s, default 30 s, persisted, runtime-applied) are configuration
+  controls. Presence Status and Radar Target Count are diagnostic and
+  disabled by default while SOT OD-SOT-004 leaves radar attachment
+  inclusion unresolved (SENSE360-REVIEW-RELEASE-001 Gate B) — presentation
+  only; the fusion logic is unchanged and enabling them restores them.
   No "Presence Sensitivity" (no honest common runtime sensitivity contract
   across the three sensors — mode-based tuning first) and no "People
   Count" (radar targets are not verified people); the multi-occupant

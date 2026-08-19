@@ -13,9 +13,15 @@
 #   * SEN0609  — static presence for still occupants (adapter:
 #                packages/boards/s360-200-roomiq-sen0609.yaml)
 #
-# Customer entities (enabled by default — the ONLY default-enabled set):
-#   Occupancy · Presence Status · Radar Target Count · Presence Mode ·
-#   Clear Delay
+# Customer-facing entities, by Home Assistant panel:
+#   * default surface  — Occupancy. The one presence signal a customer sees
+#                        without configuring anything.
+#   * configuration    — Presence Mode · Clear Delay. Controls, not room
+#                        signals; Home Assistant files them under Config.
+#   * advanced, opt-in — Presence Status · Radar Target Count. Diagnostic
+#                        and disabled by default while SOT OD-SOT-004
+#                        leaves radar attachment inclusion unresolved (see
+#                        the rationale at each entity below).
 # Everything sensor-specific stays diagnostic and/or disabled by default.
 # There is deliberately NO "Presence Sensitivity" (no honest common runtime
 # sensitivity contract exists across the three sensors — modes first) and
@@ -136,7 +142,8 @@ script:
           id(s360_presence_component).evaluate();
 
 # ----------------------------------------------------------------------------
-# Customer entities (the default-enabled set)
+# Customer-facing entities. Occupancy is the default surface; Presence
+# Status below is advanced and opt-in (see its rationale).
 # ----------------------------------------------------------------------------
 binary_sensor:
   # PD-01 — unified occupancy: any valid sensor asserts it; it clears only
@@ -222,9 +229,11 @@ sensor:
   # framework is already diagnostic + disabled by default; this one was the
   # sole exception, so this restores consistency rather than setting new
   # policy. It asserts nothing about whether radar ships and resolves no
-  # owner decision. Occupancy and Presence Status stay on the customer
-  # default surface: PD-01 fusion asserts from ANY valid sensor, so both
-  # remain meaningful on the PCB-mounted PIR alone.
+  # owner decision. Occupancy stays on the customer default surface: PD-01
+  # fusion asserts from ANY valid sensor, so it remains meaningful on the
+  # PCB-mounted PIR alone. Presence Status does NOT — with radar expected
+  # but unpopulated it reports "Sensor degraded" rather than "Clear", so it
+  # is gated the same way as this entity.
   - platform: sense360_presence
     type: radar_target_count
     id: s360_radar_target_count

@@ -10,8 +10,11 @@ capability.
 Contract highlights enforced here:
 
 * Customer entities are exactly: Occupancy, Presence Status, Radar Target
-  Count, Presence Mode, Clear Delay — stable ``s360_``-prefixed IDs,
-  product-facing names, enabled by default. There is deliberately NO
+  Count, Presence Mode, Clear Delay — stable ``s360_``-prefixed IDs and
+  product-facing names. Occupancy is enabled by default; Presence Mode and
+  Clear Delay are configuration controls; Presence Status and Radar Target
+  Count are diagnostic and disabled by default while SOT OD-SOT-004 leaves
+  radar attachment inclusion unresolved. There is deliberately NO
   "Presence Sensitivity" entity (no honest common runtime sensitivity
   contract exists across the three sensors) and NO "People Count" entity
   (radar targets are not verified people).

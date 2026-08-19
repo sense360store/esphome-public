@@ -201,9 +201,21 @@ Default-enabled entities (the ONLY default-enabled set):
 | CO2 | `s360_co2` | ppm |
 | VOC | `s360_voc` | relative index (unitless by design) |
 | NOx | `s360_nox` | relative index (unitless by design) |
-| Formaldehyde | `s360_hcho` | ppb (fitted SFA40 — factory-calibrated) |
 | Air Quality | `s360_air_quality` | Initialising / Good / Fair / Poor / Very poor / Unavailable |
 | Recommendation | `s360_recommendation` | Sensor initialising / No action needed / Ventilate soon / Ventilate now / Check pollution source / Unavailable |
+
+Advanced, opt-in (diagnostic and disabled by default):
+
+| Entity | id | Unit / values |
+|---|---|---|
+| Formaldehyde | `s360_hcho` | ppb (SFA40, factory-calibrated) |
+
+Formaldehyde is gated under SENSE360-REVIEW-RELEASE-001 Gate B because
+whether `U2` is populated on production assemblies is an open bench item
+(`docs/hardware/airiq-framework-bench-checklist.md`), tracked as SOT
+`OD-SOT-008`. The gating asserts nothing about whether the part is fitted
+or absent and resolves no owner decision; it is presentation only, and
+enabling the entity restores the reading in full.
 
 Formaldehyde joins the default set under AIRIQ-HW-RECONCILE-001 because the
 SFA40 (U2) is a fitted, factory-calibrated Sensirion sensor with a real ppb
