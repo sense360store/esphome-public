@@ -1,8 +1,11 @@
 # ============================================================================
 # Sensirion SFA40 formaldehyde sensor — external ESPHome component
 # ============================================================================
-# The SFA40 (S360-210-R4 U2, Sensirion `SFA40-D-R`) is fitted on every AirIQ
-# board on the shared Core I2C bus. It is the next-generation successor to the
+# The SFA40 (S360-210-R4 U2, Sensirion `SFA40-D-R`) is an on-board footprint
+# on the shared Core I2C bus per the verified R4 BOM and schematic. Whether
+# U2 is populated on production assemblies is unresolved (HW-PINMAP-210-
+# FOLLOWUP; SOT OD-SOT-008), so this component drives the design intent and
+# claims nothing about physical population either way. It is the next-generation successor to the
 # SFA30: it shares the SFA30's 0x5D I2C address and Sensirion CRC-8 but uses a
 # DIFFERENT command set (start 0x00AC, read 0xC0EB, 12-byte / 4-word response)
 # so ESPHome's native `sfa30` platform cannot read it. This scoped external
@@ -11,7 +14,7 @@
 #
 # Evidence level: datasheet-derived protocol + compile proof only. This module
 # makes NO hardware, bench, calibration, compliance, safety or commercial
-# claim. On-hardware verification of the fitted SFA40 remains pending
+# claim. On-hardware verification of the SFA40 stage remains pending
 # (docs/hardware/airiq-framework-bench-checklist.md).
 # ============================================================================
 import esphome.codegen as cg

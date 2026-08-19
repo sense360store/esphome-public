@@ -228,7 +228,7 @@ class AirIQEngine {
   AirIQEngine() {
     // Expected-channel defaults are the generic engine baseline (CO2, VOC,
     // NOx); a composition drives the rest via set_expected(). In the
-    // S360-210 framework the fitted SFA40 formaldehyde (U2) is set expected,
+    // S360-210 framework the SFA40 formaldehyde channel (U2) is set expected,
     // while the EXTERNAL SPS30 PM module (J2) is expected only via the
     // opt-in overlay — an undeclared absent module must never degrade
     // health. The ozone slot has no driver and stays unexpected everywhere.

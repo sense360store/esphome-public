@@ -10,7 +10,13 @@
 # re-reading raw sensors or duplicating pollutant threshold logic.
 #
 # Customer entities (enabled by default — the ONLY default-enabled set):
-#   CO2 · VOC · NOx · Formaldehyde · Air Quality · Recommendation
+#   CO2 · VOC · NOx · Air Quality · Recommendation
+# Formaldehyde is customer-facing but ships diagnostic + disabled by
+# default while SFA40 (U2) production population is an open bench item
+# (SOT OD-SOT-008) — see the rationale at the entity below. Presentation
+# only: the driver, unit and health logic are unchanged, the reading
+# returns as soon as the entity is enabled, and nothing there claims the
+# part is fitted or absent.
 # ALL PM entities (PM2.5 / PM1 / PM4 / PM10) remain available but ship
 # disabled by default: the SPS30 is an EXTERNAL ATTACHMENT (J2) whose
 # commercial inclusion is not declared by any kit / SOT / product record
@@ -322,10 +328,20 @@ sensor:
     accuracy_decimals: 0
     icon: mdi:smog
 
-  # Formaldehyde concentration in ppb — a real, factory-calibrated Sensirion
-  # SFA40 measurement (PCB-mounted U2). Reports unavailable during the
-  # sensor's own not-ready window (first minute after power-up) and until a
-  # valid post-warm-up sample arrives; never a frozen value.
+  # Formaldehyde concentration in ppb — a factory-calibrated Sensirion SFA40
+  # measurement (U2). Reports unavailable during the sensor's own not-ready
+  # window (first minute after power-up) and until a valid post-warm-up
+  # sample arrives; never a frozen value.
+  #
+  # Diagnostic and disabled by default under SENSE360-REVIEW-RELEASE-001
+  # Gate B: whether U2 is populated on production assemblies is still an
+  # open bench item (docs/hardware/airiq-framework-bench-checklist.md),
+  # tracked as SOT OD-SOT-008. Until that resolves, formaldehyde is not
+  # presented as a shipped customer capability. This says NOTHING about
+  # whether the part is fitted — it neither claims nor denies population,
+  # resolves no owner decision, and changes no measurement, driver or
+  # health logic. The reading stays available: enable the entity to use it.
+  # Same posture as the PM entities below.
   - platform: sense360_airiq
     type: hcho
     id: s360_hcho
@@ -334,6 +350,8 @@ sensor:
     state_class: measurement
     accuracy_decimals: 1
     icon: mdi:molecule
+    entity_category: diagnostic
+    disabled_by_default: true
 
   # --- PM sensors (disabled by default and unfed — SPS30 external attachment) --
   # The canonical base does NOT probe the SPS30 (0x69). These customer PM

@@ -169,9 +169,20 @@ DEFAULT_ENABLED_IDS = {
     "s360_co2",
     "s360_voc",
     "s360_nox",
-    "s360_hcho",
     "s360_air_quality",
     "s360_recommendation",
+}
+
+# s360_hcho left the default-enabled set under SENSE360-REVIEW-RELEASE-001
+# Gate B: SFA40 (U2) production population is still an open bench item
+# (docs/hardware/airiq-framework-bench-checklist.md), tracked as SOT
+# OD-SOT-008, so formaldehyde is not presented as a shipped customer
+# capability. The entity, driver, unit and health logic are unchanged and
+# the reading stays available once enabled; the exclusion neither claims
+# nor denies that the part is fitted, and resolves no owner decision.
+# See docs/architecture/sense360-customer-entity-surface.md.
+EVIDENCE_GATED_DIAGNOSTIC_IDS = {
+    "s360_hcho",
 }
 
 # Standard (non-diagnostic) sensors that stay disabled by default: every
@@ -302,9 +313,11 @@ class AuthorityTests(unittest.TestCase):
         self.assertNotIn("base_pro", raw)
 
     def test_formaldehyde_exposed_but_no_ozone_entity(self) -> None:
-        # AIRIQ-HW-RECONCILE-001: the fitted SFA40 (U2) gives a real,
-        # factory-calibrated ppb formaldehyde reading, so a customer
-        # Formaldehyde entity now exists. Ozone (no fitted part, no driver)
+        # AIRIQ-HW-RECONCILE-001 supplied the SFA40 driver, so a customer
+        # Formaldehyde entity now exists (a real factory-calibrated ppb
+        # reading where U2 is populated). Whether U2 IS populated on
+        # production assemblies is unresolved (SOT OD-SOT-008), which is
+        # why the entity is diagnostic and disabled by default. Ozone (no fitted part, no driver)
         # still must not be exposed anywhere.
         entities = entities_by_id(self.doc)
         self.assertIn("s360_hcho", entities)
@@ -461,6 +474,14 @@ class CustomerEntityContractTests(unittest.TestCase):
             DEFAULT_ENABLED_IDS,
             "default-enabled customer set must be exactly the accepted set",
         )
+
+    def test_evidence_gated_entities_are_diagnostic_and_disabled(self) -> None:
+        # Capability preserved, presentation gated: each entity still
+        # exists and is merely filed under Diagnostic and switched off.
+        for entity_id in EVIDENCE_GATED_DIAGNOSTIC_IDS:
+            entity = self._entity(entity_id)
+            self.assertEqual(entity.get("entity_category"), "diagnostic", entity_id)
+            self.assertTrue(entity.get("disabled_by_default"), entity_id)
 
     def test_extra_pm_fractions_disabled_by_default(self) -> None:
         for entity_id in DISABLED_STANDARD_SENSOR_IDS:

@@ -10,8 +10,11 @@ capability.
 Contract highlights enforced here:
 
 * Customer entities are exactly: Occupancy, Presence Status, Radar Target
-  Count, Presence Mode, Clear Delay — stable ``s360_``-prefixed IDs,
-  product-facing names, enabled by default. There is deliberately NO
+  Count, Presence Mode, Clear Delay — stable ``s360_``-prefixed IDs and
+  product-facing names. Occupancy is enabled by default; Presence Mode and
+  Clear Delay are configuration controls; Presence Status and Radar Target
+  Count are diagnostic and disabled by default while SOT OD-SOT-004 leaves
+  radar attachment inclusion unresolved. There is deliberately NO
   "Presence Sensitivity" entity (no honest common runtime sensitivity
   contract exists across the three sensors) and NO "People Count" entity
   (radar targets are not verified people).
@@ -218,16 +221,52 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertNotEqual(entity.get("internal"), True)
 
     def test_presence_status_entity(self) -> None:
+        # SENSE360-REVIEW-RELEASE-001 Gate B: diagnostic and disabled by
+        # default while SOT OD-SOT-004 leaves radar attachment inclusion
+        # unresolved. The canonical package expects radar, so on a unit
+        # with an unpopulated radar connector the module health sits at
+        # Degraded and PD-02 precedence makes this entity read "Sensor
+        # degraded" instead of "Clear" whenever the room is empty —
+        # proven in tests/unit/test_presence_fusion.cpp
+        # (missing_radar_reports_degraded_not_clear_when_room_empties).
+        # Presentation only: the fusion, precedence and health logic are
+        # unchanged, expected-sensor membership is untouched, and nothing
+        # here asserts whether radar ships. Occupancy stays customer-facing
+        # because it stays correct throughout.
         entity = self._entity("s360_presence_status")
         self.assertEqual(entity["_platform"], "text_sensor")
         self.assertEqual(entity.get("name"), "Presence Status")
-        self.assertFalse(entity.get("disabled_by_default", False))
+        self.assertEqual(entity.get("entity_category"), "diagnostic")
+        self.assertTrue(entity.get("disabled_by_default"))
+
+    def test_expected_sensor_membership_is_unchanged(self) -> None:
+        # The presentation gate must never be implemented by pretending a
+        # sensor is absent or present: that would resolve OD-SOT-004 by
+        # inference. All three channels stay expected.
+        raw = FUSION_PACKAGE.read_text()
+        for substitution in (
+            'presence_pir_expected: "true"',
+            'presence_radar_expected: "true"',
+            'presence_sen0609_expected: "true"',
+        ):
+            self.assertIn(substitution, raw)
 
     def test_radar_target_count_entity(self) -> None:
+        # SENSE360-REVIEW-RELEASE-001 Gate B: diagnostic and disabled by
+        # default while radar attachment inclusion is unresolved (SOT
+        # OD-SOT-004). Every other radar-derived entity here was already
+        # diagnostic + disabled; this restores consistency rather than
+        # setting new policy, asserts nothing about whether radar ships,
+        # and resolves no owner decision. Occupancy and Presence Status
+        # stay on the customer default surface (PD-01 fuses any valid
+        # sensor, so both hold on the PCB-mounted PIR alone). Capability
+        # is preserved: the entity and its freshness behaviour are
+        # unchanged, and enabling it restores the reading.
         entity = self._entity("s360_radar_target_count")
         self.assertEqual(entity["_platform"], "sensor")
         self.assertEqual(entity.get("name"), "Radar Target Count")
-        self.assertFalse(entity.get("disabled_by_default", False))
+        self.assertEqual(entity.get("entity_category"), "diagnostic")
+        self.assertTrue(entity.get("disabled_by_default"))
         self.assertEqual(entity.get("state_class"), "measurement")
         self.assertEqual(entity.get("accuracy_decimals"), 0)
         # A count of radar targets is dimensionless: no unit that could imply

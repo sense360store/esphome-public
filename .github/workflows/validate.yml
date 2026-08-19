@@ -90,6 +90,10 @@ jobs:
         run: |
           python3 tests/test_blower_framework.py
 
+      - name: Customer entity surface contract (SENSE360-REVIEW-RELEASE-001)
+        run: |
+          python3 tests/test_customer_entity_surface.py
+
       # Structural half of REMOTE-PACKAGE-HEADER-RESOLUTION-001: wrapper /
       # component shape checks always run; the esphome-CLI consumer
       # validations skip here (no esphome installed) and run with the CLI in

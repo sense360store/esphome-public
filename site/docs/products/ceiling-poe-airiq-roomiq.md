@@ -157,8 +157,8 @@ rescue firmware, then install the product firmware again.
 |---|---|
 | Hub | Sense360 Core (S360-100) — ESP32-S3 |
 | Power | Sense360 PoE PSU (S360-410) — powered over Ethernet, 5 V output |
-| Air quality | Sense360 AirIQ (S360-210) — SCD41 CO₂, SGP41 VOC, MICS-4514 gas sensors on board; connectors for SPS30 particulate and SFA40 formaldehyde add-ons (see the firmware note above — these measurements are not yet exposed as entities) |
-| Room sensing | Sense360 RoomIQ (S360-200) — LD2450 mmWave radar, PIR, SEN0609, LTR-303ALS ambient light, SHT4x temperature/humidity, BMP581 pressure |
+| Air quality | Sense360 AirIQ (S360-210) — SCD41 CO₂, SGP41 VOC and NOx, MICS-4514 gas sensors on board. SPS30 particulate is an optional external add-on and is not included, so particulate measurements are not part of the entity set. Formaldehyde is not part of the default entity set while the SFA40 fitment question is open; the entity ships disabled and advanced users can enable it |
+| Room sensing | Sense360 RoomIQ (S360-200) — on the board: EKMC1601111 PIR motion, LTR-303ALS ambient light, SHT4x temperature and humidity, BMP581 pressure. The board also carries two radar connectors, J2 for a Hi-Link LD2450 and J3 for a DFRobot SEN0609/C4001, and the firmware supports both. A connector is a capability, not a statement about what is in the box: whether a radar module is supplied with this product is not settled here |
 | Wi-Fi | 2.4 GHz |
 
 Full engineering references (pinouts, schematics, board revisions) live on

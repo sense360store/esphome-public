@@ -39,19 +39,26 @@ capability**, not three unrelated technical sensors:
 
 The customer never needs to know which sensor produced the result.
 
-## Customer entities (enabled by default)
+## Customer entities
 
-The default-enabled surface is exactly this set (stable IDs; names are the
-accepted customer contract; no `${friendly_name}` prefix per the
-Core-Framework naming rules):
+Exactly this set is customer-facing (stable IDs; names are the accepted
+customer contract; no `${friendly_name}` prefix per the Core-Framework
+naming rules). The **Panel** column is where Home Assistant shows each
+one: `Occupancy` is the default surface, `Presence Mode` and `Clear Delay`
+are configuration controls, and `Presence Status` and `Radar Target Count`
+are advanced and opt-in while SOT `OD-SOT-004` leaves radar attachment
+inclusion unresolved (SENSE360-REVIEW-RELEASE-001 Gate B; see
+[`sense360-customer-entity-surface.md`](sense360-customer-entity-surface.md)).
+Gating changes presentation only — the fusion, precedence and health logic
+are unchanged, and enabling an entity restores it in full.
 
-| Entity ID | Name | Type | Meaning |
-|---|---|---|---|
-| `s360_occupancy` | Occupancy | binary sensor (occupancy) | The fused room-occupied result (PD-01) |
-| `s360_presence_status` | Presence Status | text sensor | One customer-facing story value (PD-02, below) |
-| `s360_radar_target_count` | Radar Target Count | sensor | Instantaneous LD2450 target count; **unknown** (not 0) while radar data is stale (PD-09) |
-| `s360_presence_mode` | Presence Mode | select (config) | Balanced / Responsive / Stable / Custom (PD-10) |
-| `s360_presence_clear_delay` | Clear Delay | number (config) | 5–600 s, step 5, default 30 s; persisted across reboot; runtime-applied (PD-04) |
+| Entity ID | Name | Type | Panel | Meaning |
+|---|---|---|---|---|
+| `s360_occupancy` | Occupancy | binary sensor (occupancy) | default | The fused room-occupied result (PD-01) |
+| `s360_presence_status` | Presence Status | text sensor | advanced, opt-in | One customer-facing story value (PD-02, below) |
+| `s360_radar_target_count` | Radar Target Count | sensor | advanced, opt-in | Instantaneous LD2450 target count; **unknown** (not 0) while radar data is stale (PD-09) |
+| `s360_presence_mode` | Presence Mode | select (config) | configuration | Balanced / Responsive / Stable / Custom (PD-10) |
+| `s360_presence_clear_delay` | Clear Delay | number (config) | configuration | 5–600 s, step 5, default 30 s; persisted across reboot; runtime-applied (PD-04) |
 
 There is deliberately **no "Presence Sensitivity" entity** (PD-05): the
 LD2450 native component and the SEN0609 digital output expose no supported

@@ -20,14 +20,24 @@ tracked as `AIRIQ-FRAMEWORK-BENCH-001`).
 
 > **AIRIQ-HW-RECONCILE-001 update (supersedes the "was" state below).** The
 > canonical board package has been reconciled against the verified R4
-> schematic + BOM. The historical status recorded throughout §1 — SFA40
-> fitment *unresolved*, MICS-4514/STM8 *not compiled*, and a *compiled*
-> BMP390 pressure driver — has been resolved:
+> schematic + BOM. Two of the three items recorded throughout §1 are
+> resolved — MICS-4514/STM8 *not compiled* and a *compiled* BMP390
+> pressure driver. **SFA40 fitment is not one of them:** the driver
+> question closed, the production-population question did not, and it
+> remains open (see the first bullet below):
 >
-> * **SFA40 (U2, formaldehyde @ 0x5D)** is taken as **fitted** (R4 BOM +
->   verified schematic + owner direction) and is now driven by the scoped
->   `sfa40` external component; Formaldehyde is an expected customer
->   pollutant. `ENTITY-FILL-210-HCHO-001` is closed by this driver.
+> * **SFA40 (U2, formaldehyde @ 0x5D)** — the R4 BOM, the verified
+>   schematic and owner direction establish the **design intent** that
+>   `U2` is an on-board part, so the firmware now drives it through the
+>   scoped `sfa40` external component and `ENTITY-FILL-210-HCHO-001` is
+>   closed by that driver. **Design intent is not production population.**
+>   Whether `U2` is actually populated on production assemblies remains
+>   **unresolved** pending physical CPL / silkscreen / assembly evidence
+>   (`HW-PINMAP-210-FOLLOWUP`), and SOT holds that question open as
+>   **`OD-SOT-008`**. This document therefore asserts neither that the
+>   part is present nor that it is absent. Formaldehyde is consequently a
+>   **diagnostic, disabled-by-default** entity, not a default customer
+>   pollutant — see §2 and SENSE360-REVIEW-RELEASE-001 Gate B.
 > * **MICS-4514 + STM8 (U4/U5 @ 0x60)** is now driven by the scoped
 >   `mics_stm8` external component as a **diagnostic reducing/oxidising
 >   ratio surface only** (no CO/NO2 concentration claimed).
@@ -42,9 +52,11 @@ tracked as `AIRIQ-FRAMEWORK-BENCH-001`).
 > Evidence level is unchanged: **source + datasheet-derived protocol +
 > compile proof only.** The STM8 register map / address (0x60) / firmware
 > (0x24) are per the owner-provided STM8 firmware spec; on-hardware bench
-> verification of the fitted MICS/STM8 + SFA40 stages and physical
-> CPL/silkscreen population evidence (`HW-PINMAP-210-FOLLOWUP`) remain
-> **pending** — never a bench, compliance or commercial claim.
+> verification of the MICS/STM8 and SFA40 stages and physical
+> CPL/silkscreen population evidence (`HW-PINMAP-210-FOLLOWUP`,
+> SOT `OD-SOT-008`) remain **pending** — never a bench, compliance or
+> commercial claim, and never proof that either part is populated on a
+> production assembly.
 
 ---
 
@@ -102,12 +114,16 @@ functionality available.
 The table above records the audit **as of AIRIQ-FRAMEWORK-001**; the
 AIRIQ-HW-RECONCILE-001 banner at the top of this document supersedes its
 SFA40 / MICS / BMP390 rows. Under that reconciliation the board package
-`packages/boards/s360-210-airiq.yaml` now: drives the fitted **SFA40**
-(`sfa40` @ 0x5D) and **MICS-4514/STM8** (`mics_stm8` @ 0x60), **removes**
-the drifted BMP390, and moves the external **SPS30** driver to the opt-in
-overlay. The board layer remains the owner of the raw (internal) pollutant
-sensors; the framework re-exposes the canonical customer surface (now
-including Formaldehyde).
+`packages/boards/s360-210-airiq.yaml` now: drives **SFA40** (`sfa40` @
+0x5D) and **MICS-4514/STM8** (`mics_stm8` @ 0x60), **removes** the drifted
+BMP390, and moves the external **SPS30** driver to the opt-in overlay.
+Driving a part is a firmware fact and never evidence that it is populated
+on a production assembly: SFA40 production population stays unresolved
+(`HW-PINMAP-210-FOLLOWUP`, SOT `OD-SOT-008`). The board layer remains the
+owner of the raw (internal) pollutant sensors; the framework re-exposes
+the canonical customer surface, with Formaldehyde present as a
+diagnostic, disabled-by-default entity rather than a default customer
+pollutant (§2).
 
 ### 1.3 SFA40 fitment — conflict analysis (not silently resolved)
 
@@ -133,13 +149,23 @@ footprint convention, or does another record resolve it?
   reconciliation to **`HW-PINMAP-210-FOLLOWUP`** (silkscreen +
   populated-board evidence, then the doc-text fix).
 
-Consequence for this PR: the catalog is **not** edited here (governance:
-the catalog is the canonical naming source and the artifact record
-explicitly routes the fitment/doc correction through
-`HW-PINMAP-210-FOLLOWUP` with physical evidence). The framework treats
-SFA40 as footprint-present / population-unresolved / driver-absent, and
-no Formaldehyde entity may appear until both population and a compiled
-supported driver are proven.
+Consequence at AIRIQ-FRAMEWORK-001: the catalog is **not** edited here
+(governance: the catalog is the canonical naming source and the artifact
+record explicitly routes the fitment/doc correction through
+`HW-PINMAP-210-FOLLOWUP` with physical evidence). The framework treated
+SFA40 as footprint-present / population-unresolved / driver-absent, and no
+Formaldehyde entity existed.
+
+**Current state.** Of the two conditions above, exactly one has moved:
+AIRIQ-HW-RECONCILE-001 supplied the compiled `sfa40` driver, so the
+entity now exists. **Production population has not moved** — no CPL,
+silkscreen, board-photo or assembly evidence exists in the tree, the
+question stays assigned to `HW-PINMAP-210-FOLLOWUP`, and SOT holds it
+open as `OD-SOT-008`. Because population is unresolved, Formaldehyde
+ships **diagnostic and disabled by default** under
+SENSE360-REVIEW-RELEASE-001 Gate B (§2) rather than as a default customer
+pollutant. Nothing in this section asserts that `U2` is populated or that
+it is not.
 
 ### 1.5 SPS30 inclusion audit — is the external module actually supplied?
 
@@ -201,14 +227,30 @@ Default-enabled entities (the ONLY default-enabled set):
 | CO2 | `s360_co2` | ppm |
 | VOC | `s360_voc` | relative index (unitless by design) |
 | NOx | `s360_nox` | relative index (unitless by design) |
-| Formaldehyde | `s360_hcho` | ppb (fitted SFA40 — factory-calibrated) |
 | Air Quality | `s360_air_quality` | Initialising / Good / Fair / Poor / Very poor / Unavailable |
 | Recommendation | `s360_recommendation` | Sensor initialising / No action needed / Ventilate soon / Ventilate now / Check pollution source / Unavailable |
 
-Formaldehyde joins the default set under AIRIQ-HW-RECONCILE-001 because the
-SFA40 (U2) is a fitted, factory-calibrated Sensirion sensor with a real ppb
-output; it reports unavailable during its own not-ready window (first minute
-after power-up). Its severity bands stay **provisional** (§3.1).
+Advanced, opt-in (diagnostic and disabled by default):
+
+| Entity | id | Unit / values |
+|---|---|---|
+| Formaldehyde | `s360_hcho` | ppb (SFA40, factory-calibrated) |
+
+Formaldehyde is gated under SENSE360-REVIEW-RELEASE-001 Gate B because
+whether `U2` is populated on production assemblies is an open bench item
+(`docs/hardware/airiq-framework-bench-checklist.md`), tracked as SOT
+`OD-SOT-008`. The gating asserts nothing about whether the part is fitted
+or absent and resolves no owner decision; it is presentation only, and
+enabling the entity restores the reading in full.
+
+AIRIQ-HW-RECONCILE-001 gave Formaldehyde a compiled driver: the SFA40 is a
+factory-calibrated Sensirion part with a real ppb output, so where `U2` is
+populated the reading is genuine, and it reports unavailable during its own
+not-ready window (first minute after power-up). That is a firmware and
+datasheet fact about the part, never evidence that the part is populated on
+a production assembly — which is why the entity is advanced and opt-in
+rather than default while `OD-SOT-008` is open. Its severity bands stay
+**provisional** (§3.1).
 
 Available but disabled by default (standard sensors, not diagnostics):
 **PM2.5** (`s360_pm2_5`), **PM1** (`s360_pm1`), **PM4** (`s360_pm4`),
@@ -232,14 +274,17 @@ no MiCS-derived CO / NO2 concentration is claimed either.
 
 ### 2.1 The strongest simpler alternative (adopted)
 
-Under AIRIQ-HW-RECONCILE-001 the customer surface now includes the fitted
-SFA40 **Formaldehyde** (a real factory-calibrated ppb reading), while the
-MiCS-derived CO / NO2 concentrations and ozone remain **out** of the
-customer set: CO2 + VOC + NOx + Formaldehyde + PM2.5 (opt-in) + headline +
-recommendation delivers the customer value without the unresolved MiCS
-calibration burden, with no Base-style/Pro-style leakage risk (nothing
-unfitted is shown), a small entity count, lower support burden and trivial
-rollback. MiCS stays available as a diagnostic ratio surface (promotion to
+Under AIRIQ-HW-RECONCILE-001 the firmware gained an SFA40 **Formaldehyde**
+reading (a real factory-calibrated ppb value where `U2` is populated),
+while the MiCS-derived CO / NO2 concentrations and ozone remain **out** of
+the customer set. The default customer surface is CO2 + VOC + NOx +
+headline + recommendation, with Formaldehyde and PM2.5 available opt-in —
+Formaldehyde because its production population is unresolved
+(`OD-SOT-008`), PM2.5 because the SPS30 is an external attachment whose
+inclusion is unproven (§1.5). That delivers the customer value without the
+unresolved MiCS calibration burden, with no Base-style/Pro-style leakage
+risk (nothing whose presence is unproven is presented by default), a small
+entity count, lower support burden and trivial rollback. MiCS stays available as a diagnostic ratio surface (promotion to
 a customer pollutant is gated on the §7 calibration evidence), and ozone
 stays an engine contract slot that activates only with authoritative
 evidence. Exposing a MiCS CO/NO2 concentration now — with the STM8
@@ -458,9 +503,12 @@ for this PR.
   firmware/catalog drift is **resolved by removal** (no pressure part on
   the verified schematic / BOM / catalog); the STM8 readout path is
   **implemented** by `mics_stm8` (transport only — bench verification
-  pending); SFA40 is **taken as fitted** and driven (`sfa40`), with
-  physical CPL/silkscreen population evidence still owed to
-  `HW-PINMAP-210-FOLLOWUP`. Still open: the SEN0321 (ZE27-O3) external
+  pending); SFA40 is **driven** (`sfa40`) on the schematic/BOM design
+  intent, while its **production population remains unresolved** —
+  physical CPL/silkscreen evidence is still owed to
+  `HW-PINMAP-210-FOLLOWUP` and SOT holds the question open as
+  `OD-SOT-008`, so the Formaldehyde entity is diagnostic and disabled by
+  default. Still open: the SEN0321 (ZE27-O3) external
   ozone input (named on the verified schematic but with no identified
   attach connector and no driver; ZE07 has no record anywhere). If an
   ozone module ships, its exact gas and unit must come from authoritative
