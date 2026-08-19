@@ -226,7 +226,8 @@ class Sfa40OptOutTests(unittest.TestCase):
         cls.overlay = _load(AIRIQ_NOSFA40)
 
     # 11. Existing SFA40-bearing products remain unchanged: the canonical AirIQ
-    # board still declares the fitted SFA40 @ 0x5D by default.
+    # board still declares the SFA40 @ 0x5D by default (a firmware
+    # declaration, not a production-population claim — SOT OD-SOT-008).
     def test_canonical_airiq_still_has_sfa40(self) -> None:
         self.assertIn("platform: sfa40", self.airiq_raw)
         self.assertIn("0x5D", self.airiq_raw)

@@ -313,9 +313,11 @@ class AuthorityTests(unittest.TestCase):
         self.assertNotIn("base_pro", raw)
 
     def test_formaldehyde_exposed_but_no_ozone_entity(self) -> None:
-        # AIRIQ-HW-RECONCILE-001: the fitted SFA40 (U2) gives a real,
-        # factory-calibrated ppb formaldehyde reading, so a customer
-        # Formaldehyde entity now exists. Ozone (no fitted part, no driver)
+        # AIRIQ-HW-RECONCILE-001 supplied the SFA40 driver, so a customer
+        # Formaldehyde entity now exists (a real factory-calibrated ppb
+        # reading where U2 is populated). Whether U2 IS populated on
+        # production assemblies is unresolved (SOT OD-SOT-008), which is
+        # why the entity is diagnostic and disabled by default. Ozone (no fitted part, no driver)
         # still must not be exposed anywhere.
         entities = entities_by_id(self.doc)
         self.assertIn("s360_hcho", entities)
