@@ -180,7 +180,19 @@ status_led:
     number: ${fan_status_led_pin}
     inverted: true
 
-# Main relay for ceiling fan or light control
+# Main relay for ceiling fan or light control.
+#
+# SENSE360-REVIEW-RELEASE-001 Gate B: this is the GPIO drive line for
+# connector J4 — the Sense360 Relay (S360-310) module connector per
+# docs/hardware/s360-100-core-connector-pin-map.md. Compositions that ship
+# no S360-310 have nothing attached to it, and the one package that does
+# consume it (packages/expansions/fan_relay.yaml) exposes its OWN
+# customer-facing "Fan" switch that proxies this id. So the raw drive line
+# is advanced/configuration functionality, not a primary reviewer-facing
+# control. The capability is unchanged and the id keeps its exact name:
+# `disabled_by_default` affects the Home Assistant registry only, so
+# `switch.turn_on: main_relay` and `id(main_relay).state` still work for
+# the fan proxy and any user automation.
 switch:
   - platform: gpio
     name: "${friendly_name} Relay"
@@ -188,6 +200,8 @@ switch:
     pin: ${relay_pin}
     restore_mode: RESTORE_DEFAULT_OFF
     icon: mdi:electric-switch
+    entity_category: config
+    disabled_by_default: true
     on_turn_on:
       - logger.log: "Ceiling relay turned ON"
     on_turn_off:

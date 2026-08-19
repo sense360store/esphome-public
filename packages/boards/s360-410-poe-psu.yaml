@@ -131,6 +131,9 @@ sensor:
     lambda: |-
       return 5.0;  // Fixed 5V output from PoE module
     update_interval: 60s
+    # Device health, not room sensing: Home Assistant files it under
+    # Diagnostic (SENSE360-REVIEW-RELEASE-001 Gate B).
+    entity_category: diagnostic
 
 # Power source indicator
 text_sensor:
@@ -141,6 +144,7 @@ text_sensor:
     lambda: |-
       return {"PoE (IEEE ${poe_standard})"};
     update_interval: 60s
+    entity_category: diagnostic
 
   - platform: template
     name: "${friendly_name} Power Configuration"
@@ -163,6 +167,7 @@ binary_sensor:
       // Assume always connected for PoE configuration
       // PoE detection could be implemented with additional circuitry
       return true;
+    entity_category: diagnostic
 
 # Debug logging for PoE configuration
 logger:

@@ -194,10 +194,21 @@ sensor:
   # not verified people. Dimensionless instantaneous count (no unit that
   # could imply cumulative measurement); unknown (NAN) while radar data is
   # stale rather than a fake 0.
+  # Diagnostic and disabled by default under SENSE360-REVIEW-RELEASE-001
+  # Gate B: whether the connector-attached radar modules are supplied is
+  # SOT OD-SOT-004, still open. Every other radar-derived entity in this
+  # framework is already diagnostic + disabled by default; this one was the
+  # sole exception, so this restores consistency rather than setting new
+  # policy. It asserts nothing about whether radar ships and resolves no
+  # owner decision. Occupancy and Presence Status stay on the customer
+  # default surface: PD-01 fusion asserts from ANY valid sensor, so both
+  # remain meaningful on the PCB-mounted PIR alone.
   - platform: sense360_presence
     type: radar_target_count
     id: s360_radar_target_count
     name: "Radar Target Count"
+    entity_category: diagnostic
+    disabled_by_default: true
     icon: mdi:radar
     state_class: measurement
     accuracy_decimals: 0

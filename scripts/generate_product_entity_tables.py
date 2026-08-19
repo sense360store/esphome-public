@@ -114,6 +114,26 @@ PLATFORM_DEFAULT_UNITS = {
     "duty_time": "s",
 }
 
+# Default ``entity_category`` for platforms that apply one themselves when
+# YAML declares none. Home Assistant already files these entities under
+# Diagnostic / Configuration; reading YAML alone would misreport them as
+# customer-facing. Verified against the ESPHome component sources at
+# 2026.6.5 (``entity_category=ENTITY_CATEGORY_*`` in each component's
+# platform module). Same shape and purpose as PLATFORM_DEFAULT_UNITS
+# above: only platforms actually reaching the tables need an entry.
+PLATFORM_DEFAULT_ENTITY_CATEGORY = {
+    "status": "diagnostic",
+    "wifi_signal": "diagnostic",
+    "wifi_info": "diagnostic",
+    "version": "diagnostic",
+    "uptime": "diagnostic",
+    "internal_temperature": "diagnostic",
+    "debug": "diagnostic",
+    "restart": "config",
+    "safe_mode": "config",
+    "factory_reset": "config",
+}
+
 # Column labels for the comparison matrix: the module descriptor carried in
 # each product-guide title/nav entry in site/mkdocs.yml (the parenthetical
 # after the canonical bundle name — e.g. the "VentIQ + RoomIQ" of "Bathroom
@@ -372,6 +392,10 @@ class EntityCollector:
                 "unit": str(unit) if unit is not None else "",
                 "device_class": node.get("device_class", ""),
                 "entity_category": node.get("entity_category", ""),
+                "effective_entity_category": (
+                    node.get("entity_category")
+                    or PLATFORM_DEFAULT_ENTITY_CATEGORY.get(platform, "")
+                ),
                 "disabled_by_default": node.get("disabled_by_default") is True,
                 "source": str(path.relative_to(self.repo_root)),
             }
@@ -399,8 +423,8 @@ def _entity_notes(entity: Dict[str, Any]) -> str:
     notes = []
     if entity["device_class"]:
         notes.append(f"device class: {entity['device_class']}")
-    if entity["entity_category"]:
-        notes.append(f"{entity['entity_category']} entity")
+    if entity["effective_entity_category"]:
+        notes.append(f"{entity['effective_entity_category']} entity")
     if entity["disabled_by_default"]:
         notes.append("disabled by default")
     return "; ".join(notes) if notes else "—"
@@ -431,9 +455,34 @@ def render_table(config_string: str, collector: EntityCollector) -> str:
         lines.append(f"       {source}")
     lines.append("-->")
     lines.append("")
+    # Two audiences, two tables. The default set is what a customer sees
+    # on the device page; everything else is filed by Home Assistant under
+    # Diagnostic / Configuration, or is switched off until enabled. The
+    # split is derived, never hand-maintained: an entity is customer
+    # default when it is enabled and carries no effective entity category.
+    default_entities = [
+        e
+        for e in entities
+        if not e["disabled_by_default"] and not e["effective_entity_category"]
+    ]
+    advanced_entities = [e for e in entities if e not in default_entities]
+
+    def _table(rows_: List[Dict[str, Any]]) -> None:
+        lines.append("| Entity | Type | Unit | Notes |")
+        lines.append("|---|---|---|---|")
+        for entity in rows_:
+            unit = entity["unit"] if entity["unit"] else "—"
+            lines.append(
+                f"| {entity['name']} | {entity['type']} | {unit} "
+                f"| {_entity_notes(entity)} |"
+            )
+        lines.append("")
+
     lines.append(
         f"The `{config_string}` firmware exposes **{len(entities)} entities** "
-        "to Home Assistant."
+        f"to Home Assistant. **{len(default_entities)}** of them make up the "
+        "everyday view; the rest are diagnostics and settings, kept out of "
+        "the way but never removed."
     )
     lines.append("")
     lines.append(
@@ -444,16 +493,27 @@ def render_table(config_string: str, collector: EntityCollector) -> str:
         "not listed."
     )
     lines.append("")
-    lines.append("| Entity | Type | Unit | Notes |")
-    lines.append("|---|---|---|---|")
-    for entity in entities:
-        unit = entity["unit"] if entity["unit"] else "—"
-        lines.append(
-            f"| {entity['name']} | {entity['type']} | {unit} "
-            f"| {_entity_notes(entity)} |"
-        )
+    lines.append("### What you see by default")
     lines.append("")
-    return "\n".join(lines)
+    lines.append(
+        "These appear on the device page as soon as Home Assistant adds "
+        "the device. No configuration needed."
+    )
+    lines.append("")
+    _table(default_entities)
+    lines.append("### Diagnostics and settings")
+    lines.append("")
+    lines.append(
+        "Everything else the firmware exposes. Home Assistant files "
+        "`diagnostic` and `config` entities in their own sections on the "
+        "same device page. Entries marked *disabled by default* are switched "
+        "off until you enable them — open the device, choose the entity, and "
+        "enable it. Nothing here is hidden from you; it simply does not "
+        "compete with the everyday view."
+    )
+    lines.append("")
+    _table(advanced_entities)
+    return "\n".join(lines).rstrip("\n") + "\n"
 
 
 def load_catalog_products() -> Dict[str, Dict[str, Any]]:

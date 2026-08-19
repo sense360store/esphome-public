@@ -224,10 +224,21 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertFalse(entity.get("disabled_by_default", False))
 
     def test_radar_target_count_entity(self) -> None:
+        # SENSE360-REVIEW-RELEASE-001 Gate B: diagnostic and disabled by
+        # default while radar attachment inclusion is unresolved (SOT
+        # OD-SOT-004). Every other radar-derived entity here was already
+        # diagnostic + disabled; this restores consistency rather than
+        # setting new policy, asserts nothing about whether radar ships,
+        # and resolves no owner decision. Occupancy and Presence Status
+        # stay on the customer default surface (PD-01 fuses any valid
+        # sensor, so both hold on the PCB-mounted PIR alone). Capability
+        # is preserved: the entity and its freshness behaviour are
+        # unchanged, and enabling it restores the reading.
         entity = self._entity("s360_radar_target_count")
         self.assertEqual(entity["_platform"], "sensor")
         self.assertEqual(entity.get("name"), "Radar Target Count")
-        self.assertFalse(entity.get("disabled_by_default", False))
+        self.assertEqual(entity.get("entity_category"), "diagnostic")
+        self.assertTrue(entity.get("disabled_by_default"))
         self.assertEqual(entity.get("state_class"), "measurement")
         self.assertEqual(entity.get("accuracy_decimals"), 0)
         # A count of radar targets is dimensionless: no unit that could imply
