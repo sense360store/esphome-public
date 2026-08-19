@@ -578,6 +578,100 @@ TEST_CASE(pir_hold_keeps_movement_after_edge) {
 // Runner
 // ---------------------------------------------------------------------------
 
+
+// ---------------------------------------------------------------------------
+// SENSE360-REVIEW-RELEASE-001 (OD-SOT-004): what the CANONICAL review
+// firmware actually does when the connector-attached radar is not fitted.
+//
+// The shipped package expects all three channels
+// (presence_pir_expected / presence_radar_expected /
+// presence_sen0609_expected all "true"), because whether the radar modules
+// are supplied is an unresolved owner decision. These cases record the
+// runtime consequence of that configuration on a PIR-only unit. They
+// assert behaviour; they do NOT assert whether radar ships.
+// ---------------------------------------------------------------------------
+
+// Drive the engine to `until` with NO radar frames at all — the runtime
+// picture of a unit whose radar connector is unpopulated.
+void settle_without_radar(FusionEngine &engine, uint32_t until = T_READY) {
+  for (uint32_t t = 1000; t <= until; t += 1000) {
+    engine.evaluate(t);
+  }
+}
+
+TEST_CASE(missing_radar_degrades_health_once_warmup_expires) {
+  // Radar is expected AND verifiable, so past its warm-up with no frames it
+  // is a FAILED channel. PIR is expected and past warm-up, so it remains
+  // usable and the module degrades rather than going unavailable.
+  FusionEngine engine = tri_engine();
+  settle_without_radar(engine);
+  ASSERT_EQ(engine.health(), HEALTH_DEGRADED);
+}
+
+TEST_CASE(missing_radar_still_allows_pir_occupancy) {
+  // The customer-facing occupancy story survives: PIR alone asserts.
+  FusionEngine engine = tri_engine();
+  settle_without_radar(engine);
+  ASSERT_FALSE(engine.occupancy());
+  engine.input_pir(T_READY + 100, true);
+  engine.evaluate(T_READY + 100);
+  ASSERT_TRUE(engine.occupancy());
+  ASSERT_EQ(engine.status(), STATUS_MOVEMENT);
+}
+
+TEST_CASE(missing_radar_reports_degraded_not_clear_when_room_empties) {
+  // THE FINDING: with the room genuinely clear, a PIR-only unit running the
+  // canonical review firmware reports "Sensor degraded", never "Clear" —
+  // the PD-02 precedence puts HEALTH_DEGRADED above STATUS_CLEAR. Occupancy
+  // is correct; the customer-facing status string is not reassuring.
+  FusionEngine engine = tri_engine();
+  settle_without_radar(engine);
+  engine.input_pir(T_READY + 100, true);
+  engine.evaluate(T_READY + 100);
+  ASSERT_TRUE(engine.occupancy());
+
+  engine.input_pir(T_READY + 200, false);
+  // Balanced mode holds PIR active for pir_hold_ms (30 s) after the edge,
+  // then the 30 s clear delay runs — the room reads clear at ~101 s.
+  for (uint32_t t = T_READY + 1000; t <= T_READY + 120000; t += 1000) {
+    engine.evaluate(t);
+  }
+  ASSERT_FALSE(engine.occupancy());
+  ASSERT_EQ(engine.health(), HEALTH_DEGRADED);
+  ASSERT_EQ(engine.status(), STATUS_DEGRADED);
+  ASSERT_STREQ(status_to_string(engine.status()), "Sensor degraded");
+}
+
+TEST_CASE(missing_sen0609_alone_does_not_degrade_health) {
+  // SEN0609 is a non-verifiable GPIO level: it can never be proven failed,
+  // so an inactive/absent static channel is NOT what degrades the module.
+  // Radar is the only expected channel that can fail this way. Recorded so
+  // the finding is attributed to the right channel.
+  FusionEngine engine = tri_engine();
+  settle_clear(engine);  // radar healthy, SEN0609 never asserts
+  ASSERT_EQ(engine.health(), HEALTH_AVAILABLE);
+  ASSERT_EQ(engine.status(), STATUS_CLEAR);
+}
+
+TEST_CASE(occupancy_remains_trustworthy_across_the_degraded_cycle) {
+  // Occupancy is safe to keep on the customer default surface: it tracks
+  // the room correctly on PIR alone with radar absent, through assert and
+  // clear, regardless of the degraded status string.
+  FusionEngine engine = tri_engine();
+  settle_without_radar(engine);
+  for (int cycle = 0; cycle < 3; cycle++) {
+    const uint32_t base = T_READY + (uint32_t) cycle * 200000;
+    engine.input_pir(base + 100, true);
+    engine.evaluate(base + 100);
+    ASSERT_TRUE(engine.occupancy());
+    engine.input_pir(base + 200, false);
+    for (uint32_t t = base + 1000; t <= base + 120000; t += 1000) {
+      engine.evaluate(t);
+    }
+    ASSERT_FALSE(engine.occupancy());
+  }
+}
+
 int main() {
   printf("=== PRESENCE-FRAMEWORK-001 fusion simulation tests ===\n");
   printf("(logic/simulation proof only — never hardware validation)\n\n");
@@ -649,6 +743,16 @@ int main() {
            "global_engine_is_a_single_shared_instance");
   run_test(test_pir_hold_keeps_movement_after_edge,
            "pir_hold_keeps_movement_after_edge");
+  run_test(test_missing_radar_degrades_health_once_warmup_expires,
+           "missing_radar_degrades_health_once_warmup_expires");
+  run_test(test_missing_radar_still_allows_pir_occupancy,
+           "missing_radar_still_allows_pir_occupancy");
+  run_test(test_missing_radar_reports_degraded_not_clear_when_room_empties,
+           "missing_radar_reports_degraded_not_clear_when_room_empties");
+  run_test(test_missing_sen0609_alone_does_not_degrade_health,
+           "missing_sen0609_alone_does_not_degrade_health");
+  run_test(test_occupancy_remains_trustworthy_across_the_degraded_cycle,
+           "occupancy_remains_trustworthy_across_the_degraded_cycle");
 
   printf("\n=== Results: %d/%d passed ===\n", passed_count, test_count);
   return (passed_count == test_count) ? 0 : 1;

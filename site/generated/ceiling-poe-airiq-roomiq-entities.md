@@ -33,7 +33,7 @@
        products/webflash/ceiling-poe-airiq-roomiq.yaml
 -->
 
-The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **140 entities** to Home Assistant. **14** of them make up the everyday view; the rest are diagnostics and settings, kept out of the way but never removed.
+The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **140 entities** to Home Assistant. **13** of them make up the everyday view; the rest are diagnostics and settings, kept out of the way but never removed.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling AirIQ RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -55,7 +55,6 @@ These appear on the device page as soon as Home Assistant adds the device. No co
 | Brightness | Text sensor | — | — |
 | Comfort | Text sensor | — | — |
 | Environment State | Text sensor | — | — |
-| Presence Status | Text sensor | — | — |
 | Recommendation | Text sensor | — | — |
 
 ### Diagnostics and settings
@@ -168,6 +167,7 @@ Everything else the firmware exposes. Home Assistant files `diagnostic` and `con
 | Presence Module SKU | Text sensor | — | diagnostic entity |
 | Presence Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | Presence Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
+| Presence Status | Text sensor | — | diagnostic entity; disabled by default |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
 | RoomIQ Calibration Schema | Text sensor | — | diagnostic entity; disabled by default |

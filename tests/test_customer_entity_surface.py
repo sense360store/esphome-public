@@ -46,7 +46,6 @@ REVIEW_CONFIG = "Ceiling-POE-AirIQ-RoomIQ"
 REVIEW_CUSTOMER_DEFAULT = {
     # presence
     "Occupancy",
-    "Presence Status",
     # room climate
     "Temperature",
     "Humidity",
@@ -88,6 +87,11 @@ NEVER_CUSTOMER_DEFAULT = {
 # EVERY served configuration while the owner decision behind it is open.
 EVIDENCE_GATED = {
     "Formaldehyde": "OD-SOT-008 (SFA40 production population unresolved)",
+    # Presence Status reads "Sensor degraded" rather than "Clear" on a unit
+    # whose radar connector is unpopulated, because the canonical package
+    # expects radar and PD-02 puts HEALTH_DEGRADED above STATUS_CLEAR.
+    # Proven in tests/unit/test_presence_fusion.cpp.
+    "Presence Status": "OD-SOT-004 (radar attachment inclusion unresolved)",
 }
 RADAR_PREFIX = "Radar "  # OD-SOT-004 (radar attachment inclusion unresolved)
 
@@ -210,12 +214,32 @@ class TestEvidenceGatedCapability(unittest.TestCase):
                 )
         self.assertTrue(found, "radar entities must still exist")
 
-    def test_presence_story_survives_without_radar(self):
-        """Occupancy and Presence Status assert from any valid sensor, so
-        they stay customer-default regardless of OD-SOT-004."""
+    def test_occupancy_carries_the_presence_story_alone(self):
+        """Occupancy asserts from ANY valid sensor and stays correct with
+        radar absent, so it remains the customer-facing presence signal.
+        Presence Status does not: with radar expected but unpopulated it
+        reports "Sensor degraded" rather than "Clear" whenever the room is
+        empty, so it is gated with the other OD-SOT-004 entities."""
         names = customer_default(surface(REVIEW_CONFIG))
         self.assertIn("Occupancy", names)
-        self.assertIn("Presence Status", names)
+        self.assertNotIn("Presence Status", names)
+
+    def test_evidence_gated_entities_are_diagnostic_and_opt_in(self):
+        """Every gated entity keeps its capability: still present, merely
+        filed under Diagnostic and switched off until enabled."""
+        for config_string in gen.SERVED_CONFIG_STRINGS:
+            by_name = {e["name"]: e for e in surface(config_string)}
+            for name in EVIDENCE_GATED:
+                entity = by_name.get(name)
+                if entity is None:
+                    continue
+                self.assertEqual(
+                    entity["effective_entity_category"], "diagnostic",
+                    f"{config_string}: {name}",
+                )
+                self.assertTrue(
+                    entity["disabled_by_default"], f"{config_string}: {name}"
+                )
 
 
 class TestCoreRelay(unittest.TestCase):

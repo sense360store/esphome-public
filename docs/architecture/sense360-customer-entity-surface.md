@@ -41,7 +41,7 @@ AirIQ), the customer-default surface is these entities and nothing else:
 
 | Group | Entities |
 |---|---|
-| Presence | Occupancy, Presence Status |
+| Presence | Occupancy |
 | Room climate | Temperature, Humidity, Pressure |
 | Light | Illuminance, Brightness |
 | Derived room state | Comfort, Environment State |
@@ -79,10 +79,42 @@ quality — with no engineering information competing for attention.
 | Relay | `config` + `disabled_by_default` | The Core `main_relay` is the GPIO drive line for connector `J4`, documented in `docs/hardware/s360-100-core-connector-pin-map.md` as the Sense360 Relay (`S360-310`) module connector. No `S360-310` is in the review composition, no package in it drives `main_relay`, and its only consumer, `packages/expansions/fan_relay.yaml`, exposes its own customer-facing `Fan` switch that proxies it. Rule 4. |
 | Formaldehyde | `diagnostic` + `disabled_by_default` | SFA40 (`U2`) production population is an open bench item (`docs/hardware/airiq-framework-bench-checklist.md`), tracked as SOT `OD-SOT-008`. Rule 3. |
 | Radar Target Count | `diagnostic` + `disabled_by_default` | Whether the connector-attached radar modules ship is SOT `OD-SOT-004`. Every other radar-derived entity in this framework was already `diagnostic` + `disabled_by_default`; this one was the sole exception. Rule 3. |
+| Presence Status | `diagnostic` + `disabled_by_default` | Also `OD-SOT-004`, for a subtler reason recorded below. Rule 3. |
 
-`Occupancy` and `Presence Status` stay customer-default: the presence
-fusion asserts occupancy from **any** valid sensor, so both remain
-meaningful on the PCB-mounted PIR alone, independently of `OD-SOT-004`.
+### Why `Presence Status` is gated but `Occupancy` is not
+
+The canonical package expects all three presence channels
+(`presence_pir_expected`, `presence_radar_expected`,
+`presence_sen0609_expected` are all `"true"`), because whether the radar
+modules are supplied is unresolved. On a unit whose radar connector is
+unpopulated, the radar channel is both *expected* and *verifiable*, so
+once its warm-up expires it counts as a **failed** channel. PIR keeps the
+module usable, so health settles at `Degraded` — permanently. The PD-02
+precedence places `HEALTH_DEGRADED` above `STATUS_CLEAR`, so with the room
+genuinely empty the customer-facing status reads **"Sensor degraded"**,
+never "Clear".
+
+That is proven against the shared engine, not inferred from YAML:
+`tests/unit/test_presence_fusion.cpp` drives `FusionEngine` with no radar
+frames and asserts the outcome
+(`missing_radar_reports_degraded_not_clear_when_room_empties`). The same
+suite records that an absent SEN0609 alone does **not** degrade health —
+it is a non-verifiable GPIO channel and can never be proven failed — so
+radar is the channel responsible.
+
+`Occupancy` stays customer-default because it stays correct: the fusion
+asserts occupancy from **any** valid sensor, so a PIR-only unit tracks the
+room properly through assert and clear
+(`occupancy_remains_trustworthy_across_the_degraded_cycle`). Occupancy is
+the presence signal a customer sees; the status string is the one that
+misleads while `OD-SOT-004` is open.
+
+The fix is presentation only. Expected-sensor membership is deliberately
+**not** changed: setting `presence_radar_expected` to `"false"` would make
+the status read correctly, but it would assert that radar is absent, and
+setting it `"true"` asserts the opposite. Either would resolve
+`OD-SOT-004` by inference, which is forbidden. The fusion, precedence and
+health logic are untouched, and enabling the entity restores it in full.
 
 ## What this record does not decide
 

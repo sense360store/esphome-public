@@ -183,11 +183,33 @@ text_sensor:
   # Still presence > Sensor degraded > Clear. Customer-clarity decision:
   # while the room is occupied the status keeps showing activity and the
   # (diagnostic) Presence Module Status carries any degradation.
+  # Diagnostic and disabled by default under SENSE360-REVIEW-RELEASE-001
+  # Gate B, for the same reason as Radar Target Count: SOT OD-SOT-004 leaves
+  # radar attachment inclusion unresolved, so the canonical package expects
+  # radar (presence_radar_expected: "true"). On a unit whose radar connector
+  # is unpopulated the radar channel is expected AND verifiable, so past its
+  # warm-up it counts as FAILED; PIR keeps the module usable, so health sits
+  # at Degraded permanently. PD-02 precedence puts HEALTH_DEGRADED above
+  # STATUS_CLEAR, so with the room genuinely empty this entity reads
+  # "Sensor degraded" and never "Clear".
+  #
+  # Proven, not inferred: tests/unit/test_presence_fusion.cpp
+  # missing_radar_reports_degraded_not_clear_when_room_empties drives the
+  # shared engine with no radar frames and asserts exactly that.
+  #
+  # Occupancy stays on the customer default surface because it stays correct
+  # throughout (occupancy_remains_trustworthy_across_the_degraded_cycle).
+  # The fusion, precedence and health logic are entirely unchanged — this is
+  # presentation only, and it asserts nothing about whether radar ships.
+  # Changing presence_radar_expected instead would resolve OD-SOT-004 by
+  # inference in one direction or the other, which is forbidden.
   - platform: sense360_presence
     type: presence_status
     id: s360_presence_status
     name: "Presence Status"
     icon: mdi:motion-sensor
+    entity_category: diagnostic
+    disabled_by_default: true
 
 sensor:
   # PD-09 — "Radar Target Count", never "People Count": radar targets are

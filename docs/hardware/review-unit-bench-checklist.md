@@ -30,10 +30,10 @@ The intended default surface is defined in
       integration configuration or an encryption key.
 - [ ] Record the device page exactly as it first appears: list every
       entity shown in the main panel, before touching anything.
-- [ ] Confirm that main panel matches the 14 entities of the intended
-      default surface: Occupancy, Presence Status, Temperature, Humidity,
-      Pressure, Illuminance, Brightness, Comfort, Environment State, CO2,
-      VOC, NOx, Air Quality, Recommendation.
+- [ ] Confirm that main panel matches the 13 entities of the intended
+      default surface: Occupancy, Temperature, Humidity, Pressure,
+      Illuminance, Brightness, Comfort, Environment State, CO2, VOC, NOx,
+      Air Quality, Recommendation.
 - [ ] Record anything present in the main panel that is NOT on that list,
       and anything on that list that is missing.
 - [ ] Confirm diagnostics and settings appear in Home Assistant's own
@@ -43,10 +43,25 @@ The intended default surface is defined in
 
 ## 2. Headline signals behave on hardware
 
-- [ ] Occupancy asserts on entry and clears after the clear delay with
-      the room genuinely empty; record both timings.
-- [ ] Presence Status tracks the occupancy story through movement, still
-      presence and clear; record the observed sequence.
+Presence is checked against **whatever presence hardware is actually
+fitted to this unit**. Record the fitment first (section 4), then run only
+the checks that apply. A check skipped because its optional hardware is
+not fitted is **not** a product failure and must be recorded as "not
+fitted", never as a fail.
+
+- [ ] Occupancy asserts on entry using the fitted presence hardware, and
+      clears after the clear delay with the room genuinely empty; record
+      both timings and which sensors were fitted.
+- [ ] **Only if a radar module is fitted at J2 or J3:** confirm still
+      presence (a motionless occupant) holds Occupancy, and record which
+      module was fitted. Skip and record "not fitted" otherwise — a
+      PIR-only unit is not expected to hold still presence.
+- [ ] Enable the diagnostic Presence Status entity and record what it
+      reports while occupied and while clear. On a unit with no radar
+      fitted it is expected to read "Sensor degraded" rather than "Clear"
+      when the room is empty, because the firmware expects radar while
+      `OD-SOT-004` is open. Record the observed value; this is an
+      observation, not a pass/fail criterion.
 - [ ] Temperature, Humidity and Pressure read plausibly against a
       reference instrument; record reference and observed values.
 - [ ] Illuminance and Brightness track a real lighting change.
@@ -68,17 +83,25 @@ The intended default surface is defined in
 These record physical observations for owner decisions that remain
 **open**. Recording an observation here does not resolve the decision;
 the decision is closed in SOT `decisions.yaml` by the owner, never here
-and never by inference.
+and never by inference. Recording that an optional attachment is **not
+fitted** is an observation about this unit, not a finding that the
+product lacks the capability, and it is never a test failure.
 
 - [ ] `OD-SOT-008` (SFA40 fitment): record whether `U2` is populated on
       the production assembly used for this unit, with the evidence used
       (part marking, CPL, silkscreen). Record the Formaldehyde entity's
       behaviour when enabled.
-- [ ] `OD-SOT-004` (radar attachment inclusion): record which radar
-      modules, if any, are physically attached to this unit (LD2450 on
-      J2, SEN0609/C4001 on J3). Record Radar Target Count's behaviour
-      when enabled, and confirm Occupancy still works with radar absent
-      or disconnected.
+- [ ] `OD-SOT-004` (radar attachment inclusion): record which presence
+      hardware is physically fitted to this unit — the on-board PIR
+      always, plus whether an LD2450 is attached at J2 and whether a
+      SEN0609/C4001 is attached at J3. Record each as fitted or not
+      fitted. **Complete this before section 2** so the presence checks
+      run against real fitment.
+- [ ] **Only if a radar module is fitted:** enable Radar Target Count and
+      record its behaviour. If no radar is fitted, record "not fitted" —
+      an absent optional attachment is not a defect.
+- [ ] Confirm Occupancy works using the fitted hardware alone, whatever
+      that turns out to be.
 - [ ] Record whether anything is attached to connector `J4` (Sense360
       Relay, S360-310) on this unit.
 

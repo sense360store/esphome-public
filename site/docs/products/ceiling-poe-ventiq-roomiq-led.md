@@ -172,7 +172,7 @@ product, that usually means going back to the stable
 | Hub | Sense360 Core (S360-100) — ESP32-S3 |
 | Power | Sense360 PoE PSU (S360-410) — powered over Ethernet, 5 V output |
 | Air quality | Sense360 VentIQ (S360-211) — SGP41 VOC/NOx sensor on board; connectors for IR temperature and SPS30 particulate add-ons |
-| Room sensing | Sense360 RoomIQ (S360-200) — LD2450 mmWave radar, PIR, SEN0609, LTR-303ALS ambient light, SHT4x temperature/humidity, BMP581 pressure |
+| Room sensing | Sense360 RoomIQ (S360-200) — on the board: EKMC1601111 PIR motion, LTR-303ALS ambient light, SHT4x temperature and humidity, BMP581 pressure. The board also carries two radar connectors, J2 for a Hi-Link LD2450 and J3 for a DFRobot SEN0609/C4001, and the firmware supports both. A connector is a capability, not a statement about what is in the box: whether a radar module is supplied with this product is not settled here |
 | Indicator | Sense360 LED (S360-300) — ring of 12 WS2812B addressable LEDs |
 | Wi-Fi | 2.4 GHz |
 
