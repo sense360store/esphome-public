@@ -20,9 +20,11 @@ tracked as `AIRIQ-FRAMEWORK-BENCH-001`).
 
 > **AIRIQ-HW-RECONCILE-001 update (supersedes the "was" state below).** The
 > canonical board package has been reconciled against the verified R4
-> schematic + BOM. The historical status recorded throughout §1 — SFA40
-> fitment *unresolved*, MICS-4514/STM8 *not compiled*, and a *compiled*
-> BMP390 pressure driver — has been resolved:
+> schematic + BOM. Two of the three items recorded throughout §1 are
+> resolved — MICS-4514/STM8 *not compiled* and a *compiled* BMP390
+> pressure driver. **SFA40 fitment is not one of them:** the driver
+> question closed, the production-population question did not, and it
+> remains open (see the first bullet below):
 >
 > * **SFA40 (U2, formaldehyde @ 0x5D)** — the R4 BOM, the verified
 >   schematic and owner direction establish the **design intent** that
