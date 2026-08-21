@@ -4,7 +4,7 @@
   "title": "Concrete preview / advanced-preview release targets for all buildable products",
   "date": "2026-06-01",
   "canonical_doc": "docs/preview-release-targets.md",
-  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001; RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001; RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001; STABLE-PROMOTION-RECONCILE-001 (Bedroom promoted to stable v1.0.5 on 2026-06-08 and Kitchen to stable v1.0.6 on 2026-06-09, both under owner risk-acceptance waivers; their targets here moved preview -> stable / published-stable and the stable baseline version moved to the live v1.0.4); RELEASE-DOC-SYNC-001 (2026-07-06 REBUILD-CLEAN-CREDENTIALS-001 security-rebuild releases: stable baseline v1.0.4 -> v1.0.7, Bedroom v1.0.5 -> v1.0.8, Kitchen v1.0.6 -> v1.0.9, VentIQ LED preview v1.0.0 -> v1.0.1; target versions and expected artifact names synced with the live config/webflash-builds.json ledger, no tier / lane / eligibility change)",
+  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001; RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001; RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001; STABLE-PROMOTION-RECONCILE-001 (Bedroom promoted to stable v1.0.5 on 2026-06-08 and Kitchen to stable v1.0.6 on 2026-06-09, both under owner risk-acceptance waivers; their targets here moved preview -> stable / published-stable and the stable baseline version moved to the live v1.0.4); RELEASE-DOC-SYNC-001 (2026-07-06 REBUILD-CLEAN-CREDENTIALS-001 security-rebuild releases: stable baseline v1.0.4 -> v1.0.7, Bedroom v1.0.5 -> v1.0.8, Kitchen v1.0.6 -> v1.0.9, VentIQ LED preview v1.0.0 -> v1.0.1; target versions and expected artifact names synced with the live config/webflash-builds.json ledger, no tier / lane / eligibility change); SENSE360-REVIEW-RELEASE-001 (Ceiling-POE-AirIQ-RoomIQ target version 1.0.9 -> 1.0.10 and expected artifact name resynced with the live ledger after the review-composition declaration bump; no tier / lane / channel / eligibility change and nothing published)",
   "fan_webflash_eligibility_decision": {
     "id": "RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001",
     "date": "2026-06-03",
@@ -180,8 +180,8 @@
       "webflash_wrapper": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
       "channel_tier": "preview",
       "build_channel": "preview",
-      "version": "1.0.9",
-      "expected_artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin",
+      "version": "1.0.10",
+      "expected_artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.10-preview.bin",
       "is_preview_target": true,
       "is_fan": false,
       "is_triac": false,
@@ -206,7 +206,7 @@
       "consuming_bundles": [
         "S360-KIT-KITCHEN-P"
       ],
-      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001): PR #834's demotion to preview is upheld and the same-day promotion decision is withdrawn as founded on a false premise. blocker_is_stable_only corrected to true: the recorded stable_blocker (HW-AIRIQ-WAIVER-2026-06 risk-acceptance, bench accuracy unmeasured) gates STABLE only and never gated preview — the preview posture is the recorded channel, and promotion to production is gated on the bench attestation #834 requires (owner-authored, never machine-written). Kept on the preview channel under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status preview / channel preview and the config/webflash-builds.json row is channel preview, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001): PR #834's demotion to preview is upheld and the same-day promotion decision is withdrawn as founded on a false premise. blocker_is_stable_only corrected to true: the recorded stable_blocker (HW-AIRIQ-WAIVER-2026-06 risk-acceptance, bench accuracy unmeasured) gates STABLE only and never gated preview — the preview posture is the recorded channel, and promotion to production is gated on the bench attestation #834 requires (owner-authored, never machine-written). Kept on the preview channel under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status preview / channel preview and the config/webflash-builds.json row is channel preview, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.10-preview.bin (moved from v1.0.9 by SENSE360-REVIEW-RELEASE-001; declaration only, channel unchanged, nothing published). The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
     },
     {
       "target_id": "ceiling-poe-roomiq-preview",

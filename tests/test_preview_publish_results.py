@@ -87,8 +87,8 @@ REROLLED_PREVIEW_ROWS = {
     # remains immutable), then its RECORD was demoted back to preview by
     # PR #834 — upheld by the owner decision of 2026-07-28, which withdrew the
     # same-day promotion decision as founded on a false premise. The row sits
-    # metadata-ready on the preview channel at v1.0.9, outside this historical
-    # v1.0.0 set either way.
+    # metadata-ready on the preview channel at v1.0.10 (moved from v1.0.9 by
+    # SENSE360-REVIEW-RELEASE-001), outside this historical v1.0.0 set either way.
     "Ceiling-POE-AirIQ-RoomIQ",
 }
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"

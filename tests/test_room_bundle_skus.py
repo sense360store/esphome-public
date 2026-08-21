@@ -348,7 +348,7 @@ class RoomBundleGuardrailTests(unittest.TestCase):
         )
         # Deliberately demoted to preview by PR #834 (2026-07-16), upheld by
         # the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001):
-        # the config is preview v1.0.9 in config/webflash-builds.json and
+        # the config is preview v1.0.10 in config/webflash-builds.json and
         # config/product-catalog.json, and promotion to production is gated
         # on the owner-authored R-D4 bench attestation
         # (EXC-AIRIQ-PROMOTION-GATE-001). The bundle row is therefore a

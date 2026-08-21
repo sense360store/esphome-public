@@ -99,7 +99,8 @@ LEDGER_DRAFTED_CONFIGS = (
 # EXPERIMENTAL channel, tracked separately.
 STILL_METADATA_READY_CONFIGS: tuple[str, ...] = (
     # Demoted back to preview by PR #834, upheld by the owner decision of
-    # 2026-07-28; metadata-ready at v1.0.9 on the preview channel.
+    # 2026-07-28; metadata-ready at v1.0.10 on the preview channel
+    # (moved from v1.0.9 by SENSE360-REVIEW-RELEASE-001).
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-FanPWM",

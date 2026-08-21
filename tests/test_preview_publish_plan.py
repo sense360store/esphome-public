@@ -110,8 +110,13 @@ EXPERIMENTAL_METADATA_READY_CONFIGS = (
 # was demoted back to preview by PR #834, upheld by the owner decision of
 # 2026-07-28 — so it is metadata-ready on the preview channel at its own
 # version, not at the v1.0.0 the STILL_PREVIEW_CONFIGS group pins.
+# SENSE360-REVIEW-RELEASE-001 bumped that own version to 1.0.10: the
+# published v1.0.9 assets predate PR #875, so the declared preview artifact
+# moves to a version whose source carries the accepted review contract. The
+# row stays metadata-ready-unpublished on the preview channel — no binary,
+# Release, or tag is cut by the bump.
 DEMOTED_METADATA_READY = {
-    "Ceiling-POE-AirIQ-RoomIQ": "1.0.9",
+    "Ceiling-POE-AirIQ-RoomIQ": "1.0.10",
 }
 
 # The stable Bathroom baseline + already-published VentIQ LED preview are
