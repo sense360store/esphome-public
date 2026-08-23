@@ -46,6 +46,23 @@ certificate to sign `checksums-sha256.txt`
 [`docs/security/checksums-verification.md`](security/checksums-verification.md)).
 It is the repo's only `id-token` grant.
 
+**WebFlash intake handoff (`webflash-handoff` job, CI-PIPELINE-CLARITY-002):**
+the downstream-handoff job added to `firmware-build-release.yml` introduces
+**no new GITHUB_TOKEN permission**: it has no job-level `permissions:` block,
+inherits the read-only top-level scope, and uses the built-in `github.token`
+only to *read* the release's asset list. The cross-repo dispatch uses the
+dedicated `WEBFLASH_INTAKE_TOKEN` repository secret (fine-grained; target
+repository `sense360store/WebFlash` only; **Actions: write** only; no
+Contents access), exposed exclusively to the single final dispatch step and
+never printed. The job runs no action (`uses:`) at all — no checkout, no
+third-party code — and every step is a self-contained inline `python3`
+heredoc, so the untrusted release body/tag can never reach shell execution.
+Both API-calling steps install a redirect-refusing urllib opener, so a
+token-bearing request never follows a cross-host 30x (which would otherwise
+re-send the `Authorization` header to the redirect host). Regression guard:
+`tests/test_webflash_intake_handoff.py` (includes an AST-based import/call
+allowlist, loopback redirect-refusal tests, and step-`if:` gate checks).
+
 Other trigger-safety facts confirmed (and regression-guarded):
 
 - **No `pull_request_target` trigger** in any workflow (would run with a
@@ -53,7 +70,8 @@ Other trigger-safety facts confirmed (and regression-guarded):
   code).
 - **No `permissions: write-all`** at any scope.
 - The release flow uses the built-in `GITHUB_TOKEN` (`secrets.GITHUB_TOKEN`),
-  not a long-lived PAT.
+  not a long-lived PAT. The only cross-repo credential is the narrowly
+  scoped `WEBFLASH_INTAKE_TOKEN` described above.
 
 ---
 

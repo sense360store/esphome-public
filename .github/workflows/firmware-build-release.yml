@@ -24,6 +24,11 @@
 #      in docs/security/checksums-verification.md)
 #   5. Attach binaries, checksums, signature + signing certificate to the
 #      GitHub release
+#   6. After a successful attach, hand off downstream (CI-PIPELINE-CLARITY-002):
+#      validate the release metadata + the remotely attached asset set and
+#      dispatch the combined WebFlash firmware-intake workflow for the
+#      selected config (stable/preview channels only). WebFlash owns all
+#      final import eligibility decisions; the handoff carries no authority.
 #
 # Output Format:
 #   Sense360-[Product]-[Variant]-v[Version]-[Channel].bin
@@ -71,6 +76,12 @@ jobs:
       product_count: ${{ steps.generate.outputs.product_count }}
       version: ${{ steps.version.outputs.version }}
       channel: ${{ steps.version.outputs.channel }}
+      # CI-PIPELINE-CLARITY-002: the trusted set of config strings actually
+      # built for this (version, channel), space-separated. The WebFlash
+      # handoff requires the untrusted release body's config string to be a
+      # member of this set, so a multi-config release cannot hand off a
+      # co-built-but-unselected config.
+      built_config_strings: ${{ steps.generate.outputs.built_config_strings }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -181,6 +192,7 @@ jobs:
                   "product": wrapper_stem,
                   "file": build_file,
                   "artifact_name": entry.get("artifact_name", ""),
+                  "config_string": entry.get("config_string", ""),
               })
 
           if not rows:
@@ -192,11 +204,37 @@ jobs:
           matrix_json = json.dumps({"include": rows}, separators=(",", ":"))
           count = len(rows)
 
+          # CI-PIPELINE-CLARITY-002: the space-separated set of config
+          # strings built for this (version, channel). This is the trusted
+          # per-release config set the WebFlash handoff cross-checks the
+          # untrusted release-body config string against. Config strings
+          # never contain whitespace, so a space separator is unambiguous;
+          # fail closed if any entry is malformed or duplicated.
+          config_strings = []
+          seen_config_strings = set()
+          for row in rows:
+              config_string = row["config_string"]
+              if not config_string or " " in config_string:
+                  sys.exit(
+                      "error: webflash-builds entry has a missing or "
+                      f"whitespace config_string: {config_string!r}"
+                  )
+              if config_string in seen_config_strings:
+                  sys.exit(
+                      "error: duplicate config_string in the build matrix "
+                      f"for version={version} channel={channel}: "
+                      f"{config_string!r}"
+                  )
+              seen_config_strings.add(config_string)
+              config_strings.append(config_string)
+          built_config_strings = " ".join(config_strings)
+
           github_output = os.environ.get("GITHUB_OUTPUT")
           if github_output:
               with open(github_output, "a", encoding="utf-8") as fh:
                   fh.write(f"matrix={matrix_json}\n")
                   fh.write(f"product_count={count}\n")
+                  fh.write(f"built_config_strings={built_config_strings}\n")
 
           print(f"WebFlash build matrix ({count} entry/entries) "
                 f"for version={version} channel={channel}:")
@@ -805,3 +843,550 @@ jobs:
           echo ""
           echo "These binaries are attached to the GitHub release by the"
           echo "release-attachment job."
+
+  # ============================================================================
+  # JOB 5: WEBFLASH INTAKE HANDOFF (CI-PIPELINE-CLARITY-002)
+  # ============================================================================
+  # After the release job has built, verified, signed and ATTACHED the asset
+  # set, hand off to the downstream combined WebFlash firmware-intake
+  # workflow (sense360store/WebFlash .github/workflows/firmware-intake.yml,
+  # "Release: Firmware Intake (combined source + import, one PR)"), which
+  # opens ONE reviewed intake PR. A human still merges that PR; the existing
+  # WebFlash publish/deploy then runs unchanged. WebFlash Release 4/5 remain
+  # the manual recovery path.
+  #
+  # Trust boundaries (each is locked by tests/test_webflash_intake_handoff.py):
+  #   * No repository checkout and no repo-local script runs in this job —
+  #     every step is a self-contained inline python3 heredoc.
+  #   * The GitHub Release body/tag are UNTRUSTED input. They are read from
+  #     GITHUB_EVENT_PATH inside Python (never interpolated into shell) and
+  #     validated against strict allowlisted regexes before any use.
+  #   * The body's Version/Channel must equal the values Release 3 derived
+  #     from the tag (generate-matrix outputs); any mismatch fails closed.
+  #   * Channel gate only: stable/preview dispatch; experimental (a channel
+  #     the WebFlash intake lanes do not serve) exits successfully without
+  #     dispatching. NO upstream eligibility filtering happens here — the
+  #     upstream product/catalog status can neither grant nor deny WebFlash
+  #     intake. WebFlash's committed eligibility lanes decide the import.
+  #   * The required assets are proven against the REMOTE Release via the
+  #     GitHub API after the upload (the release: published event predates
+  #     the Release 3 uploads, so the event's own assets array is not
+  #     trusted for this).
+  #   * WEBFLASH_INTAKE_TOKEN (fine-grained; target sense360store/WebFlash
+  #     only; Actions: write) is exposed ONLY to the final dispatch step and
+  #     is never printed. All other steps use the read-only github.token or
+  #     no token at all.
+  webflash-handoff:
+    name: WebFlash Intake Handoff
+    # Success-only dependency on the release-attachment job: no always() /
+    # failure() override, so a failed or skipped attach never hands off.
+    # The repository pin keeps a fork (or a rename) from dispatching a
+    # handoff that claims sense360store/esphome-public provenance.
+    needs: [generate-matrix, release]
+    if: >-
+      github.event_name == 'release' &&
+      github.repository == 'sense360store/esphome-public'
+    runs-on: ubuntu-latest
+    steps:
+      # Parse the release event payload with inline Python only. The release
+      # body/tag never touch shell: values are read from GITHUB_EVENT_PATH,
+      # validated against strict allowlisted regexes, cross-checked against
+      # the Release 3 derived version/channel, and only then exported as
+      # step outputs (all output values match no-whitespace allowlists, so
+      # GITHUB_OUTPUT injection is not possible).
+      - name: Parse and validate release metadata (untrusted input)
+        id: metadata
+        env:
+          DERIVED_VERSION: ${{ needs.generate-matrix.outputs.version }}
+          DERIVED_CHANNEL: ${{ needs.generate-matrix.outputs.channel }}
+          BUILT_CONFIG_STRINGS: >-
+            ${{ needs.generate-matrix.outputs.built_config_strings }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          def fail(msg):
+              print(f"::error::webflash-handoff: {msg}")
+              sys.exit(1)
+
+          TAG_RE = re.compile(
+              r"^v(\d{1,4}\.\d{1,4}\.\d{1,4})"
+              r"(-led-preview|-preview|-experimental)?$"
+          )
+          CONFIG_RE = re.compile(
+              r"^[A-Za-z][A-Za-z0-9]{0,31}(?:-[A-Za-z][A-Za-z0-9]{0,31}){1,7}$"
+          )
+          VERSION_RE = re.compile(r"^\d{1,4}\.\d{1,4}\.\d{1,4}$")
+          CHANNEL_RE = re.compile(r"^(?:stable|preview|experimental)$")
+          # Channels the WebFlash firmware-intake workflow serves. This is a
+          # transport gate, NOT an eligibility decision: WebFlash owns import
+          # eligibility for everything dispatched.
+          WEBFLASH_INTAKE_CHANNELS = ("stable", "preview")
+          # Tag-suffix coherence (subset check only; the authoritative tag ->
+          # (version, channel) mapping already ran in generate-matrix via
+          # scripts/derive_release_version_channel.py). A bare tag can be
+          # stable or preview (prerelease flag decides), so both are allowed.
+          TAG_SUFFIX_TO_CHANNELS = {
+              "-led-preview": ("preview",),
+              "-preview": ("preview",),
+              "-experimental": ("experimental",),
+              None: ("stable", "preview"),
+          }
+
+          event_path = os.environ.get("GITHUB_EVENT_PATH", "")
+          if not event_path or not Path(event_path).is_file():
+              fail("GITHUB_EVENT_PATH is not set or does not exist")
+          try:
+              event = json.loads(Path(event_path).read_text(encoding="utf-8"))
+          except json.JSONDecodeError as exc:
+              fail(f"cannot parse the release event payload as JSON: {exc}")
+
+          release = event.get("release")
+          if not isinstance(release, dict):
+              fail("release event payload has no 'release' object")
+
+          tag = release.get("tag_name")
+          if not isinstance(tag, str):
+              fail("release.tag_name is missing or not a string")
+          release_id = release.get("id")
+          if (not isinstance(release_id, int) or isinstance(release_id, bool)
+                  or release_id <= 0):
+              fail("release.id is missing or not a positive integer")
+          body = release.get("body")
+          if not isinstance(body, str) or not body.strip():
+              fail("release.body is missing or empty; cannot extract the "
+                   "selected config string from the release-notes preamble")
+          if len(body) > 1_000_000:
+              fail("release.body is implausibly large; refusing to parse")
+
+          tag_match = TAG_RE.fullmatch(tag)
+          if not tag_match:
+              fail(f"release tag does not match the allowlisted tag shape "
+                   f"(vX.Y.Z with an optional -led-preview / -preview / "
+                   f"-experimental suffix): {tag!r}")
+          tag_version = tag_match.group(1)
+          tag_suffix = tag_match.group(2)
+
+          derived_version = os.environ.get("DERIVED_VERSION", "")
+          derived_channel = os.environ.get("DERIVED_CHANNEL", "")
+          if not VERSION_RE.fullmatch(derived_version):
+              fail("generate-matrix derived version has an invalid shape: "
+                   f"{derived_version!r}")
+          if not CHANNEL_RE.fullmatch(derived_channel):
+              fail("generate-matrix derived channel has an invalid shape: "
+                   f"{derived_channel!r}")
+
+          # Extract the generated release-notes preamble lines. The preamble
+          # (scripts/generate_webflash_release_notes.py) emits exactly one of
+          # each label; conflicting duplicates mean a manipulated body, so
+          # they fail closed. 'Catalog status' is deliberately NOT read:
+          # upstream lifecycle status can neither grant nor deny WebFlash
+          # intake (WebFlash owns eligibility).
+          LABELS = ("Config string", "Version", "Channel", "Artifact")
+          label_re = re.compile(
+              r"^(Config string|Version|Channel|Artifact)[ \t]*:[ \t]*(.*?)[ \t]*$"
+          )
+          found = {}
+          for line in body.splitlines():
+              match = label_re.match(line.rstrip("\r"))
+              if match:
+                  found.setdefault(match.group(1), set()).add(match.group(2))
+          for label in LABELS:
+              if label not in found:
+                  fail(f"release body preamble is missing the '{label} :' "
+                       "line emitted by the release-notes generator")
+              if len(found[label]) != 1:
+                  fail(f"release body carries conflicting '{label} :' lines "
+                       f"({sorted(found[label])!r}); refusing to guess")
+
+          config_string = next(iter(found["Config string"]))
+          body_version = next(iter(found["Version"]))
+          body_channel = next(iter(found["Channel"]))
+          body_artifact = next(iter(found["Artifact"]))
+
+          if not CONFIG_RE.fullmatch(config_string):
+              fail(f"release body config string fails the allowlist regex: "
+                   f"{config_string!r}")
+          if not VERSION_RE.fullmatch(body_version):
+              fail(f"release body Version fails the allowlist regex: "
+                   f"{body_version!r}")
+          if not CHANNEL_RE.fullmatch(body_channel):
+              fail(f"release body Channel fails the allowlist regex: "
+                   f"{body_channel!r}")
+
+          # The untrusted body must agree with what Release 3 actually built
+          # (version/channel derived from the tag by the tested script).
+          if body_version != derived_version:
+              fail(f"release body Version {body_version!r} does not equal "
+                   f"the Release 3 derived version {derived_version!r}")
+          if body_channel != derived_channel:
+              fail(f"release body Channel {body_channel!r} does not equal "
+                   f"the Release 3 derived channel {derived_channel!r}")
+
+          # The untrusted body's config string must be one of the configs
+          # Release 3 actually built for this (version, channel). Without
+          # this, a multi-config release (e.g. several preview rows at the
+          # same version) whose body was edited to name a different
+          # co-built config would still pass the remote-asset check, since
+          # every co-built binary is attached. generate-matrix emits this
+          # trusted set from config/webflash-builds.json at build time.
+          built_config_strings = os.environ.get(
+              "BUILT_CONFIG_STRINGS", "").split()
+          if not built_config_strings:
+              fail("generate-matrix did not report any built config "
+                   "strings; refusing to guess the selected config")
+          for built in built_config_strings:
+              if not CONFIG_RE.fullmatch(built):
+                  fail("a built config string reported by generate-matrix "
+                       f"fails the allowlist regex: {built!r}")
+          if config_string not in built_config_strings:
+              fail(f"release body config string {config_string!r} is not "
+                   "among the configs Release 3 built for this "
+                   f"(version, channel): {built_config_strings!r}")
+
+          if tag_version != derived_version:
+              fail(f"tag version {tag_version!r} does not equal the "
+                   f"Release 3 derived version {derived_version!r}")
+          if derived_channel not in TAG_SUFFIX_TO_CHANNELS[tag_suffix]:
+              fail(f"tag suffix {tag_suffix!r} is inconsistent with the "
+                   f"Release 3 derived channel {derived_channel!r}")
+
+          expected_artifact = (
+              f"Sense360-{config_string}-v{body_version}-{body_channel}.bin"
+          )
+          if body_artifact != expected_artifact:
+              fail(f"release body Artifact {body_artifact!r} does not equal "
+                   f"the canonical artifact name {expected_artifact!r}")
+
+          dispatch = derived_channel in WEBFLASH_INTAKE_CHANNELS
+
+          outputs = {
+              "release_tag": tag,
+              "config_string": config_string,
+              "artifact_name": expected_artifact,
+              "release_id": str(release_id),
+              "dispatch": "true" if dispatch else "false",
+          }
+          out_path = os.environ.get("GITHUB_OUTPUT")
+          if out_path:
+              with open(out_path, "a", encoding="utf-8") as fh:
+                  for key, value in outputs.items():
+                      if not re.fullmatch(r"[A-Za-z0-9._-]+", value):
+                          fail(f"refusing to write step output {key}: "
+                               "unexpected characters")
+                      fh.write(f"{key}={value}\n")
+
+          print(f"Selected config string : {config_string}")
+          print(f"Version / channel      : {body_version} / {body_channel} "
+                "(equal to the Release 3 derived values)")
+          print(f"Release tag / id       : {tag} / {release_id}")
+          print(f"Selected artifact      : {expected_artifact}")
+          if dispatch:
+              print("Channel is served by the WebFlash intake lanes; "
+                    "proceeding to remote asset verification.")
+          else:
+              msg = (
+                  f"No WebFlash dispatch: channel '{derived_channel}' is not "
+                  "served by the WebFlash firmware-intake lanes (served: "
+                  "stable, preview). This is the expected outcome for the "
+                  "experimental self-build lane. The upstream release itself "
+                  "is complete — firmware was built, verified, signed and "
+                  "attached — and no automatic intake was requested."
+              )
+              print(msg)
+              summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+              if summary_path:
+                  with open(summary_path, "a", encoding="utf-8") as fh:
+                      fh.write("## WebFlash intake handoff\n\n")
+                      fh.write(f"{msg}\n")
+          PY
+
+      # Prove the REMOTE Release now carries the required asset set. The
+      # release: published event fires before Release 3 uploads assets, so
+      # the event's own assets array proves nothing — query the live Release
+      # through the GitHub API instead. Read-only github.token; nothing is
+      # downloaded or re-signed here.
+      - name: Verify required assets on the remote release
+        if: steps.metadata.outputs.dispatch == 'true'
+        env:
+          GH_API_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.metadata.outputs.release_id }}
+          ARTIFACT_NAME: ${{ steps.metadata.outputs.artifact_name }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
+
+          def fail(msg):
+              print(f"::error::webflash-handoff: {msg}")
+              sys.exit(1)
+
+          ARTIFACT_RE = re.compile(
+              r"^Sense360-[A-Za-z][A-Za-z0-9-]{0,127}"
+              r"-v\d{1,4}\.\d{1,4}\.\d{1,4}"
+              r"-(?:stable|preview|experimental)\.bin$"
+          )
+          REPO_RE = re.compile(
+              r"^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$"
+          )
+
+          api_url = os.environ.get(
+              "GITHUB_API_URL", "https://api.github.com"
+          ).rstrip("/")
+          if not (api_url.startswith("https://")
+                  or api_url.startswith("http://127.0.0.1:")
+                  or api_url.startswith("http://localhost:")):
+              fail(f"refusing non-HTTPS GitHub API URL: {api_url!r}")
+
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          if not REPO_RE.fullmatch(repo):
+              fail(f"GITHUB_REPOSITORY has an unexpected shape: {repo!r}")
+          release_id = os.environ.get("RELEASE_ID", "")
+          if not re.fullmatch(r"\d{1,20}", release_id):
+              fail(f"RELEASE_ID has an unexpected shape: {release_id!r}")
+          artifact = os.environ.get("ARTIFACT_NAME", "")
+          if not ARTIFACT_RE.fullmatch(artifact):
+              fail(f"ARTIFACT_NAME has an unexpected shape: {artifact!r}")
+
+          token = os.environ.get("GH_API_TOKEN", "")
+
+          # Refuse HTTP redirects on this token-bearing request. urllib's
+          # default opener follows 30x AND re-sends the Authorization header
+          # to the redirect target, which could leak github.token to another
+          # host. The releases/assets endpoint never legitimately redirects,
+          # so a redirect is treated as an error rather than followed.
+          class _NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          opener = urllib.request.build_opener(_NoRedirect())
+
+          def get_json(url):
+              last_error = "unknown error"
+              for attempt in range(3):
+                  if attempt:
+                      time.sleep(5)
+                  request = urllib.request.Request(url)
+                  request.add_header("Accept", "application/vnd.github+json")
+                  request.add_header("X-GitHub-Api-Version", "2022-11-28")
+                  request.add_header("User-Agent", "sense360-webflash-handoff")
+                  if token:
+                      request.add_header("Authorization", f"Bearer {token}")
+                  try:
+                      with opener.open(request, timeout=30) as rsp:
+                          return json.loads(rsp.read().decode("utf-8"))
+                  except urllib.error.HTTPError as exc:
+                      last_error = f"HTTP {exc.code} from the GitHub API"
+                      if exc.code not in (500, 502, 503, 504):
+                          break
+                  except urllib.error.URLError as exc:
+                      last_error = ("network error reaching the GitHub API: "
+                                    f"{exc.reason}")
+                  except (ValueError, TimeoutError) as exc:
+                      last_error = f"bad response from the GitHub API: {exc}"
+              fail(f"could not list the release assets ({last_error}); "
+                   "re-run this job once the GitHub API is reachable")
+
+          names = set()
+          page = 1
+          while True:
+              if page > 10:
+                  fail("release asset listing did not terminate in 10 pages")
+              batch = get_json(
+                  f"{api_url}/repos/{repo}/releases/{release_id}/assets"
+                  f"?per_page=100&page={page}"
+              )
+              if not isinstance(batch, list):
+                  fail("GitHub API returned a non-list asset payload")
+              for item in batch:
+                  if isinstance(item, dict) and isinstance(
+                          item.get("name"), str):
+                      names.add(item["name"])
+              if len(batch) < 100:
+                  break
+              page += 1
+
+          required = {
+              artifact,
+              "checksums-sha256.txt",
+              "checksums-sha256.txt.sig",
+              "checksums-sha256.txt.pem",
+              "manifest.json",
+          }
+          missing = sorted(required - names)
+          if missing:
+              fail("refusing WebFlash dispatch: the remote GitHub Release "
+                   f"is missing required assets: {', '.join(missing)} "
+                   f"(found {len(names)} attached assets)")
+
+          print(f"Remote release assets verified ({len(names)} attached):")
+          print(f"  selected artifact {artifact}")
+          print("  plus checksums-sha256.txt / .sig / .pem and manifest.json")
+          PY
+
+      # The ONLY step that sees WEBFLASH_INTAKE_TOKEN. It dispatches the
+      # combined WebFlash firmware-intake workflow with the minimum
+      # trustworthy inputs; version/channel are deliberately omitted so
+      # WebFlash derives them from the tag (no duplicated authority). A 204
+      # here means only "handoff accepted" — the WebFlash intake run and its
+      # reviewed PR are the actual import path, decided entirely by
+      # WebFlash's committed eligibility lanes.
+      - name: Dispatch WebFlash firmware intake
+        if: steps.metadata.outputs.dispatch == 'true'
+        env:
+          WEBFLASH_INTAKE_TOKEN: ${{ secrets.WEBFLASH_INTAKE_TOKEN }}
+          RELEASE_TAG: ${{ steps.metadata.outputs.release_tag }}
+          CONFIG_STRING: ${{ steps.metadata.outputs.config_string }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import urllib.error
+          import urllib.request
+
+          def fail(msg):
+              print(f"::error::webflash-handoff: {msg}")
+              sys.exit(1)
+
+          WEBFLASH_REPO = "sense360store/WebFlash"
+          INTAKE_WORKFLOW = "firmware-intake.yml"
+          INTAKE_REF = "main"
+          SOURCE_REPO = "sense360store/esphome-public"
+
+          # Dispatch happens for stable/preview only, so the tag allowlist
+          # here deliberately EXCLUDES -experimental: even if the channel
+          # gate upstream ever broke, this step still refuses an
+          # experimental tag.
+          TAG_RE = re.compile(
+              r"^v\d{1,4}\.\d{1,4}\.\d{1,4}(?:-led-preview|-preview)?$"
+          )
+          CONFIG_RE = re.compile(
+              r"^[A-Za-z][A-Za-z0-9]{0,31}(?:-[A-Za-z][A-Za-z0-9]{0,31}){1,7}$"
+          )
+
+          token = os.environ.get("WEBFLASH_INTAKE_TOKEN", "")
+          if not token:
+              fail(
+                  "the WEBFLASH_INTAKE_TOKEN repository secret is not "
+                  "configured, so the automatic WebFlash intake could NOT "
+                  "be requested. The upstream release itself is already "
+                  "valid: the firmware was built, verified, signed and "
+                  "attached by the release job. Recovery: run the WebFlash "
+                  "intake manually ('Release: Firmware Intake' "
+                  "workflow_dispatch in sense360store/WebFlash, or the "
+                  "Release 4/5 manual path). To restore automation, create "
+                  "WEBFLASH_INTAKE_TOKEN as a fine-grained token scoped to "
+                  "the sense360store/WebFlash repository only, with "
+                  "Actions: write permission and no Contents access."
+              )
+
+          tag = os.environ.get("RELEASE_TAG", "")
+          config_string = os.environ.get("CONFIG_STRING", "")
+          if not TAG_RE.fullmatch(tag):
+              fail(f"refusing dispatch: RELEASE_TAG has an unexpected "
+                   f"shape: {tag!r}")
+          if not CONFIG_RE.fullmatch(config_string):
+              fail(f"refusing dispatch: CONFIG_STRING has an unexpected "
+                   f"shape: {config_string!r}")
+
+          api_url = os.environ.get(
+              "GITHUB_API_URL", "https://api.github.com"
+          ).rstrip("/")
+          if not (api_url.startswith("https://")
+                  or api_url.startswith("http://127.0.0.1:")
+                  or api_url.startswith("http://localhost:")):
+              fail(f"refusing non-HTTPS GitHub API URL: {api_url!r}")
+
+          payload = {
+              "ref": INTAKE_REF,
+              "inputs": {
+                  "release_tag": tag,
+                  "config_string": config_string,
+                  "source_repo": SOURCE_REPO,
+                  "dry_run": "false",
+              },
+          }
+          request = urllib.request.Request(
+              f"{api_url}/repos/{WEBFLASH_REPO}/actions/workflows/"
+              f"{INTAKE_WORKFLOW}/dispatches",
+              data=json.dumps(payload).encode("utf-8"),
+              method="POST",
+          )
+          request.add_header("Accept", "application/vnd.github+json")
+          request.add_header("X-GitHub-Api-Version", "2022-11-28")
+          request.add_header("User-Agent", "sense360-webflash-handoff")
+          request.add_header("Content-Type", "application/json")
+          request.add_header("Authorization", f"Bearer {token}")
+
+          # Refuse HTTP redirects on this token-bearing request. urllib's
+          # default opener follows 30x and re-sends the Authorization header
+          # (WEBFLASH_INTAKE_TOKEN) to the redirect target, which could leak
+          # the secret to another host. The workflow-dispatch endpoint never
+          # legitimately redirects, so a redirect is an error, never
+          # followed.
+          class _NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          opener = urllib.request.build_opener(_NoRedirect())
+
+          try:
+              with opener.open(request, timeout=30) as response:
+                  status = response.status
+          except urllib.error.HTTPError as exc:
+              detail = ""
+              try:
+                  api_message = json.loads(
+                      exc.read().decode("utf-8")).get("message", "")
+                  if isinstance(api_message, str) and api_message:
+                      detail = f": {api_message[:200]}"
+              except (ValueError, OSError):
+                  pass
+              fail(
+                  f"WebFlash intake dispatch was refused (HTTP {exc.code}"
+                  f"{detail}). The upstream release is unaffected. Re-run "
+                  "this job to retry, or use the manual WebFlash intake "
+                  "path ('Release: Firmware Intake' workflow_dispatch, or "
+                  "Release 4/5)."
+              )
+          except urllib.error.URLError as exc:
+              fail(
+                  "could not reach the GitHub API to dispatch the WebFlash "
+                  f"intake ({exc.reason}). The upstream release is "
+                  "unaffected. Re-run this job to retry, or use the manual "
+                  "WebFlash intake path."
+              )
+
+          if status != 204:
+              fail(f"unexpected HTTP status {status} from the "
+                   "workflow-dispatch API (expected 204)")
+
+          print("WebFlash intake handoff ACCEPTED (HTTP 204).")
+          print("Acceptance means only that the dispatch request was "
+                "received — it is NOT a WebFlash import result. WebFlash's "
+                "committed eligibility lanes decide whether and what to "
+                "import; watch the 'Release: Firmware Intake' run and its "
+                f"reviewed intake PR in {WEBFLASH_REPO}.")
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as fh:
+                  fh.write("## WebFlash intake handoff\n\n")
+                  fh.write(f"- Dispatch accepted for `{config_string}` at "
+                           f"tag `{tag}` (HTTP 204).\n")
+                  fh.write("- Acceptance is not an import result: WebFlash's "
+                           "committed eligibility lanes decide the import. "
+                           "Check the 'Release: Firmware Intake' run and its "
+                           "reviewed intake PR in sense360store/WebFlash.\n")
+          PY

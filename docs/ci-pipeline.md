@@ -295,8 +295,9 @@ This means:
 
 ### 3. Build & Release (`firmware-build-release.yml`)
 
-**Triggers:** GitHub release creation or manual dispatch
-**Purpose:** Compile and publish firmware binaries
+**Triggers:** GitHub release publish (`release: published`) — automatic only,
+no manual dispatch
+**Purpose:** Compile and publish firmware binaries, then hand off to WebFlash
 
 **Process:**
 1. Generate the build matrix from `config/webflash-builds.json` (filtered by
@@ -307,6 +308,16 @@ This means:
 2. Compile each selected product with ESPHome
 3. Rename binaries to WebFlash format (e.g., `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`)
 4. Attach to GitHub release with checksums
+5. **WebFlash intake handoff** (CI-PIPELINE-CLARITY-002): after the attach job
+   succeeds, the `webflash-handoff` job validates the release metadata
+   (untrusted input, inline Python only, no checkout, no repo scripts),
+   re-proves the attached assets against the remote Release via the GitHub
+   API, and — for stable/preview channels only — dispatches the WebFlash
+   combined intake workflow (`firmware-intake.yml` @ `main` in
+   `sense360store/WebFlash`) using the `WEBFLASH_INTAKE_TOKEN` secret.
+   WebFlash owns all final import eligibility decisions; contract tests:
+   `tests/test_webflash_intake_handoff.py`. See
+   [`RELEASE-PIPELINE.md`](RELEASE-PIPELINE.md) stages 4–5.
 
 ### 4. CI: Compile-Only (`compile-only.yml`)
 
