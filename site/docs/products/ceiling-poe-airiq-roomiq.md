@@ -1,6 +1,6 @@
 # Kitchen Bundle (AirIQ + RoomIQ)
 
-<span class="s360-badge s360-badge--stable">stable</span>
+<span class="s360-badge s360-badge--preview">preview</span>
 &nbsp; Config string: `Ceiling-POE-AirIQ-RoomIQ`
 
 A PoE-powered Sense360 Core ceiling hub combining the **AirIQ**
@@ -16,17 +16,18 @@ and comfort.
   light.
 - Summarises the room in a comfort score, with plain-language temperature
   and humidity advice.
-- Carries the AirIQ air-quality sensing hardware (see the note below
-  about what the current firmware exposes).
+- Measures CO₂, VOC, and NOx with the AirIQ module, and summarises
+  them into an air-quality state (see the note below).
 
 !!! info "AirIQ measurements in the current firmware"
-    The AirIQ module carries CO₂, VOC, and gas sensing hardware, but the
-    **current firmware does not yet expose those measurements as Home
-    Assistant entities** — the `Air Quality State` entity is a placeholder
-    that reads `unknown`. The [entity table](#home-assistant-entities)
-    below is generated from the firmware source and is the authoritative
-    list of what you get today; air-quality entities will appear there
-    when a firmware update exposes them.
+    CO₂, VOC, and NOx appear as Home Assistant entities by default,
+    alongside the `Air Quality` summary and its `Recommendation`. The
+    MICS-4514 gas sensor is exposed as diagnostic ratio readings only —
+    no gas concentration is reported. Particulate and formaldehyde
+    entities are not part of the default set (see
+    [Specifications](#specifications)). The
+    [entity table](#home-assistant-entities) below is generated from the
+    firmware source and is the authoritative list of what you get today.
 
 ## Product status
 
@@ -70,10 +71,15 @@ Firmware is installed from your browser — no software to download.
 Use Chrome, Edge, or Opera — the flasher needs a browser that can talk to
 USB serial devices.
 
-!!! note "Channel: stable"
-    This product installs from the **stable** channel — the supported
-    customer firmware. If something doesn't work, that's a bug:
-    [report it](https://github.com/sense360store/esphome-public/issues).
+!!! warning "Channel: preview"
+    This product installs from the **preview** channel, and preview
+    firmware is **acknowledgement-gated** in the flasher — read the
+    warning it shows before installing. It is not hardware verified and
+    is not the supported stable baseline; problems are best-effort via
+    [Issues](https://github.com/sense360store/esphome-public/issues) and
+    [Discussions](https://github.com/sense360store/esphome-public/discussions),
+    and the expected recovery is the
+    [rescue flow](#factory-reset-and-recovery) below.
 
 ## Connect to Wi-Fi
 
@@ -87,9 +93,9 @@ deliberately public: they name a temporary network *you* create, and are
 not a credential to the device itself.
 
 **Option B — setup hotspot.** If the device can't find a network, it opens
-its own setup hotspot named `s360-ceil-poe-airiq-roomiq FB`. Connect to it
-and a setup page appears where you enter your home Wi-Fi name and
-password.
+its own setup hotspot named `S360 AirIQ RoomIQ`. It is an open network
+with no password. Connect to it and a setup page appears where you enter
+your home Wi-Fi name and password.
 
 ## Add to Home Assistant
 
@@ -104,10 +110,11 @@ integration:
 
 !!! warning "Security note"
     Browser-installed firmware ships **unprovisioned**: the Home Assistant
-    connection is unencrypted and there is no OTA or web password, so
-    treat the device as trusted-home-network only. Advanced users who want
-    an encrypted API and passwords can build the identical firmware from
-    source with their own secrets — see
+    connection is unencrypted, the device serves an unauthenticated web
+    page on port 80, over-the-air updates are unauthenticated, and the
+    setup hotspot is open, so treat the device as trusted-home-network
+    only. Advanced users who want an encrypted API and passwords can
+    build the identical firmware from source with their own secrets — see
     [getting started](https://github.com/sense360store/esphome-public/blob/main/docs/getting-started.md).
 
 ## Placement
@@ -125,8 +132,8 @@ integration:
 New firmware versions are announced on the
 [releases page](https://github.com/sense360store/esphome-public/releases).
 To update, open [sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/), connect the
-device over USB, and install the latest stable build — the same steps as
-the first install. If the device doesn't reappear in Home Assistant
+device over USB, and install the latest preview build — the same steps
+as the first install. If the device doesn't reappear in Home Assistant
 afterwards, repeat the [Wi-Fi step](#connect-to-wi-fi).
 
 Advanced users running the firmware through their own ESPHome instead pin

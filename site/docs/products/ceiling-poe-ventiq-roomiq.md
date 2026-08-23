@@ -78,9 +78,8 @@ deliberately public: they name a temporary network *you* create, and are
 not a credential to the device itself.
 
 **Option B — setup hotspot.** If the device can't find a network, it opens
-its own setup hotspot named `s360-ceil-poe-ventiq-roomiq FB`. Connect to
-it and a setup page appears where you enter your home Wi-Fi name and
-password.
+its own setup hotspot named `S360 VentIQ RoomIQ`. Connect to it and a
+setup page appears where you enter your home Wi-Fi name and password.
 
 ## Add to Home Assistant
 

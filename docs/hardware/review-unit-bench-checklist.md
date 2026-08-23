@@ -24,8 +24,16 @@ The intended default surface is defined in
 
 ## 1. Out-of-box customer experience
 
-- [ ] Power the assembled unit over PoE only; record time from power-on
-      to the device appearing in Home Assistant.
+- [ ] Power the assembled unit over PoE only. PoE supplies **power
+      only** on this firmware — the resolved config declares no
+      `ethernet:` component, so the unit reaches Home Assistant over
+      Wi-Fi. Record whether it joins the `Sense360_Setup` setup network
+      (if one is present) or opens its own open setup hotspot
+      `S360 AirIQ RoomIQ`.
+- [ ] Give the unit Wi-Fi by the documented customer path (setup network
+      or the captive portal on the setup hotspot — see
+      [Get it online](../../site/docs/help/get-online.md)); record time
+      from power-on to the device appearing in Home Assistant.
 - [ ] Confirm Home Assistant adds the device without manual YAML,
       integration configuration or an encryption key.
 - [ ] Record the device page exactly as it first appears: list every
