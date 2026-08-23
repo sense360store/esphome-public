@@ -57,7 +57,11 @@ Contents access), exposed exclusively to the single final dispatch step and
 never printed. The job runs no action (`uses:`) at all — no checkout, no
 third-party code — and every step is a self-contained inline `python3`
 heredoc, so the untrusted release body/tag can never reach shell execution.
-Regression guard: `tests/test_webflash_intake_handoff.py`.
+Both API-calling steps install a redirect-refusing urllib opener, so a
+token-bearing request never follows a cross-host 30x (which would otherwise
+re-send the `Authorization` header to the redirect host). Regression guard:
+`tests/test_webflash_intake_handoff.py` (includes an AST-based import/call
+allowlist, loopback redirect-refusal tests, and step-`if:` gate checks).
 
 Other trigger-safety facts confirmed (and regression-guarded):
 

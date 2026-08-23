@@ -50,6 +50,7 @@ Run with::
 
 from __future__ import annotations
 
+import ast
 import contextlib
 import http.server
 import json
@@ -82,6 +83,7 @@ HEREDOC_SUFFIX = "PY"
 ALLOWED_JOB_EXPRESSIONS = {
     "needs.generate-matrix.outputs.version",
     "needs.generate-matrix.outputs.channel",
+    "needs.generate-matrix.outputs.built_config_strings",
     "github.token",
     "steps.metadata.outputs.release_id",
     "steps.metadata.outputs.artifact_name",
@@ -233,12 +235,24 @@ class _MetadataResult:
         self.summary = summary
 
 
+def _config_from_body(body: str) -> str:
+    match = re.search(r"^Config string\s*:\s*(.+?)\s*$", body or "", re.MULTILINE)
+    return match.group(1) if match else "Ceiling-POE-VentIQ-RoomIQ"
+
+
 def _run_metadata_step(
     event: dict,
     derived_version: str,
     derived_channel: str,
+    built_config_strings: str | None = None,
 ) -> _MetadataResult:
     code = _extract_python(_steps_by_name(_handoff_job())[METADATA_STEP]["run"])
+    if built_config_strings is None:
+        # Default: the config named in the body is the (only) built config,
+        # matching the common single-config release. Tests that exercise the
+        # multi-config smuggling guard pass an explicit built set.
+        body = (event.get("release") or {}).get("body") or ""
+        built_config_strings = _config_from_body(body)
     with tempfile.TemporaryDirectory() as tmp:
         event_path = Path(tmp) / "event.json"
         output_path = Path(tmp) / "output.txt"
@@ -252,6 +266,7 @@ def _run_metadata_step(
                 "GITHUB_STEP_SUMMARY": str(summary_path),
                 "DERIVED_VERSION": derived_version,
                 "DERIVED_CHANNEL": derived_channel,
+                "BUILT_CONFIG_STRINGS": built_config_strings,
             },
         )
         outputs = {}
@@ -348,6 +363,58 @@ def _make_dispatch_handler(status=204, message="boom"):
             pass
 
     return Handler, captured
+
+
+def _make_redirect_handler(location: str):
+    """A server that 302-redirects every request to ``location``, recording
+    whether the incoming request carried an Authorization header."""
+    saw_auth: list[str | None] = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def _redirect(self):
+            saw_auth.append(self.headers.get("Authorization"))
+            length = int(self.headers.get("Content-Length", "0"))
+            if length:
+                self.rfile.read(length)
+            self.send_response(302)
+            self.send_header("Location", location)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        do_GET = _redirect  # noqa: N815
+        do_POST = _redirect  # noqa: N815
+
+        def log_message(self, *args):
+            pass
+
+    return Handler, saw_auth
+
+
+def _make_recording_handler():
+    """A second-host server that records the Authorization header of any
+    request it receives (it should receive none when redirects are refused)."""
+    received: list[dict] = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def _record(self):
+            length = int(self.headers.get("Content-Length", "0"))
+            if length:
+                self.rfile.read(length)
+            received.append({"authorization": self.headers.get("Authorization")})
+            payload = b"[]"
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        do_GET = _record  # noqa: N815
+        do_POST = _record  # noqa: N815
+
+        def log_message(self, *args):
+            pass
+
+    return Handler, received
 
 
 def _run_assets_step(
@@ -474,6 +541,8 @@ class HandoffJobShapeTests(unittest.TestCase):
             )
 
     def test_no_repo_local_scripts_and_no_subprocesses(self) -> None:
+        # Fast substring backstop for the obvious offenders. The AST test
+        # below is the authoritative, fail-closed guard.
         for step in self.job.get("steps", []):
             code = _strip_python_comments(_extract_python(step.get("run", "")))
             for forbidden in (
@@ -481,10 +550,17 @@ class HandoffJobShapeTests(unittest.TestCase):
                 "tests/",
                 "subprocess",
                 "os.system",
+                "os.popen",
                 "os.exec",
                 "os.spawn",
+                "os.posix_spawn",
+                "os.fork",
+                "popen2",
+                "runpy",
+                "commands",
                 "checkout",
                 "pty.",
+                "__import__",
             ):
                 self.assertNotIn(
                     forbidden,
@@ -493,6 +569,98 @@ class HandoffJobShapeTests(unittest.TestCase):
                     f"not contain {forbidden!r}: the job never executes "
                     "repo-local scripts or child processes",
                 )
+
+    def test_inline_python_imports_and_calls_are_allowlisted(self) -> None:
+        # Authoritative fail-closed guard for the "no checkout / no repo
+        # scripts / no child process / no dynamic eval" contract: parse each
+        # step's inline Python with the ast module and reject any import
+        # outside a small allowlist and any call to a shell/process/eval
+        # spawner. Unknown FUTURE spawners are caught by default, unlike a
+        # substring denylist that only names what someone remembered.
+        allowed_modules = {
+            "json",
+            "os",
+            "re",
+            "sys",
+            "time",
+            "urllib",
+            "urllib.request",
+            "urllib.error",
+            "urllib.parse",
+            "pathlib",
+        }
+        # Bare built-in names that execute code / import dynamically.
+        forbidden_names = {"eval", "exec", "compile", "__import__"}
+        # Dotted module.attr calls that spawn a shell / process. re.compile,
+        # json.loads etc. are dotted too but are NOT in this set, so they are
+        # allowed; only the process/shell spawners are rejected.
+        forbidden_dotted = {
+            "os.system",
+            "os.popen",
+            "os.fork",
+            "os.posix_spawn",
+            "os.execv",
+            "os.execve",
+            "os.execvp",
+            "os.execvpe",
+            "os.execl",
+            "os.execle",
+            "os.execlp",
+            "os.spawnv",
+            "os.spawnve",
+            "os.spawnl",
+            "os.spawnlp",
+            "subprocess.run",
+            "subprocess.Popen",
+            "subprocess.call",
+            "subprocess.check_call",
+            "subprocess.check_output",
+        }
+        for step in self.job.get("steps", []):
+            name = step.get("name")
+            tree = ast.parse(_extract_python(step.get("run", "")))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        self.assertIn(
+                            alias.name,
+                            allowed_modules,
+                            f"handoff step {name!r} imports {alias.name!r}, "
+                            "which is not in the allowlist; a handoff step "
+                            "must not pull in modules that can execute code "
+                            "or touch the repo",
+                        )
+                elif isinstance(node, ast.ImportFrom):
+                    module = node.module or ""
+                    self.assertIn(
+                        module,
+                        allowed_modules,
+                        f"handoff step {name!r} imports from {module!r}, "
+                        "which is not in the allowlist",
+                    )
+                elif isinstance(node, ast.Call):
+                    func = node.func
+                    bare = None
+                    dotted = None
+                    if isinstance(func, ast.Name):
+                        bare = func.id
+                    elif isinstance(func, ast.Attribute) and isinstance(
+                        func.value, ast.Name
+                    ):
+                        dotted = f"{func.value.id}.{func.attr}"
+                    self.assertNotIn(
+                        bare,
+                        forbidden_names,
+                        f"handoff step {name!r} calls the built-in "
+                        f"{bare!r}, a dynamic-eval/import primitive forbidden "
+                        "in the handoff job",
+                    )
+                    self.assertNotIn(
+                        dotted,
+                        forbidden_dotted,
+                        f"handoff step {name!r} calls {dotted!r}, a "
+                        "shell/process spawner forbidden in the handoff job",
+                    )
 
     def test_expected_steps_exist_in_order(self) -> None:
         names = [s.get("name") for s in self.job.get("steps", [])]
@@ -504,14 +672,35 @@ class HandoffJobShapeTests(unittest.TestCase):
         )
 
     def test_asset_and_dispatch_steps_are_gated_on_dispatch_output(self) -> None:
+        # Exact-match: the two gated steps run ONLY on the validated dispatch
+        # flag. An exact equality (not just `in`) means an injected status
+        # function or an extra clause would fail this test — the implicit
+        # step-level success() chain that the remote-asset proof and the
+        # experimental-skip both depend on cannot be silently weakened.
         for name in (ASSETS_STEP, DISPATCH_STEP):
             condition = str(self.steps[name].get("if", ""))
-            self.assertIn(
-                "steps.metadata.outputs.dispatch == 'true'",
+            self.assertEqual(
                 condition,
+                "steps.metadata.outputs.dispatch == 'true'",
                 f"step {name!r} must run only when the validated metadata "
-                "selected a WebFlash-served channel",
+                "selected a WebFlash-served channel, with no extra clause",
             )
+
+    def test_no_step_if_uses_a_status_override_function(self) -> None:
+        # A step-level if: that used always() / success() / failure() /
+        # cancelled() would run (or skip) regardless of whether the prior
+        # step actually succeeded, silently defeating the ordered gates
+        # (metadata validation -> remote-asset proof -> dispatch). Forbid
+        # them on every step.
+        for step in self.job.get("steps", []):
+            condition = str(step.get("if", ""))
+            for override in ("always(", "success(", "failure(", "cancelled("):
+                self.assertNotIn(
+                    override,
+                    condition,
+                    f"handoff step {step.get('name')!r} if: must not use "
+                    f"{override}); the ordered success chain is the gate",
+                )
 
     def test_handoff_job_has_no_permissions_block(self) -> None:
         self.assertNotIn(
@@ -626,13 +815,35 @@ class HandoffExpressionSafetyTests(unittest.TestCase):
                 "env: only",
             )
 
+    def test_token_bearing_steps_refuse_http_redirects(self) -> None:
+        # Both API-calling steps carry a credential (github.token / the
+        # WEBFLASH_INTAKE_TOKEN). urllib's default opener would follow a 30x
+        # AND re-send the Authorization header to the redirect host, leaking
+        # the token. Each such step must install a redirect-refusing opener.
+        steps = _steps_by_name(self.job)
+        for name in (ASSETS_STEP, DISPATCH_STEP):
+            code = _extract_python(steps[name]["run"])
+            self.assertIn(
+                "HTTPRedirectHandler",
+                code,
+                f"step {name!r} must install a redirect-refusing opener so a "
+                "token-bearing request never follows a cross-host redirect",
+            )
+            self.assertIn("build_opener", code)
+            self.assertNotIn(
+                "urllib.request.urlopen(",
+                code,
+                f"step {name!r} must not use the default urlopen (which "
+                "follows redirects); use the no-redirect opener",
+            )
+
     def test_untrusted_values_flow_env_only(self) -> None:
-        # The metadata step exposes only the two derived values; the
-        # assets/dispatch steps take only validated step outputs + tokens.
+        # The metadata step exposes only the trusted generate-matrix outputs;
+        # the assets/dispatch steps take only validated step outputs + tokens.
         steps = _steps_by_name(self.job)
         self.assertEqual(
             set(steps[METADATA_STEP].get("env", {})),
-            {"DERIVED_VERSION", "DERIVED_CHANNEL"},
+            {"DERIVED_VERSION", "DERIVED_CHANNEL", "BUILT_CONFIG_STRINGS"},
         )
         self.assertEqual(
             set(steps[ASSETS_STEP].get("env", {})),
@@ -811,6 +1022,67 @@ class MetadataStepBehaviourTests(unittest.TestCase):
             "upstream catalog/lifecycle status must neither grant nor deny "
             "WebFlash intake",
         )
+
+    def test_config_must_be_in_built_set(self) -> None:
+        # A well-formed body config that is NOT among the configs Release 3
+        # built for this (version, channel) fails closed, even though its
+        # version/channel/artifact are internally consistent.
+        result = _run_metadata_step(
+            _make_event(
+                "v1.0.0-preview",
+                _make_release_body(
+                    "Ceiling-POE-RoomIQ", "1.0.0", "preview", status="preview"
+                ),
+            ),
+            "1.0.0",
+            "preview",
+            built_config_strings="Ceiling-POE-FanPWM Ceiling-POE-FanDAC",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not among", result.log)
+
+    def test_co_built_config_in_set_dispatches(self) -> None:
+        # A multi-config release: the body names one of the co-built configs
+        # (which is legitimately in the trusted built set) -> dispatch.
+        result = _run_metadata_step(
+            _make_event(
+                "v1.0.0-preview",
+                _make_release_body(
+                    "Ceiling-POE-FanPWM", "1.0.0", "preview", status="preview"
+                ),
+            ),
+            "1.0.0",
+            "preview",
+            built_config_strings="Ceiling-POE-FanPWM Ceiling-POE-FanDAC",
+        )
+        self.assertEqual(result.returncode, 0, result.log)
+        self.assertEqual(result.outputs.get("dispatch"), "true")
+        self.assertEqual(result.outputs.get("config_string"), "Ceiling-POE-FanPWM")
+
+    def test_empty_built_set_fails_closed(self) -> None:
+        result = _run_metadata_step(
+            _make_event(
+                "v1.0.7",
+                _make_release_body("Ceiling-POE-VentIQ-RoomIQ", "1.0.7", "stable"),
+            ),
+            "1.0.7",
+            "stable",
+            built_config_strings="",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("built config", result.log)
+
+    def test_malformed_built_set_entry_fails_closed(self) -> None:
+        result = _run_metadata_step(
+            _make_event(
+                "v1.0.7",
+                _make_release_body("Ceiling-POE-VentIQ-RoomIQ", "1.0.7", "stable"),
+            ),
+            "1.0.7",
+            "stable",
+            built_config_strings="Ceiling-POE-VentIQ-RoomIQ $(evil)",
+        )
+        self.assertNotEqual(result.returncode, 0)
 
     def test_malformed_config_string_fails_closed(self) -> None:
         for config in (
@@ -1127,6 +1399,21 @@ class AssetsStepBehaviourTests(unittest.TestCase):
             proc = _run_assets_step(api_url, artifact=self.ARTIFACT, token=token)
         self.assertNotIn(token, proc.stdout + proc.stderr)
 
+    def test_cross_host_redirect_is_refused_and_token_not_resent(self) -> None:
+        token = "read-token-must-not-leak-42"
+        recorder, received = _make_recording_handler()
+        with _serve(recorder) as second_url:
+            redirector, _ = _make_redirect_handler(second_url + "/assets")
+            with _serve(redirector) as api_url:
+                proc = _run_assets_step(api_url, artifact=self.ARTIFACT, token=token)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertEqual(
+            received,
+            [],
+            "the github.token must never be re-sent to a redirect target",
+        )
+        self.assertNotIn(token, proc.stdout + proc.stderr)
+
 
 # ---------------------------------------------------------------------------
 # Behaviour: WebFlash dispatch (loopback GitHub API)
@@ -1236,6 +1523,100 @@ class DispatchStepBehaviourTests(unittest.TestCase):
                 f"tag={tag!r} config={config!r} must be refused",
             )
             self.assertEqual(captured, [])
+
+    def test_cross_host_redirect_is_refused_and_token_not_resent(self) -> None:
+        token = "intake-token-must-not-leak-77"
+        recorder, received = _make_recording_handler()
+        with _serve(recorder) as second_url:
+            redirector, _ = _make_redirect_handler(second_url + "/dispatches")
+            with _serve(redirector) as api_url:
+                proc, summary = _run_dispatch_step(api_url, token=token)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertEqual(
+            received,
+            [],
+            "WEBFLASH_INTAKE_TOKEN must never be re-sent to a redirect target",
+        )
+        self.assertNotIn(token, proc.stdout + proc.stderr + summary)
+
+
+# ---------------------------------------------------------------------------
+# generate-matrix emits the trusted built-config set the handoff consumes
+# ---------------------------------------------------------------------------
+
+
+def _extract_inner_heredoc(run_text: str) -> str:
+    marker = "python3 - <<'PY'\n"
+    start = run_text.index(marker) + len(marker)
+    end = run_text.index("\nPY", start)
+    return run_text[start:end]
+
+
+def _run_generate_matrix(version: str, channel: str):
+    job = _load_workflow()["jobs"]["generate-matrix"]
+    step = {s.get("id"): s for s in job["steps"]}["generate"]
+    code = _extract_inner_heredoc(step["run"])
+    with tempfile.TemporaryDirectory() as tmp:
+        output_path = Path(tmp) / "output.txt"
+        proc = subprocess.run(
+            [sys.executable, "-c", code],
+            env={
+                "PATH": os.environ.get("PATH", ""),
+                "VERSION": version,
+                "CHANNEL": channel,
+                "GITHUB_OUTPUT": str(output_path),
+            },
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        outputs = {}
+        if output_path.exists():
+            for line in output_path.read_text(encoding="utf-8").splitlines():
+                key, _, value = line.partition("=")
+                outputs[key] = value
+        return proc, outputs
+
+
+class GenerateMatrixBuiltConfigOutputTests(unittest.TestCase):
+    """The handoff's trusted built-config set comes from generate-matrix;
+    prove that job actually emits it and that it matches the release matrix."""
+
+    def _eligible(self, version, channel):
+        doc = json.loads(
+            (REPO_ROOT / "config" / "webflash-builds.json").read_text(encoding="utf-8")
+        )
+        return {
+            e["config_string"]
+            for e in doc.get("builds", [])
+            if isinstance(e, dict)
+            and e.get("version") == version
+            and e.get("channel") == channel
+        }
+
+    def test_built_config_strings_output_matches_release_matrix(self) -> None:
+        # Use the live stable Release-One row so the test tracks the real
+        # source of truth rather than a pinned version.
+        version, channel = "1.0.7", "stable"
+        expected = self._eligible(version, channel)
+        self.assertTrue(expected, "expected at least one 1.0.7/stable build row")
+        proc, outputs = _run_generate_matrix(version, channel)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        emitted = set(outputs.get("built_config_strings", "").split())
+        self.assertEqual(emitted, expected)
+
+    def test_built_config_strings_covers_multi_config_channel(self) -> None:
+        # A (version, channel) with several rows must list every one, so the
+        # handoff's membership check accepts each co-built config.
+        version, channel = "1.0.0", "preview"
+        expected = self._eligible(version, channel)
+        if len(expected) < 2:
+            self.skipTest("no multi-config (1.0.0, preview) matrix to check")
+        proc, outputs = _run_generate_matrix(version, channel)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        emitted = set(outputs.get("built_config_strings", "").split())
+        self.assertEqual(emitted, expected)
 
 
 if __name__ == "__main__":

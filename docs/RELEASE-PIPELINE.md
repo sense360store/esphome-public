@@ -183,8 +183,11 @@ no firmware is built.
      strict allowlisted regexes).
   2. Extracts the selected `Config string` / `Version` / `Channel` /
      `Artifact` from the generated release-notes preamble and requires the
-     body's version/channel to equal the values stage 3 derived from the tag;
-     any mismatch fails closed.
+     body's version/channel to equal the values stage 3 derived from the tag,
+     and the body's config string to be one of the configs stage 3 actually
+     built for this (version, channel) — a trusted `built_config_strings`
+     output of the matrix job, so a multi-config release cannot hand off a
+     co-built-but-unselected config. Any mismatch fails closed.
   3. Proves, via the GitHub API, that the **remote** Release now carries the
      selected artifact plus `checksums-sha256.txt` (+ `.sig` / `.pem`) and
      `manifest.json` — the `release: published` event fires before stage 3's

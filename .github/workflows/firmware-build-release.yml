@@ -76,6 +76,12 @@ jobs:
       product_count: ${{ steps.generate.outputs.product_count }}
       version: ${{ steps.version.outputs.version }}
       channel: ${{ steps.version.outputs.channel }}
+      # CI-PIPELINE-CLARITY-002: the trusted set of config strings actually
+      # built for this (version, channel), space-separated. The WebFlash
+      # handoff requires the untrusted release body's config string to be a
+      # member of this set, so a multi-config release cannot hand off a
+      # co-built-but-unselected config.
+      built_config_strings: ${{ steps.generate.outputs.built_config_strings }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -186,6 +192,7 @@ jobs:
                   "product": wrapper_stem,
                   "file": build_file,
                   "artifact_name": entry.get("artifact_name", ""),
+                  "config_string": entry.get("config_string", ""),
               })
 
           if not rows:
@@ -197,11 +204,37 @@ jobs:
           matrix_json = json.dumps({"include": rows}, separators=(",", ":"))
           count = len(rows)
 
+          # CI-PIPELINE-CLARITY-002: the space-separated set of config
+          # strings built for this (version, channel). This is the trusted
+          # per-release config set the WebFlash handoff cross-checks the
+          # untrusted release-body config string against. Config strings
+          # never contain whitespace, so a space separator is unambiguous;
+          # fail closed if any entry is malformed or duplicated.
+          config_strings = []
+          seen_config_strings = set()
+          for row in rows:
+              config_string = row["config_string"]
+              if not config_string or " " in config_string:
+                  sys.exit(
+                      "error: webflash-builds entry has a missing or "
+                      f"whitespace config_string: {config_string!r}"
+                  )
+              if config_string in seen_config_strings:
+                  sys.exit(
+                      "error: duplicate config_string in the build matrix "
+                      f"for version={version} channel={channel}: "
+                      f"{config_string!r}"
+                  )
+              seen_config_strings.add(config_string)
+              config_strings.append(config_string)
+          built_config_strings = " ".join(config_strings)
+
           github_output = os.environ.get("GITHUB_OUTPUT")
           if github_output:
               with open(github_output, "a", encoding="utf-8") as fh:
                   fh.write(f"matrix={matrix_json}\n")
                   fh.write(f"product_count={count}\n")
+                  fh.write(f"built_config_strings={built_config_strings}\n")
 
           print(f"WebFlash build matrix ({count} entry/entries) "
                 f"for version={version} channel={channel}:")
@@ -866,6 +899,8 @@ jobs:
         env:
           DERIVED_VERSION: ${{ needs.generate-matrix.outputs.version }}
           DERIVED_CHANNEL: ${{ needs.generate-matrix.outputs.channel }}
+          BUILT_CONFIG_STRINGS: >-
+            ${{ needs.generate-matrix.outputs.built_config_strings }}
         run: |
           python3 - <<'PY'
           import json
@@ -991,6 +1026,28 @@ jobs:
           if body_channel != derived_channel:
               fail(f"release body Channel {body_channel!r} does not equal "
                    f"the Release 3 derived channel {derived_channel!r}")
+
+          # The untrusted body's config string must be one of the configs
+          # Release 3 actually built for this (version, channel). Without
+          # this, a multi-config release (e.g. several preview rows at the
+          # same version) whose body was edited to name a different
+          # co-built config would still pass the remote-asset check, since
+          # every co-built binary is attached. generate-matrix emits this
+          # trusted set from config/webflash-builds.json at build time.
+          built_config_strings = os.environ.get(
+              "BUILT_CONFIG_STRINGS", "").split()
+          if not built_config_strings:
+              fail("generate-matrix did not report any built config "
+                   "strings; refusing to guess the selected config")
+          for built in built_config_strings:
+              if not CONFIG_RE.fullmatch(built):
+                  fail("a built config string reported by generate-matrix "
+                       f"fails the allowlist regex: {built!r}")
+          if config_string not in built_config_strings:
+              fail(f"release body config string {config_string!r} is not "
+                   "among the configs Release 3 built for this "
+                   f"(version, channel): {built_config_strings!r}")
+
           if tag_version != derived_version:
               fail(f"tag version {tag_version!r} does not equal the "
                    f"Release 3 derived version {derived_version!r}")
@@ -1102,6 +1159,17 @@ jobs:
 
           token = os.environ.get("GH_API_TOKEN", "")
 
+          # Refuse HTTP redirects on this token-bearing request. urllib's
+          # default opener follows 30x AND re-sends the Authorization header
+          # to the redirect target, which could leak github.token to another
+          # host. The releases/assets endpoint never legitimately redirects,
+          # so a redirect is treated as an error rather than followed.
+          class _NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          opener = urllib.request.build_opener(_NoRedirect())
+
           def get_json(url):
               last_error = "unknown error"
               for attempt in range(3):
@@ -1114,7 +1182,7 @@ jobs:
                   if token:
                       request.add_header("Authorization", f"Bearer {token}")
                   try:
-                      with urllib.request.urlopen(request, timeout=30) as rsp:
+                      with opener.open(request, timeout=30) as rsp:
                           return json.loads(rsp.read().decode("utf-8"))
                   except urllib.error.HTTPError as exc:
                       last_error = f"HTTP {exc.code} from the GitHub API"
@@ -1261,8 +1329,20 @@ jobs:
           request.add_header("Content-Type", "application/json")
           request.add_header("Authorization", f"Bearer {token}")
 
+          # Refuse HTTP redirects on this token-bearing request. urllib's
+          # default opener follows 30x and re-sends the Authorization header
+          # (WEBFLASH_INTAKE_TOKEN) to the redirect target, which could leak
+          # the secret to another host. The workflow-dispatch endpoint never
+          # legitimately redirects, so a redirect is an error, never
+          # followed.
+          class _NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          opener = urllib.request.build_opener(_NoRedirect())
+
           try:
-              with urllib.request.urlopen(request, timeout=30) as response:
+              with opener.open(request, timeout=30) as response:
                   status = response.status
           except urllib.error.HTTPError as exc:
               detail = ""
