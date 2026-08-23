@@ -15,11 +15,22 @@ For the *classification* of every workflow (gate vs. manual helper) see
 **contract** with WebFlash see [`webflash-contract.md`](webflash-contract.md).
 This document is the **sequence**; those two are the rules.
 
-> **Two repos, one chain.** Stages 1–4 live in this repo. Stages 5–7 live in
-> WebFlash and are the authority for their own inputs and internals — the
-> summaries here are a cross-repo orientation, not the WebFlash source of
-> truth. When this document and WebFlash's `DEVELOPER.md` disagree, WebFlash
-> wins.
+> **Two repos, one chain.** Stages 1–4 live in this repo. Stages 5–6 (and the
+> Release 4/5 manual recovery path) live in WebFlash and are the authority for
+> their own inputs and internals — the summaries here are a cross-repo
+> orientation, not the WebFlash source of truth. When this document and
+> WebFlash's `DEVELOPER.md` disagree, WebFlash wins.
+
+Since **CI-PIPELINE-CLARITY-002**
+([tracking](ci-pipeline-clarity-002.md)) the normal path is:
+
+> version bump PR → human merge → Create GitHub Release → **Release 3
+> builds / signs / attaches** → **automatic WebFlash intake dispatch** →
+> WebFlash creates **one reviewed intake PR** → human merge → existing
+> WebFlash publish / deploy.
+
+The WebFlash *Release 4: Add Source* and *Release 5: Import* workflows are
+unchanged and remain the **manual recovery path**.
 
 ---
 
@@ -29,18 +40,25 @@ This document is the **sequence**; those two are the rules.
 |---|-------|------|----------|---------------|----------|
 | 1 | Bump Version | esphome-public | `bump-version.yml` — *Release 1: Bump Version* | **Manual dispatch** | A PR that rewrites the catalog `version` + `artifact_name` |
 | — | *(merge the bump PR)* | esphome-public | — | **Human merge** | `main` now declares the new version |
-| 2 | Create GitHub Release | esphome-public | `create-release.yml` — *Release: Create GitHub Release* | **Manual dispatch** | The tagged GitHub Release (fires stage 4) |
+| 2 | Create GitHub Release | esphome-public | `create-release.yml` — *Release: Create GitHub Release* | **Manual dispatch** | The tagged GitHub Release (fires stage 3) |
 | 2a | Draft Notes *(optional)* | esphome-public | `release-notes-draft.yml` — *Release 2: Draft Notes* | **Manual dispatch** | A downloadable release-notes draft artifact |
 | 3 | Build & Release | esphome-public | `firmware-build-release.yml` — *Release 3: Build & Release* | **Auto** on `release: published` | Signed `.bin` set + checksums attached to the Release |
-| 4 | Add Firmware Source | WebFlash | `add-firmware-source.yml` — *Release 4: Add Source* | **Manual dispatch** | Registers this repo's Release as a firmware source |
-| 5 | Import | WebFlash | release importer (`scripts/sync-from-releases.py`) | **Dispatch / scheduled** (WebFlash-side) | Pulls the `.bin` set + parses the release body into sidecar metadata |
+| 4 | WebFlash Intake Handoff | esphome-public | `firmware-build-release.yml` — `webflash-handoff` job | **Auto** after stage 3's attach job succeeds | A `workflow_dispatch` of the WebFlash combined intake (stable/preview only) |
+| 5 | Combined Firmware Intake | WebFlash | `firmware-intake.yml` — *Release: Firmware Intake (combined source + import, one PR)* | **Auto** (dispatched by stage 4) or manual dispatch | **One reviewed intake PR** (source registration + import together) |
+| — | *(merge the intake PR)* | WebFlash | — | **Human merge** | WebFlash now carries the imported firmware |
 | 6 | Publish / Deploy | WebFlash | site publish + deploy | **Auto** on merge to the WebFlash publish branch | Signed manifests + the live customer flasher site |
+| R | Add Firmware Source *(recovery)* | WebFlash | `add-firmware-source.yml` — *Release 4: Add Source* | **Manual dispatch** | Registers this repo's Release as a firmware source (manual path) |
+| R | Import *(recovery)* | WebFlash | release importer (`scripts/sync-from-releases.py`) | **Dispatch / scheduled** (WebFlash-side) | Pulls the `.bin` set + parses the release body into sidecar metadata (manual path) |
 
 Numbering note: the workflow **display names** in this repo read "Release 1 /
 Release 2 / Release 3." The *primary* order is **Bump (1) → Create Release →
 Build (3)**; "Release 2: Draft Notes" is an **optional preview-only** helper
 off to the side (stage 2a), because Create Release generates and validates the
-same notes inline. The table above is in true execution order.
+same notes inline. The table above is in true execution order. The WebFlash
+*Release 4: Add Source* / *Release 5: Import* workflows are **retained as the
+manual recovery path** (rows "R"): since CI-PIPELINE-CLARITY-002 the normal
+path is stage 4's automatic handoff into the combined intake workflow, which
+replaces the two manual dispatches with one reviewed WebFlash intake PR.
 
 ---
 
@@ -122,6 +140,8 @@ same notes inline. The table above is in true execution order.
   4. Generates checksums, **signs** `checksums-sha256.txt` with keyless cosign,
      and attaches the `.bin` set + checksums + signature + certificate +
      manifest to the GitHub Release.
+  5. After the attach job succeeds, the `webflash-handoff` job runs stage 4
+     below (the automatic WebFlash intake dispatch).
 
   > **This repo publishes *unsigned* firmware `.bin` files.** The cosign
   > signature here is over the **checksums file**, for release-integrity
@@ -149,26 +169,86 @@ no firmware is built.
   `release: edited`, not `published`, so it will **not** wake stage 3. Always
   confirm stage 3 actually started after publishing.
 
-## Stage 4 — WebFlash: Add Firmware Source *(WebFlash repo)*
+## Stage 4 — WebFlash Intake Handoff *(automatic, CI-PIPELINE-CLARITY-002)*
 
-- **Workflow:** WebFlash `add-firmware-source.yml` — *Release 4: Add Source*.
-- **Starts:** manual `workflow_dispatch` in the **WebFlash** repo.
-- **Role:** registers this repo's published GitHub Release as a firmware source
-  WebFlash will import. Its `config_string` picker must stay in lock-step with
-  the release-eligible set here; that parity is enforced by WebFlash's own
-  tests (tracked as **P4b** in the CI-PIPELINE-CLARITY-001 programme).
-- **Authority:** WebFlash owns this workflow's exact inputs and behaviour; the
-  summary here is orientation only.
+- **Workflow:** the `webflash-handoff` job in
+  [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
+- **Starts:** **automatically**, only after stage 3's *Attach to Release* job
+  has **succeeded** (built, verified, signed, attached). A failed or skipped
+  attach never hands off.
+- **What it does:**
+  1. Parses the release event with **inline Python only** — no repository
+     checkout, no repo-local scripts, and the release body/tag are treated as
+     **untrusted input** (never interpolated into shell; validated against
+     strict allowlisted regexes).
+  2. Extracts the selected `Config string` / `Version` / `Channel` /
+     `Artifact` from the generated release-notes preamble and requires the
+     body's version/channel to equal the values stage 3 derived from the tag;
+     any mismatch fails closed.
+  3. Proves, via the GitHub API, that the **remote** Release now carries the
+     selected artifact plus `checksums-sha256.txt` (+ `.sig` / `.pem`) and
+     `manifest.json` — the `release: published` event fires before stage 3's
+     upload, so the event's own assets array is never trusted for this.
+     Nothing is downloaded or re-signed.
+  4. For **stable / preview** releases, dispatches the WebFlash combined
+     intake workflow (`firmware-intake.yml` on `main` in
+     `sense360store/WebFlash`) with the minimum inputs: the release tag, the
+     validated config string, `source_repo=sense360store/esphome-public`, and
+     `dry_run=false`. Version/channel are deliberately omitted so WebFlash
+     derives them from the tag.
+  5. For **experimental** (a channel the WebFlash intake lanes do not serve),
+     it exits **successfully without dispatching**, with a summary saying why.
+- **Credential:** the `WEBFLASH_INTAKE_TOKEN` repository secret (fine-grained;
+  target repository `sense360store/WebFlash` only; **Actions: write** only).
+  It is exposed solely to the final dispatch step. If it is missing, the
+  handoff fails loudly: the upstream release itself is already valid, and the
+  manual recovery path below still works.
+- **Authority boundary:** the handoff makes **no eligibility decision**.
+  Upstream product/catalog status can neither grant nor deny WebFlash intake —
+  WebFlash's committed eligibility lanes own the final import decision. A
+  successful dispatch (HTTP 204) means only "**handoff accepted**", never
+  "WebFlash import succeeded".
+- **Contract tests:**
+  [`tests/test_webflash_intake_handoff.py`](../tests/test_webflash_intake_handoff.py)
+  locks the trust boundaries above (success-only dependency, no checkout, no
+  script execution, injection safety, channel gating, remote asset proof,
+  token scoping, exact dispatch target).
 
-## Stage 5 — WebFlash: Import *(WebFlash repo)*
+## Stage 5 — WebFlash: Combined Firmware Intake *(WebFlash repo)*
 
-- **Tooling:** WebFlash's release importer, `scripts/sync-from-releases.py`.
-- **Role:** pulls the unsigned `.bin` set from the GitHub Release and parses the
-  Release **body** (the four required H2 sections — Changelog / Known Issues /
-  Features / Hardware Requirements) into the sidecar metadata WebFlash stores
-  alongside each binary. This is why the release-body contract in
+- **Workflow:** WebFlash `firmware-intake.yml` — *Release: Firmware Intake
+  (combined source + import, one PR)*.
+- **Starts:** automatically via stage 4's dispatch (normal path), or manual
+  `workflow_dispatch` in the **WebFlash** repo.
+- **Role:** combines source registration and import into **one reviewed
+  intake PR**: it applies WebFlash's committed eligibility lanes, pulls the
+  unsigned `.bin` set from the GitHub Release, and parses the Release **body**
+  (the four required H2 sections — Changelog / Known Issues / Features /
+  Hardware Requirements) into the sidecar metadata WebFlash stores alongside
+  each binary. This is why the release-body contract in
   [`webflash-contract.md`](webflash-contract.md) §8 is load-bearing: a
-  malformed body fails the importer.
+  malformed body fails the importer. A human reviews and **merges** the
+  intake PR; merging is what feeds stage 6.
+- **Authority:** WebFlash owns this workflow's exact inputs, its eligibility
+  decisions, and its internals; the summary here is orientation only.
+
+## Manual recovery path — Release 4: Add Source / Release 5: Import *(WebFlash repo)*
+
+Retained unchanged as the **recovery path** when the automatic handoff fails
+(e.g. `WEBFLASH_INTAKE_TOKEN` missing/expired, dispatch refused) or when an
+operator wants a hand-driven import:
+
+- **Release 4: Add Source** — WebFlash `add-firmware-source.yml`, manual
+  `workflow_dispatch` in the WebFlash repo. Registers this repo's published
+  GitHub Release as a firmware source WebFlash will import. Its
+  `config_string` picker must stay in lock-step with the release-eligible set
+  here; that parity is enforced by WebFlash's own tests (tracked as **P4b** in
+  the CI-PIPELINE-CLARITY-001 programme).
+- **Release 5: Import** — WebFlash's release importer,
+  `scripts/sync-from-releases.py` (dispatch / scheduled, WebFlash-side).
+  Pulls the `.bin` set and parses the release body exactly as stage 5 does.
+- **Authority:** WebFlash owns these workflows' exact inputs and behaviour;
+  the summaries here are orientation only.
 
 ## Stage 6 — WebFlash: Publish / Deploy *(WebFlash repo)*
 
@@ -198,6 +278,15 @@ no firmware is built.
 - **No false proof.** A preview/experimental artifact is firmware-build proof
   only — never a hardware, bench, compliance, safety, or commercial-
   availability claim (see [`standing-invariants.md`](standing-invariants.md)).
+- **The handoff only follows a proven attach.** Stage 4 runs only when stage
+  3's attach job succeeded, re-proves the required assets against the remote
+  Release via the GitHub API, fails closed on any malformed or mismatched
+  release metadata, and refuses to dispatch channels the WebFlash intake does
+  not serve. A handoff failure never un-attaches or invalidates the release —
+  the Release 4/5 manual path is the recovery.
+- **Handoff ≠ import.** A successful stage-4 dispatch means only that WebFlash
+  accepted the request. WebFlash's committed eligibility lanes decide the
+  import, and upstream lifecycle status never grants or denies it.
 
 ## See also
 
