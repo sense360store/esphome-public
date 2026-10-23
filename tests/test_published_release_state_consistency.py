@@ -98,6 +98,23 @@ class PublishedReleaseConsistencyTests(unittest.TestCase):
                     "must not claim metadata-ready-unpublished",
                 )
 
+    def test_published_row_notes_do_not_claim_unpublished_state(self) -> None:
+        # The notes must not contradict the row: once the field is dropped
+        # for a published version, no prose may still claim it.
+        by_cs = _by_cs()
+        for cs, rel in OBSERVED_PUBLISHED_RELEASES.items():
+            with self.subTest(config_string=cs):
+                row = by_cs[cs]
+                if row["version"] != rel["version"]:
+                    continue
+                notes = row.get("notes", "")
+                for claim in (
+                    f"release_state stays {METADATA_READY}",
+                    f"release_state remains {METADATA_READY}",
+                    f"release_state is {METADATA_READY}",
+                ):
+                    self.assertNotIn(claim, notes)
+
     def test_published_row_keeps_non_stable_posture(self) -> None:
         # Publication on the preview channel changes no channel, posture or
         # stable gate.
