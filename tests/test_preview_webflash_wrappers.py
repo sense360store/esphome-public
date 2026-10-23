@@ -365,7 +365,13 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                 row = builds[cs]
                 self.assertEqual(row["channel"], "preview")
                 self.assertEqual(row["product_yaml"], rel)
-                self.assertEqual(row["release_state"], "metadata-ready-unpublished")
+                if cs == "Ceiling-POE-AirIQ-RoomIQ":
+                    # SENSE360-REVIEW-RELEASE-001: v1.0.10 is published
+                    # (v1.0.10-preview); the preview-only release_state field
+                    # was dropped. The manifest target is not touched here.
+                    self.assertNotIn("release_state", row)
+                else:
+                    self.assertEqual(row["release_state"], "metadata-ready-unpublished")
                 if cs == "Ceiling-POE-RoomIQ-LED":
                     self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
 

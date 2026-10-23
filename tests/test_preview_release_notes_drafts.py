@@ -97,11 +97,17 @@ LEDGER_DRAFTED_CONFIGS = (
 # The FanTRIAC experimental self-build mains build (TRIAC-COMMISSIONING-001)
 # and the two owner-declared FanRelay room bundles are metadata-ready on the
 # EXPERIMENTAL channel, tracked separately.
+# Demoted back to preview by PR #834, upheld by the owner decision of
+# 2026-07-28; declared at v1.0.10 on the preview channel (moved from v1.0.9
+# by SENSE360-REVIEW-RELEASE-001).
+# SENSE360-REVIEW-RELEASE-001 status reconciliation: v1.0.10 of
+# Ceiling-POE-AirIQ-RoomIQ is published (GitHub Release v1.0.10-preview,
+# prerelease, 2026-08-21; observed existing evidence pinned in
+# tests/test_published_release_state_consistency.py), so its row dropped the
+# preview-only release_state field and sits as a published preview row.
+# Its committed dry-run draft stays as the coverage record.
+PUBLISHED_DRAFTED_PREVIEW_CONFIGS: tuple[str, ...] = ("Ceiling-POE-AirIQ-RoomIQ",)
 STILL_METADATA_READY_CONFIGS: tuple[str, ...] = (
-    # Demoted back to preview by PR #834, upheld by the owner decision of
-    # 2026-07-28; metadata-ready at v1.0.10 on the preview channel
-    # (moved from v1.0.9 by SENSE360-REVIEW-RELEASE-001).
-    "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-FanPWM",
     "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
@@ -403,7 +409,7 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
                 self.assertEqual(ev.get("result"), "success")
 
     def test_rows_carry_warning_copy_matching_promotion_state(self) -> None:
-        for cs in STILL_METADATA_READY_CONFIGS:
+        for cs in STILL_METADATA_READY_CONFIGS + PUBLISHED_DRAFTED_PREVIEW_CONFIGS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
                 self.assertEqual(row.get("warning_copy_key"), "preview")
@@ -432,6 +438,12 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
                 self.assertEqual(row["channel"], "preview")
                 self.assertEqual(row.get("release_state"), "metadata-ready-unpublished")
                 self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
+        for cs in PUBLISHED_DRAFTED_PREVIEW_CONFIGS:
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                self.assertEqual(row["channel"], "preview")
+                self.assertNotIn("release_state", row)
+                self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
         for cs in PROMOTED_CONFIGS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
@@ -451,6 +463,12 @@ class EveryPreviewRowHasCoverageTests(unittest.TestCase):
                     self.assertTrue(
                         _draft_path(cs).is_file(),
                         f"{cs}: metadata-ready preview row has no draft",
+                    )
+                elif cs in PUBLISHED_DRAFTED_PREVIEW_CONFIGS:
+                    # Published preview row that keeps its committed draft.
+                    self.assertTrue(
+                        _draft_path(cs).is_file(),
+                        f"{cs}: published drafted preview row lost its draft",
                     )
                 elif cs == PUBLISHED_LED_PREVIEW_CONFIG:
                     # Covered by its recorded published release proof; not
