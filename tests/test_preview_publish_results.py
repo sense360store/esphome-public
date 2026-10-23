@@ -71,7 +71,13 @@ EXPECTED_PUBLISHED_CONFIGS = {
 # the five #834-updated test files and these.
 # The AirIQ row keeps release_state metadata-ready-unpublished on the preview
 # channel; only the Bedroom promotion stands.
-UNPROMOTED_METADATA_ROWS: set[str] = {
+UNPROMOTED_METADATA_ROWS: set[str] = set()
+# SENSE360-REVIEW-RELEASE-001 status reconciliation: v1.0.10 of
+# Ceiling-POE-AirIQ-RoomIQ is published (GitHub Release v1.0.10-preview,
+# prerelease, 2026-08-21; observed existing evidence pinned in
+# tests/test_published_release_state_consistency.py), so its row dropped the
+# preview-only release_state field and sits as a published preview row.
+PUBLISHED_PREVIEW_ROWS = {
     "Ceiling-POE-AirIQ-RoomIQ",
 }
 PROMOTED_ROWS = {
@@ -177,7 +183,7 @@ class GuardrailTests(unittest.TestCase):
                 self.assertEqual(
                     by_cs[cs].get("release_state"), "metadata-ready-unpublished"
                 )
-        for cs in PROMOTED_ROWS:
+        for cs in PROMOTED_ROWS | PUBLISHED_PREVIEW_ROWS:
             with self.subTest(config_string=cs):
                 self.assertNotIn("release_state", by_cs[cs])
 

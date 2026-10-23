@@ -115,7 +115,13 @@ EXPERIMENTAL_METADATA_READY_CONFIGS = (
 # moves to a version whose source carries the accepted review contract. The
 # row stays metadata-ready-unpublished on the preview channel — no binary,
 # Release, or tag is cut by the bump.
-DEMOTED_METADATA_READY = {
+DEMOTED_METADATA_READY: Dict[str, str] = {}
+# SENSE360-REVIEW-RELEASE-001 status reconciliation: v1.0.10 of
+# Ceiling-POE-AirIQ-RoomIQ is published (GitHub Release v1.0.10-preview,
+# prerelease, 2026-08-21; observed existing evidence pinned in
+# tests/test_published_release_state_consistency.py), so its row dropped the
+# preview-only release_state field and sits as a published preview row.
+DEMOTED_PUBLISHED_PREVIEW = {
     "Ceiling-POE-AirIQ-RoomIQ": "1.0.10",
 }
 
@@ -239,6 +245,12 @@ class PublishScopeTests(unittest.TestCase):
                 self.assertEqual(row["channel"], "preview")
                 self.assertEqual(row["version"], version)
                 self.assertEqual(row.get("release_state"), "metadata-ready-unpublished")
+        for cs, version in DEMOTED_PUBLISHED_PREVIEW.items():
+            with self.subTest(config_string=cs):
+                row = by_cs[cs]
+                self.assertEqual(row["channel"], "preview")
+                self.assertEqual(row["version"], version)
+                self.assertNotIn("release_state", row)
         for cs in PROMOTED_CONFIGS:
             with self.subTest(config_string=cs):
                 row = by_cs[cs]
@@ -263,7 +275,10 @@ class ArtifactNameContractTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 expected = f"Sense360-{cs}-v{VERSION}-preview.bin"
                 self.assertEqual(by_cs[cs]["artifact_name"], expected)
-        for cs, version in DEMOTED_METADATA_READY.items():
+        for cs, version in {
+            **DEMOTED_METADATA_READY,
+            **DEMOTED_PUBLISHED_PREVIEW,
+        }.items():
             with self.subTest(config_string=cs):
                 expected = f"Sense360-{cs}-v{version}-preview.bin"
                 self.assertEqual(by_cs[cs]["artifact_name"], expected)
