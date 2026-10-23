@@ -25,12 +25,14 @@ Run with::
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Iterator, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
+CONFIG_DIR = REPO_ROOT / "config"
+BUILDS_PATH = CONFIG_DIR / "webflash-builds.json"
 ROADMAP_PATH = REPO_ROOT / "docs" / "sense360-roadmap-status.md"
 
 METADATA_READY = "metadata-ready-unpublished"
@@ -131,6 +133,51 @@ class PublishedReleaseConsistencyTests(unittest.TestCase):
                 self.assertFalse(posture["recommended"])
                 self.assertFalse(posture["customer_default"])
                 self.assertEqual(posture["visibility"], "hidden")
+
+
+def _config_notes() -> Iterator[Tuple[str, str]]:
+    """Yield (location, text) for every ``notes`` string under config/."""
+
+    def walk(node: Any, where: str) -> Iterator[Tuple[str, str]]:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key == "notes" and isinstance(value, str):
+                    yield f"{where}.notes", value
+                else:
+                    yield from walk(value, f"{where}.{key}")
+        elif isinstance(node, list):
+            for i, item in enumerate(node):
+                yield from walk(item, f"{where}[{i}]")
+
+    for path in sorted(CONFIG_DIR.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        yield from walk(data, path.name)
+
+
+class ConfigNotesConsistencyTests(unittest.TestCase):
+    def test_config_notes_do_not_claim_published_version_unpublished(self) -> None:
+        # Any config prose, not only the build row's own notes, must not
+        # describe an observed published version as unpublished. Checked per
+        # clause so a clause about another version does not trip the guard.
+        markers = (METADATA_READY, "unpublished", "not published",
+                   "nothing is published")
+        notes = list(_config_notes())
+        for cs, rel in OBSERVED_PUBLISHED_RELEASES.items():
+            version_ref = f"v{rel['version']}"
+            for where, text in notes:
+                for clause in re.split(r"(?<=[.;:])\s+", text):
+                    lowered = clause.lower()
+                    if version_ref not in clause:
+                        continue
+                    with self.subTest(config_string=cs, location=where):
+                        for marker in markers:
+                            self.assertNotIn(
+                                marker,
+                                lowered,
+                                f"{where} claims {version_ref} is unpublished "
+                                f"but it is published as {rel['release_tag']} "
+                                f"({rel['release_url']}): {clause!r}",
+                            )
 
 
 class RoadmapStatusDocTests(unittest.TestCase):
